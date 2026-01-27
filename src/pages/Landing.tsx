@@ -183,23 +183,18 @@ export const Landing = () => {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-6 mt-10">
-                <div className="flex -space-x-3">
-                  {[testimonial1, testimonial2, testimonial3].map((img, i) => (
-                    <img
-                      key={i}
-                      src={img}
-                      alt="User"
-                      className="w-10 h-10 rounded-full border-2 border-background object-cover"
-                    />
-                  ))}
-                  <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center border-2 border-background text-xs font-semibold text-primary-foreground">
-                    +1M
-                  </div>
+              <div className="flex flex-wrap items-center gap-4 mt-10">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border">
+                  <CheckCircle className="text-primary" size={16} />
+                  <span className="text-sm font-medium">Free to Join</span>
                 </div>
-                <div className="text-sm">
-                  <span className="font-semibold text-foreground">1M+ Professionals</span>
-                  <span className="text-muted-foreground"> already joined</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border">
+                  <Shield className="text-primary" size={16} />
+                  <span className="text-sm font-medium">Verified Employers</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border">
+                  <Zap className="text-primary" size={16} />
+                  <span className="text-sm font-medium">AI-Powered Matching</span>
                 </div>
               </div>
             </motion.div>
@@ -223,8 +218,8 @@ export const Landing = () => {
                   className="absolute -bottom-6 -left-6 bg-card rounded-xl shadow-lg p-4 border"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="text-green-600" size={20} />
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <CheckCircle className="text-primary" size={20} />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Profile Verified</p>
@@ -251,16 +246,38 @@ export const Landing = () => {
         </div>
       </section>
 
-      {/* Trusted By Section */}
+      {/* Why Choose Us Section */}
       <section className="py-12 border-y border-border/50">
         <div className="container mx-auto px-6">
-          <p className="text-center text-sm text-muted-foreground mb-8">Trusted by professionals at leading companies</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-            {companies.map((company) => (
-              <span key={company} className="text-xl font-semibold text-muted-foreground/60 hover:text-foreground transition-colors">
-                {company}
-              </span>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="p-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Briefcase className="text-primary" size={24} />
+              </div>
+              <p className="font-semibold">Remote & On-site</p>
+              <p className="text-sm text-muted-foreground">Flexible work options</p>
+            </div>
+            <div className="p-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Shield className="text-primary" size={24} />
+              </div>
+              <p className="font-semibold">Verified Jobs</p>
+              <p className="text-sm text-muted-foreground">100% legitimate listings</p>
+            </div>
+            <div className="p-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <TrendingUp className="text-primary" size={24} />
+              </div>
+              <p className="font-semibold">Career Growth</p>
+              <p className="text-sm text-muted-foreground">Upskill with programs</p>
+            </div>
+            <div className="p-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Award className="text-primary" size={24} />
+              </div>
+              <p className="font-semibold">Earn Badges</p>
+              <p className="text-sm text-muted-foreground">Stand out to employers</p>
+            </div>
           </div>
         </div>
       </section>
