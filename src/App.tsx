@@ -12,6 +12,7 @@ import GoogleCallback from "./pages/auth/GoogleCallback";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import BrowseJobs from "./pages/dashboard/BrowseJobs";
+import JobApply from "./pages/dashboard/JobApply";
 import Applications from "./pages/dashboard/Applications";
 import Programs from "./pages/dashboard/Programs";
 import ProgramDetails from "./pages/dashboard/ProgramDetails";
@@ -53,6 +54,7 @@ const App = () => (
             </Route>
             <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
             <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
+            <Route path="/dashboard/jobs/:jobId/apply" element={<JobApply />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
