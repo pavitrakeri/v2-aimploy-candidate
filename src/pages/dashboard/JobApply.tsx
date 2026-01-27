@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,15 +15,11 @@ import {
   MapPin,
   Building2,
   DollarSign,
-  Mic,
-  Square,
-  Play,
-  Trash2,
   CheckCircle2,
 } from "lucide-react";
-import { jobsApi, Job, ApplicationPrefill } from "@/services/api";
+import { jobsApi, Job } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-
+import AudioQuestionFlow from "@/components/audio/AudioQuestionFlow";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -40,6 +36,7 @@ const itemVariants = {
 interface AudioRecording {
   blob: Blob;
   url: string;
+  duration: number;
 }
 
 export const JobApply = () => {
@@ -61,11 +58,6 @@ export const JobApply = () => {
   // Audio questions
   const [audioQuestions, setAudioQuestions] = useState<string[]>([]);
   const [audioRecordings, setAudioRecordings] = useState<(AudioRecording | null)[]>([]);
-  const [isRecording, setIsRecording] = useState<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState<number | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const steps = [
     { number: 1, title: "Personal Info" },
@@ -136,77 +128,9 @@ export const JobApply = () => {
     }
   };
 
-  const startRecording = async (questionIndex: number) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        setAudioRecordings((prev) => {
-          const updated = [...prev];
-          updated[questionIndex] = { blob: audioBlob, url: audioUrl };
-          return updated;
-        });
-
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(questionIndex);
-    } catch (error) {
-      toast({
-        title: "Microphone access denied",
-        description: "Please allow microphone access to record your answers",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording !== null) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(null);
-    }
-  };
-
-  const playRecording = (questionIndex: number) => {
-    const recording = audioRecordings[questionIndex];
-    if (recording) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      audioRef.current = new Audio(recording.url);
-      audioRef.current.onended = () => setIsPlaying(null);
-      audioRef.current.play();
-      setIsPlaying(questionIndex);
-    }
-  };
-
-  const stopPlaying = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(null);
-    }
-  };
-
-  const deleteRecording = (questionIndex: number) => {
-    setAudioRecordings((prev) => {
-      const updated = [...prev];
-      if (updated[questionIndex]?.url) {
-        URL.revokeObjectURL(updated[questionIndex]!.url);
-      }
-      updated[questionIndex] = null;
-      return updated;
-    });
+  const handleAudioComplete = (recordings: (AudioRecording | null)[]) => {
+    setAudioRecordings(recordings);
+    setCurrentStep(4);
   };
 
   const canProceedToNextStep = () => {
@@ -462,76 +386,11 @@ export const JobApply = () => {
                     No audio questions for this position. You can proceed to the next step.
                   </p>
                 ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Record your answers to the following questions. Audio responses are optional but highly recommended.
-                    </p>
-                    {audioQuestions.map((question, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <p className="font-medium">
-                          Q{index + 1}: {question}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          {!audioRecordings[index] ? (
-                            isRecording === index ? (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={stopRecording}
-                              >
-                                <Square size={16} className="mr-2" />
-                                Stop Recording
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => startRecording(index)}
-                                disabled={isRecording !== null}
-                              >
-                                <Mic size={16} className="mr-2" />
-                                Record Answer
-                              </Button>
-                            )
-                          ) : (
-                            <>
-                              {isPlaying === index ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={stopPlaying}
-                                >
-                                  <Square size={16} className="mr-2" />
-                                  Stop
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => playRecording(index)}
-                                >
-                                  <Play size={16} className="mr-2" />
-                                  Play
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteRecording(index)}
-                              >
-                                <Trash2 size={16} className="mr-2" />
-                                Delete
-                              </Button>
-                              <Badge variant="secondary">
-                                <Check size={12} className="mr-1" />
-                                Recorded
-                              </Badge>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </>
+                  <AudioQuestionFlow
+                    questions={audioQuestions}
+                    onComplete={handleAudioComplete}
+                    initialRecordings={audioRecordings}
+                  />
                 )}
               </div>
             )}
@@ -573,44 +432,46 @@ export const JobApply = () => {
         </Card>
       </motion.div>
 
-      {/* Navigation Buttons */}
-      <motion.div variants={itemVariants} className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentStep((s) => s - 1)}
-          disabled={currentStep === 1}
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Previous
-        </Button>
-        {currentStep < 4 ? (
+      {/* Navigation Buttons - Hidden during audio step when questions exist */}
+      {!(currentStep === 3 && audioQuestions.length > 0) && (
+        <motion.div variants={itemVariants} className="flex justify-between">
           <Button
-            onClick={() => setCurrentStep((s) => s + 1)}
-            disabled={!canProceedToNextStep()}
+            variant="outline"
+            onClick={() => setCurrentStep((s) => s - 1)}
+            disabled={currentStep === 1}
           >
-            Next
-            <ArrowRight size={16} className="ml-2" />
+            <ArrowLeft size={16} className="mr-2" />
+            Previous
           </Button>
-        ) : (
-          <Button
-            variant="gradient"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 size={16} className="mr-2 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                Submit Application
-                <Check size={16} className="ml-2" />
-              </>
-            )}
-          </Button>
-        )}
-      </motion.div>
+          {currentStep < 4 ? (
+            <Button
+              onClick={() => setCurrentStep((s) => s + 1)}
+              disabled={!canProceedToNextStep()}
+            >
+              Next
+              <ArrowRight size={16} className="ml-2" />
+            </Button>
+          ) : (
+            <Button
+              variant="gradient"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Application
+                  <Check size={16} className="ml-2" />
+                </>
+              )}
+            </Button>
+          )}
+        </motion.div>
+      )}
     </motion.div>
   );
 };
