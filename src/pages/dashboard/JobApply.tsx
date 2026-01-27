@@ -436,7 +436,10 @@ export const JobApply = () => {
                       </Button>
                     </div>
                   ) : (
-                    <label htmlFor="resume" className="cursor-pointer">
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => document.getElementById("resume")?.click()}
+                    >
                       <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-lg font-medium mb-1">Upload your resume</p>
                       <p className="text-sm text-muted-foreground mb-4">
@@ -445,7 +448,7 @@ export const JobApply = () => {
                       <Button variant="outline" type="button">
                         Select File
                       </Button>
-                    </label>
+                    </div>
                   )}
                 </div>
               </div>
