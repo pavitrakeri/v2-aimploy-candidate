@@ -251,14 +251,8 @@ export const BrowseJobs = () => {
                         </button>
                       </div>
 
-                      {job.description && (
-                        <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
-                          {job.description}
-                        </p>
-                      )}
-
                       {job.requirements && (
-                        <div className="flex flex-wrap items-center gap-2 mt-4">
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
                           {job.requirements.split(",").slice(0, 4).map((req, idx) => (
                             <Badge key={idx} variant="secondary" className="font-normal">
                               {req.trim()}
