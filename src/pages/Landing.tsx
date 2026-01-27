@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { TrustedBySection } from "@/components/landing/TrustedBySection";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
@@ -13,7 +12,6 @@ export const Landing = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
-      <TrustedBySection />
       <StatsSection />
       <FeaturesSection />
       <HowItWorksSection />
