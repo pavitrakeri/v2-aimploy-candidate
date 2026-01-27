@@ -132,7 +132,7 @@ export const Register = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           
-          <div className="absolute inset-0 flex flex-col justify-end p-12">
+          <div className="absolute inset-0 flex flex-col justify-start p-12 pt-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
