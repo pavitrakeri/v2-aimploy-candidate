@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import {
   Building2,
   Sparkles,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 
 const aimployPrograms = [
@@ -86,6 +86,10 @@ const itemVariants = {
 
 export const Programs = () => {
   const navigate = useNavigate();
+
+  const handleViewDetails = (programId: string) => {
+    navigate(`/dashboard/programs/${programId}`);
+  };
 
   const handleApply = (programId: string) => {
     navigate(`/dashboard/programs/apply/${programId}`);
@@ -181,18 +185,23 @@ export const Programs = () => {
                   </div>
 
                   {/* CTA */}
-                  <div className="pt-2">
+                  <div className="pt-2 flex gap-3">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => handleViewDetails(program.id)}
+                    >
+                      <Eye size={16} />
+                      View Details
+                    </Button>
                     <Button
                       variant="gradient"
-                      className="w-full group-hover:shadow-purple-lg transition-shadow"
+                      className="flex-1 group-hover:shadow-purple-lg transition-shadow"
                       onClick={() => handleApply(program.id)}
                     >
                       Apply Now
                       <ArrowRight size={16} />
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center mt-2">
-                      Application available via job recommendations
-                    </p>
                   </div>
                 </div>
               </CardContent>
