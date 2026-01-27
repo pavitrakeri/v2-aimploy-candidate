@@ -524,7 +524,7 @@ export const Landing = () => {
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t">
             <p className="text-sm text-muted-foreground">
-              © 2024 Aimploy. All rights reserved.
+              © 2026 Aimploy. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
