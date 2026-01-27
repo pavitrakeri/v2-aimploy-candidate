@@ -3,9 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import GoogleCallback from "./pages/auth/GoogleCallback";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import BrowseJobs from "./pages/dashboard/BrowseJobs";
@@ -22,29 +25,39 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="jobs" element={<BrowseJobs />} />
-            <Route path="applications" element={<Applications />} />
-            <Route path="programs" element={<Programs />} />
-            <Route path="challenges" element={<Challenges />} />
-            <Route path="verification" element={<Verification />} />
-            <Route path="profile" element={<Profile />} />
-          </Route>
-          <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
-          <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="jobs" element={<BrowseJobs />} />
+              <Route path="applications" element={<Applications />} />
+              <Route path="programs" element={<Programs />} />
+              <Route path="challenges" element={<Challenges />} />
+              <Route path="verification" element={<Verification />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+            <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
+            <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
