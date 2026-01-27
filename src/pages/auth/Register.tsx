@@ -114,36 +114,35 @@ export const Register = () => {
   };
 
   return (
-    <div className="h-screen bg-background overflow-hidden">
-      <div className="flex h-full">
-        {/* Left Panel - Fixed/Non-scrollable */}
-        <div className="hidden lg:flex w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden flex-shrink-0">
-          <div className="relative z-10 text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <h2 className="font-display text-4xl font-bold text-primary-foreground mb-4">
-                Start Your Career Journey
-              </h2>
-              <p className="text-primary-foreground/80 max-w-md mx-auto">
-                Create your profile and get matched with thousands of opportunities tailored for you.
-              </p>
-            </motion.div>
-          </div>
-          <div className="absolute top-20 left-20 w-72 h-72 bg-primary-foreground/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary-foreground/10 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-background flex">
+      {/* Left Panel - Decorative */}
+      <div className="hidden lg:flex flex-1 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
+        <div className="relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <h2 className="font-display text-4xl font-bold text-primary-foreground mb-4">
+              Start Your Career Journey
+            </h2>
+            <p className="text-primary-foreground/80 max-w-md mx-auto">
+              Create your profile and get matched with thousands of opportunities tailored for you.
+            </p>
+          </motion.div>
         </div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-primary-foreground/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary-foreground/10 rounded-full blur-3xl" />
+      </div>
 
-        {/* Right Panel - Scrollable Form */}
-        <div className="flex-1 h-full overflow-y-auto p-6 lg:p-12">
-          <div className="max-w-md mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
+      {/* Right Panel - Form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
           <Link to="/" className="inline-block mb-8">
             <img src={aimployLogo} alt="Aimploy" className="h-8" />
           </Link>
@@ -376,9 +375,7 @@ export const Register = () => {
               Sign in
             </Link>
           </p>
-            </motion.div>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
