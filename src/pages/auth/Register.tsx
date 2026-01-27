@@ -114,9 +114,9 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Panel - Decorative */}
-      <div className="hidden lg:flex flex-1 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
+    <div className="h-screen bg-background flex overflow-hidden">
+      {/* Left Panel - Fixed/Non-scrollable */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden fixed left-0 top-0 bottom-0">
         <div className="relative z-10 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -135,8 +135,8 @@ export const Register = () => {
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary-foreground/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+      {/* Right Panel - Scrollable Form */}
+      <div className="flex-1 lg:ml-[50%] h-screen overflow-y-auto p-6 lg:p-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
