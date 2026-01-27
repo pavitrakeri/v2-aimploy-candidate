@@ -63,6 +63,13 @@ export const AudioQuestionFlow = ({
   const currentRecording = recordings[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
+  // Auto-start countdown when question changes (only if no existing recording)
+  useEffect(() => {
+    if (questionState === "idle" && !currentRecording) {
+      startCountdown();
+    }
+  }, [currentQuestionIndex, questionState, currentRecording]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -419,33 +426,21 @@ export const AudioQuestionFlow = ({
             </motion.div>
           )}
 
-          {/* Idle State */}
+          {/* Idle State - Auto-starting, show loading */}
           {questionState === "idle" && !currentRecording && (
             <motion.div
               key="idle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-4"
+              className="flex flex-col items-center gap-4 py-6"
             >
-              <div className="flex flex-col items-center gap-4 py-6">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Mic className="w-10 h-10 text-primary" />
-                </div>
-                <p className="text-sm text-muted-foreground text-center">
-                  Click to start recording. You have up to {MAX_RECORDING_TIME} seconds.
-                </p>
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Mic className="w-10 h-10 text-primary animate-pulse" />
               </div>
-
-              <div className="flex justify-center gap-3">
-                <Button variant="outline" onClick={skipQuestion}>
-                  Skip Question
-                </Button>
-                <Button variant="gradient" onClick={startCountdown}>
-                  <Mic size={16} className="mr-2" />
-                  Record Answer
-                </Button>
-              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Preparing to record...
+              </p>
             </motion.div>
           )}
 
