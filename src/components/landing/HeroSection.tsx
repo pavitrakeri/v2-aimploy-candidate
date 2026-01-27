@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Play } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
 
 export const HeroSection = () => {
@@ -47,23 +47,9 @@ export const HeroSection = () => {
                   <ArrowRight size={18} />
                 </Link>
               </Button>
-              <Button variant="outline-gradient" size="xl" className="gap-2">
-                <Play size={18} className="fill-current" />
-                Watch Demo
+              <Button variant="outline-gradient" size="xl" asChild>
+                <Link to="/login">Browse Jobs</Link>
               </Button>
-            </div>
-
-            <div className="flex items-center gap-6 mt-10">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-10 h-10 rounded-full bg-gradient-primary opacity-80 -ml-3 first:ml-0 border-2 border-background"
-                />
-              ))}
-              <div className="text-sm">
-                <span className="font-semibold text-foreground">1M+ Professionals</span>
-                <span className="text-muted-foreground"> already joined</span>
-              </div>
             </div>
           </motion.div>
 
