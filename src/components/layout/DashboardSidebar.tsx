@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import aimployLogo from "@/assets/aimploy-logo.png";
 
 interface NavItem {
@@ -35,6 +36,13 @@ const navItems: NavItem[] = [
 export const DashboardSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <motion.aside
@@ -132,9 +140,9 @@ export const DashboardSidebar = () => {
 
       {/* User Section */}
       <div className="p-3 border-t border-sidebar-border">
-        <Link
-          to="/"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full"
         >
           <LogOut size={20} className="shrink-0" />
           <AnimatePresence mode="wait">
@@ -149,7 +157,7 @@ export const DashboardSidebar = () => {
               </motion.span>
             )}
           </AnimatePresence>
-        </Link>
+        </button>
       </div>
     </motion.aside>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,82 +12,18 @@ import {
   Filter,
   Clock,
   DollarSign,
+  Loader2,
+  Briefcase,
 } from "lucide-react";
-
-const jobs = [
-  {
-    id: 1,
-    company: "Google",
-    role: "Senior Frontend Developer",
-    location: "Mountain View, CA",
-    type: "Full-time",
-    salary: "$180k - $220k",
-    posted: "2 hours ago",
-    tags: ["React", "TypeScript", "Next.js", "GraphQL"],
-    description: "Join Google's core team to build innovative web applications.",
-    logo: "G",
-  },
-  {
-    id: 2,
-    company: "Meta",
-    role: "Full Stack Engineer",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$160k - $200k",
-    posted: "5 hours ago",
-    tags: ["React", "Node.js", "PostgreSQL", "AWS"],
-    description: "Build scalable infrastructure for billions of users worldwide.",
-    logo: "M",
-  },
-  {
-    id: 3,
-    company: "Stripe",
-    role: "Frontend Engineer",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$150k - $190k",
-    posted: "1 day ago",
-    tags: ["React", "Ruby", "API Design"],
-    description: "Create payment solutions that power the internet economy.",
-    logo: "S",
-  },
-  {
-    id: 4,
-    company: "Vercel",
-    role: "Developer Experience Engineer",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$140k - $180k",
-    posted: "2 days ago",
-    tags: ["Next.js", "TypeScript", "Edge Functions"],
-    description: "Shape the future of web development tools and frameworks.",
-    logo: "V",
-  },
-  {
-    id: 5,
-    company: "Figma",
-    role: "UI Engineer",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$170k - $210k",
-    posted: "3 days ago",
-    tags: ["React", "WebGL", "Canvas API", "C++"],
-    description: "Build the collaborative design tool of the future.",
-    logo: "F",
-  },
-  {
-    id: 6,
-    company: "Notion",
-    role: "Software Engineer",
-    location: "New York, NY",
-    type: "Full-time",
-    salary: "$155k - $195k",
-    posted: "4 days ago",
-    tags: ["React", "Electron", "Node.js"],
-    description: "Create beautiful productivity tools used by millions.",
-    logo: "N",
-  },
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { jobsApi, Job } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -103,13 +39,74 @@ const itemVariants = {
 };
 
 export const BrowseJobs = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [savedJobs, setSavedJobs] = useState<number[]>([]);
+  
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [employmentType, setEmploymentType] = useState("");
+  
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await jobsApi.getJobs({
+        page,
+        page_size: 10,
+        search: searchQuery || undefined,
+        location: locationFilter || undefined,
+        employment_type: employmentType || undefined,
+      });
+      setJobs(response.jobs);
+      setTotalPages(response.total_pages);
+      setTotal(response.total);
+    } catch (error) {
+      toast({
+        title: "Failed to load jobs",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, [page, employmentType]);
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchJobs();
+  };
 
   const toggleSaveJob = (id: number) => {
     setSavedJobs((prev) =>
       prev.includes(id) ? prev.filter((jobId) => jobId !== id) : [...prev, id]
     );
+  };
+
+  const getCompanyInitial = (job: Job) => {
+    return job.title.charAt(0).toUpperCase();
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
   };
 
   return (
@@ -123,7 +120,7 @@ export const BrowseJobs = () => {
       <motion.div variants={itemVariants}>
         <h1 className="font-display text-3xl font-bold">Browse Jobs</h1>
         <p className="text-muted-foreground mt-1">
-          Find your next opportunity from {jobs.length} available positions
+          Find your next opportunity from {total} available positions
         </p>
       </motion.div>
 
@@ -135,100 +132,166 @@ export const BrowseJobs = () => {
             placeholder="Search jobs, companies, or keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="pl-10 h-12"
           />
         </div>
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input placeholder="Location" className="pl-10 h-12 w-full sm:w-48" />
+          <Input
+            placeholder="Location"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="pl-10 h-12 w-full sm:w-48"
+          />
         </div>
-        <Button variant="outline" size="lg" className="h-12">
+        <Select value={employmentType} onValueChange={setEmploymentType}>
+          <SelectTrigger className="h-12 w-full sm:w-40">
+            <SelectValue placeholder="Job Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="full-time">Full-time</SelectItem>
+            <SelectItem value="part-time">Part-time</SelectItem>
+            <SelectItem value="contract">Contract</SelectItem>
+            <SelectItem value="internship">Internship</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="lg" className="h-12" onClick={handleSearch}>
           <Filter size={18} />
-          Filters
+          Search
         </Button>
       </motion.div>
 
       {/* Job Listings */}
-      <motion.div variants={containerVariants} className="space-y-4">
-        {jobs.map((job) => (
-          <motion.div key={job.id} variants={itemVariants}>
-            <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                  {/* Company Logo */}
-                  <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
-                    <span className="text-primary-foreground text-xl font-bold">
-                      {job.logo}
-                    </span>
-                  </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : jobs.length === 0 ? (
+        <motion.div variants={itemVariants} className="text-center py-12">
+          <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No jobs found</h3>
+          <p className="text-muted-foreground">Try adjusting your search filters</p>
+        </motion.div>
+      ) : (
+        <motion.div variants={containerVariants} className="space-y-4">
+          {jobs.map((job) => (
+            <motion.div key={job.id} variants={itemVariants}>
+              <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                    {/* Company Logo */}
+                    <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+                      <span className="text-primary-foreground text-xl font-bold">
+                        {getCompanyInitial(job)}
+                      </span>
+                    </div>
 
-                  {/* Job Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-display text-lg font-semibold group-hover:text-primary transition-colors">
-                          {job.role}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground mt-1">
-                          <span className="flex items-center gap-1">
-                            <Building2 size={14} />
-                            {job.company}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin size={14} />
-                            {job.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock size={14} />
-                            {job.posted}
-                          </span>
+                    {/* Job Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="font-display text-lg font-semibold group-hover:text-primary transition-colors">
+                            {job.title}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground mt-1">
+                            {job.department && (
+                              <span className="flex items-center gap-1">
+                                <Building2 size={14} />
+                                {job.department}
+                              </span>
+                            )}
+                            {job.location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin size={14} />
+                                {job.location}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <Clock size={14} />
+                              {formatDate(job.created_at)}
+                            </span>
+                          </div>
                         </div>
+                        <button
+                          onClick={() => toggleSaveJob(job.id)}
+                          className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        >
+                          <Bookmark
+                            size={20}
+                            className={
+                              savedJobs.includes(job.id)
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground"
+                            }
+                          />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => toggleSaveJob(job.id)}
-                        className="p-2 rounded-lg hover:bg-muted transition-colors"
-                      >
-                        <Bookmark
-                          size={20}
-                          className={
-                            savedJobs.includes(job.id)
-                              ? "fill-primary text-primary"
-                              : "text-muted-foreground"
-                          }
-                        />
-                      </button>
+
+                      {job.description && (
+                        <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                          {job.description}
+                        </p>
+                      )}
+
+                      {job.requirements && (
+                        <div className="flex flex-wrap items-center gap-2 mt-4">
+                          {job.requirements.split(",").slice(0, 4).map((req, idx) => (
+                            <Badge key={idx} variant="secondary" className="font-normal">
+                              {req.trim()}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
-                      {job.description}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-2 mt-4">
-                      {job.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="font-normal">
-                          {tag}
-                        </Badge>
-                      ))}
+                    {/* Actions */}
+                    <div className="flex lg:flex-col items-center lg:items-end gap-3 lg:shrink-0">
+                      {job.salary_range && (
+                        <div className="flex items-center gap-1 text-gradient font-semibold">
+                          <DollarSign size={16} />
+                          <span>{job.salary_range}</span>
+                        </div>
+                      )}
+                      {job.employment_type && (
+                        <Badge variant="outline">{job.employment_type}</Badge>
+                      )}
+                      <Button variant="gradient" size="sm" className="w-full lg:w-auto">
+                        Apply Now
+                      </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
 
-                  {/* Actions */}
-                  <div className="flex lg:flex-col items-center lg:items-end gap-3 lg:shrink-0">
-                    <div className="flex items-center gap-1 text-gradient font-semibold">
-                      <DollarSign size={16} />
-                      <span>{job.salary.replace("$", "").replace(" - ", "-")}</span>
-                    </div>
-                    <Badge variant="outline">{job.type}</Badge>
-                    <Button variant="gradient" size="sm" className="w-full lg:w-auto">
-                      Apply Now
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <motion.div variants={itemVariants} className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Previous
+          </Button>
+          <span className="flex items-center px-4 text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
