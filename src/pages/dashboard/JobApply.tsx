@@ -16,6 +16,10 @@ import {
   Building2,
   DollarSign,
   CheckCircle2,
+  Clock,
+  Briefcase,
+  Users,
+  Calendar,
 } from "lucide-react";
 import { jobsApi, Job } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +50,7 @@ export const JobApply = () => {
 
   const [job, setJob] = useState<Job | null>(null);
   const [isLoadingJob, setIsLoadingJob] = useState(true);
+  const [showApplication, setShowApplication] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -205,6 +210,166 @@ export const JobApply = () => {
     );
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Job Details View
+  if (!showApplication) {
+    return (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-4xl mx-auto space-y-6"
+      >
+        {/* Header */}
+        <motion.div variants={itemVariants} className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/dashboard/jobs")}
+          >
+            <ArrowLeft size={20} />
+          </Button>
+          <div>
+            <h1 className="font-display text-2xl font-bold">Job Details</h1>
+            <p className="text-muted-foreground">Review the position before applying</p>
+          </div>
+        </motion.div>
+
+        {/* Job Header Card */}
+        <motion.div variants={itemVariants}>
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-hero p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 rounded-xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
+                  <span className="text-primary-foreground text-2xl font-bold">
+                    {job.title.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-display text-2xl font-bold text-primary-foreground">
+                    {job.title}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3 mt-2 text-primary-foreground/80">
+                    {job.department && (
+                      <span className="flex items-center gap-1">
+                        <Building2 size={16} />
+                        {job.department}
+                      </span>
+                    )}
+                    {job.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin size={16} />
+                        {job.location}
+                      </span>
+                    )}
+                    {job.employment_type && (
+                      <Badge className="bg-primary-foreground/20 text-primary-foreground border-0">
+                        {job.employment_type}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {job.salary_range && (
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <DollarSign className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-xs text-muted-foreground">Salary</p>
+                    <p className="font-semibold">{job.salary_range}</p>
+                  </div>
+                )}
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <Briefcase className="h-6 w-6 mx-auto mb-2 text-primary" />
+                  <p className="text-xs text-muted-foreground">Job Type</p>
+                  <p className="font-semibold">{job.employment_type || "Full-time"}</p>
+                </div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
+                  <p className="text-xs text-muted-foreground">Posted</p>
+                  <p className="font-semibold">{formatDate(job.created_at)}</p>
+                </div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
+                  <p className="text-xs text-muted-foreground">Applications</p>
+                  <p className="font-semibold">Open</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Job Description */}
+        {job.description && (
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display">About the Role</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground whitespace-pre-wrap">{job.description}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Requirements */}
+        {job.requirements && (
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display">Requirements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {job.requirements.split(",").map((req, idx) => (
+                    <Badge key={idx} variant="secondary" className="px-3 py-1">
+                      {req.trim()}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Apply CTA */}
+        <motion.div variants={itemVariants}>
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-lg font-semibold">Ready to Apply?</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Submit your application and take the next step in your career
+                  </p>
+                </div>
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  className="w-full md:w-auto"
+                  onClick={() => setShowApplication(true)}
+                >
+                  Apply Now
+                  <ArrowRight size={18} className="ml-2" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Application Form View
   return (
     <motion.div
       variants={containerVariants}
@@ -217,7 +382,7 @@ export const JobApply = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/dashboard/jobs")}
+          onClick={() => setShowApplication(false)}
         >
           <ArrowLeft size={20} />
         </Button>
