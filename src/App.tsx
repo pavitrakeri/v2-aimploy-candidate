@@ -11,6 +11,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import BrowseJobs from "./pages/dashboard/BrowseJobs";
 import Applications from "./pages/dashboard/Applications";
 import Programs from "./pages/dashboard/Programs";
+import ProgramDetails from "./pages/dashboard/ProgramDetails";
 import ProgramApply from "./pages/dashboard/ProgramApply";
 import Challenges from "./pages/dashboard/Challenges";
 import Verification from "./pages/dashboard/Verification";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="verification" element={<Verification />} />
             <Route path="profile" element={<Profile />} />
           </Route>
+          <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
           <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
