@@ -1,17 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  GraduationCap,
   Clock,
-  Users,
-  Star,
   ArrowRight,
   Play,
-  Award,
   Briefcase,
   TrendingUp,
   Megaphone,
@@ -19,7 +16,6 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-import { ProgramApplicationModal } from "@/components/programs/ProgramApplicationModal";
 
 const aimployPrograms = [
   {
@@ -89,22 +85,10 @@ const itemVariants = {
 };
 
 export const Programs = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<{
-    id: string;
-    title: string;
-    tracks: string[];
-    isPaid: boolean;
-  } | null>(null);
+  const navigate = useNavigate();
 
-  const handleApply = (program: typeof aimployPrograms[0]) => {
-    setSelectedProgram({
-      id: program.id,
-      title: program.title,
-      tracks: program.tracks,
-      isPaid: program.isPaid,
-    });
-    setIsModalOpen(true);
+  const handleApply = (programId: string) => {
+    navigate(`/dashboard/programs/apply/${programId}`);
   };
 
   return (
@@ -201,7 +185,7 @@ export const Programs = () => {
                     <Button
                       variant="gradient"
                       className="w-full group-hover:shadow-purple-lg transition-shadow"
-                      onClick={() => handleApply(program)}
+                      onClick={() => handleApply(program.id)}
                     >
                       Apply Now
                       <ArrowRight size={16} />
@@ -277,13 +261,6 @@ export const Programs = () => {
           </CardContent>
         </Card>
       </motion.div>
-
-      {/* Application Modal */}
-      <ProgramApplicationModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        program={selectedProgram}
-      />
     </motion.div>
   );
 };
