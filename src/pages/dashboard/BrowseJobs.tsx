@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ const itemVariants = {
 };
 
 export const BrowseJobs = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -258,7 +260,12 @@ export const BrowseJobs = () => {
                       {job.employment_type && (
                         <Badge variant="outline">{job.employment_type}</Badge>
                       )}
-                      <Button variant="gradient" size="sm" className="w-full lg:w-auto">
+                      <Button 
+                        variant="gradient" 
+                        size="sm" 
+                        className="w-full lg:w-auto"
+                        onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
+                      >
                         Apply Now
                       </Button>
                     </div>
