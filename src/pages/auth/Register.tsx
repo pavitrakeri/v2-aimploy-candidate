@@ -148,7 +148,7 @@ export const Register = () => {
               </div>
               
               <h2 className="font-display text-4xl font-bold text-white mb-4">
-                Join 1M+ Professionals
+                Your Career Starts Here
               </h2>
               <p className="text-white/80 text-lg mb-8 max-w-md">
                 Create your profile and get matched with thousands of opportunities tailored for you.
