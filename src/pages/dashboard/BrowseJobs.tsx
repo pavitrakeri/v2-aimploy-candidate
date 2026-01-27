@@ -23,8 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { jobsApi, Job } from "@/services/api";
+import { jobsApi, Job, applicationsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { CheckCircle } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -45,6 +46,7 @@ export const BrowseJobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savedJobs, setSavedJobs] = useState<number[]>([]);
+  const [appliedJobIds, setAppliedJobIds] = useState<number[]>([]);
   
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,6 +81,23 @@ export const BrowseJobs = () => {
       setIsLoading(false);
     }
   };
+
+  // Fetch applied jobs on mount
+  const fetchAppliedJobs = async () => {
+    try {
+      const response = await applicationsApi.getMyApplications({ page_size: 100 });
+      const appliedIds = response.applications
+        .filter((app) => app.job_id)
+        .map((app) => app.job_id);
+      setAppliedJobIds(appliedIds);
+    } catch (error) {
+      console.error("Failed to fetch applied jobs:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppliedJobs();
+  }, []);
 
   useEffect(() => {
     fetchJobs();
@@ -260,14 +279,21 @@ export const BrowseJobs = () => {
                       {job.employment_type && (
                         <Badge variant="outline">{job.employment_type}</Badge>
                       )}
-                      <Button 
-                        variant="gradient" 
-                        size="sm" 
-                        className="w-full lg:w-auto"
-                        onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
-                      >
-                        Apply Now
-                      </Button>
+                      {appliedJobIds.includes(job.id) ? (
+                        <Badge className="bg-green-100 text-green-700 border-green-200 px-4 py-2">
+                          <CheckCircle size={14} className="mr-1" />
+                          Applied
+                        </Badge>
+                      ) : (
+                        <Button 
+                          variant="gradient" 
+                          size="sm" 
+                          className="w-full lg:w-auto"
+                          onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
+                        >
+                          Apply Now
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
