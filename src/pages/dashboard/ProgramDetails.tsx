@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import aincubatrHero from "@/assets/aincubatr-hero.png";
+import aimaktHero from "@/assets/aimakt-hero.png";
 
 const programsData: Record<string, {
   id: string;
@@ -101,7 +102,7 @@ const programsData: Record<string, {
     startDate: "Rolling admissions",
     location: "Remote",
     isPaid: false,
-    heroImage: aincubatrHero,
+    heroImage: aimaktHero,
     description: "Gain practical marketing experience with our industry-recognized certification program.",
     highlights: [
       { icon: Award, text: "Marketing Certification included" },
