@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import aimployLogo from "@/assets/aimploy-logo.png";
 
@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
 ];
 
 export const DashboardSidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, toggleCollapsed } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -81,7 +81,7 @@ export const DashboardSidebar = () => {
         </AnimatePresence>
         
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleCollapsed}
           className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-muted hover:text-sidebar-foreground transition-colors"
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
