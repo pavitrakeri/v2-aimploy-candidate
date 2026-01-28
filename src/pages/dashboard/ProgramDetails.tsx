@@ -246,7 +246,7 @@ export const ProgramDetails = () => {
               <Button
                 variant="outline"
                 size="xl"
-                className="border-sidebar-foreground/30 text-sidebar-foreground hover:bg-sidebar-foreground/10"
+                className="border-primary-foreground/30 text-foreground bg-card hover:bg-card/90"
               >
                 Learn More
               </Button>
