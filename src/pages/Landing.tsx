@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Briefcase, Shield, Users, Sparkles, CheckCircle, TrendingUp, Award, Globe, Zap, Star, Quote } from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import landingHero from "@/assets/landing-hero.jpg";
+import teamPhoto from "@/assets/team-photo.jpg";
 import testimonial1 from "@/assets/testimonial-1.jpg";
 import testimonial2 from "@/assets/testimonial-2.jpg";
 import testimonial3 from "@/assets/testimonial-3.jpg";
@@ -128,8 +129,8 @@ export const Landing = () => {
             <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               How It Works
             </a>
-            <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Testimonials
+            <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              About
             </a>
             <Link to="/dashboard/programs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Programs
@@ -178,7 +179,7 @@ export const Landing = () => {
                     <ArrowRight size={18} />
                   </Link>
                 </Button>
-                <Button variant="outline-gradient" size="xl" asChild>
+                <Button variant="outline-gradient" size="xl" asChild className="hover:bg-transparent text-primary hover:text-primary">
                   <Link to="/login">Browse Jobs</Link>
                 </Button>
               </div>
@@ -391,6 +392,86 @@ export const Landing = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section id="about" className="py-20 px-6 bg-muted/30">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+              <Globe size={16} />
+              About Aimploy
+            </span>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Transforming <span className="text-gradient">Careers</span> Worldwide
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              We're on a mission to connect talented professionals with their dream opportunities through intelligent AI-powered matching.
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <div>
+                <h3 className="font-display text-2xl font-bold mb-4">Our Mission</h3>
+                <p className="text-muted-foreground mb-4">
+                  To revolutionize the job search experience by leveraging cutting-edge AI technology to create perfect matches between candidates and employers, saving time and increasing success rates for everyone involved.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-display text-2xl font-bold mb-4">Why Choose Aimploy?</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="text-primary mt-1" size={20} />
+                    <div>
+                      <p className="font-medium">AI-Powered Precision</p>
+                      <p className="text-sm text-muted-foreground">Our advanced algorithms analyze skills, experience, and preferences for perfect matches</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="text-primary mt-1" size={20} />
+                    <div>
+                      <p className="font-medium">Verified Opportunities</p>
+                      <p className="text-sm text-muted-foreground">Every job listing is thoroughly vetted for legitimacy and quality</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="text-primary mt-1" size={20} />
+                    <div>
+                      <p className="font-medium">Career Growth Focus</p>
+                      <p className="text-sm text-muted-foreground">We don't just find jobs, we build long-term career paths</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
+              <img 
+                src={teamPhoto} 
+                alt="About Aimploy Team" 
+                className="rounded-2xl shadow-2xl w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-2xl" />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
       <section id="testimonials" className="py-20 px-6">
         <div className="container mx-auto">
@@ -474,7 +555,7 @@ export const Landing = () => {
                 <Button
                   variant="outline"
                   size="xl"
-                  className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                  className="border-primary-foreground/30 text-primary hover:bg-transparent hover:text-primary"
                   asChild
                 >
                   <Link to="/login">Browse Jobs</Link>
