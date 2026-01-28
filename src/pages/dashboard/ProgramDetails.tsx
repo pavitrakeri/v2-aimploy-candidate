@@ -217,7 +217,7 @@ export const ProgramDetails = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative container mx-auto px-6 py-20 lg:py-32"
+          className="relative container mx-auto px-6 py-12 lg:py-20"
         >
           <div className="max-w-2xl">
             <div className="flex items-center gap-3 mb-4">
