@@ -52,6 +52,7 @@ export const BrowseJobs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [employmentType, setEmploymentType] = useState("");
+  const [gradYear, setGradYear] = useState("");
   
   // Pagination
   const [page, setPage] = useState(1);
@@ -179,6 +180,17 @@ export const BrowseJobs = () => {
             <SelectItem value="internship">Internship</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={gradYear} onValueChange={setGradYear}>
+          <SelectTrigger className="h-12 w-full sm:w-36">
+            <SelectValue placeholder="Grad Year" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Years</SelectItem>
+            <SelectItem value="1">1st Year</SelectItem>
+            <SelectItem value="2">2nd Year</SelectItem>
+            <SelectItem value="3">3rd Year</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" size="lg" className="h-12" onClick={handleSearch}>
           <Filter size={18} />
           Search
@@ -274,7 +286,7 @@ export const BrowseJobs = () => {
                         <Badge variant="outline">{job.employment_type}</Badge>
                       )}
                       {appliedJobIds.includes(job.id) ? (
-                        <Badge className="bg-green-100 text-green-700 border-green-200 px-4 py-2">
+                        <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2">
                           <CheckCircle size={14} className="mr-1" />
                           Applied
                         </Badge>
