@@ -117,7 +117,7 @@ export const DashboardSidebar = () => {
                     size={20}
                     className={cn(
                       "shrink-0 transition-colors",
-                      isActive ? "text-sidebar-primary" : "text-sidebar-muted group-hover:text-sidebar-foreground"
+                      isActive ? "text-sidebar-primary" : "text-sidebar-foreground"
                     )}
                   />
                   <AnimatePresence mode="wait">
