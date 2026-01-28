@@ -209,98 +209,101 @@ export const BrowseJobs = () => {
           <p className="text-muted-foreground">Try adjusting your search filters</p>
         </motion.div>
       ) : (
-        <motion.div variants={containerVariants} className="space-y-4">
+        <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {jobs.map((job) => (
             <motion.div key={job.id} variants={itemVariants}>
-              <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group">
-                <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                    {/* Company Logo */}
-                    <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
-                      <span className="text-primary-foreground text-xl font-bold">
+              <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group h-full flex flex-col">
+                <CardContent className="p-5 flex flex-col h-full">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+                      <span className="text-primary-foreground text-lg font-bold">
                         {getCompanyInitial(job)}
                       </span>
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSaveJob(job.id);
+                      }}
+                      className="p-2 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <Bookmark
+                        size={18}
+                        className={
+                          savedJobs.includes(job.id)
+                            ? "fill-primary text-primary"
+                            : "text-muted-foreground"
+                        }
+                      />
+                    </button>
+                  </div>
 
-                    {/* Job Details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="font-display text-lg font-semibold group-hover:text-primary transition-colors">
-                            {job.title}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground mt-1">
-                            {job.department && (
-                              <span className="flex items-center gap-1">
-                                <Building2 size={14} />
-                                {job.department}
-                              </span>
-                            )}
-                            {job.location && (
-                              <span className="flex items-center gap-1">
-                                <MapPin size={14} />
-                                {job.location}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <Clock size={14} />
-                              {formatDate(job.created_at)}
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => toggleSaveJob(job.id)}
-                          className="p-2 rounded-lg hover:bg-muted transition-colors"
-                        >
-                          <Bookmark
-                            size={20}
-                            className={
-                              savedJobs.includes(job.id)
-                                ? "fill-primary text-primary"
-                                : "text-muted-foreground"
-                            }
-                          />
-                        </button>
-                      </div>
-
-                      {job.requirements && (
-                        <div className="flex flex-wrap items-center gap-2 mt-3">
-                          {job.requirements.split(",").slice(0, 4).map((req, idx) => (
-                            <Badge key={idx} variant="secondary" className="font-normal">
-                              {req.trim()}
-                            </Badge>
-                          ))}
-                        </div>
+                  {/* Job Info */}
+                  <div className="flex-1">
+                    <h3 className="font-display text-base font-semibold group-hover:text-primary transition-colors line-clamp-2 mb-2">
+                      {job.title}
+                    </h3>
+                    <div className="flex flex-col gap-1 text-sm text-muted-foreground mb-3">
+                      {job.department && (
+                        <span className="flex items-center gap-1.5">
+                          <Building2 size={14} />
+                          <span className="truncate">{job.department}</span>
+                        </span>
                       )}
+                      {job.location && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin size={14} />
+                          <span className="truncate">{job.location}</span>
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1.5">
+                        <Clock size={14} />
+                        {formatDate(job.created_at)}
+                      </span>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex lg:flex-col items-center lg:items-end gap-3 lg:shrink-0">
-                      {job.salary_range && (
-                        <div className="flex items-center gap-1 text-gradient font-semibold">
-                          <DollarSign size={16} />
-                          <span>{job.salary_range}</span>
-                        </div>
-                      )}
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
                       {job.employment_type && (
-                        <Badge variant="outline">{job.employment_type}</Badge>
+                        <Badge variant="outline" className="text-xs">{job.employment_type}</Badge>
                       )}
-                      {appliedJobIds.includes(job.id) ? (
-                        <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2">
-                          <CheckCircle size={14} className="mr-1" />
-                          Applied
+                      {job.salary_range && (
+                        <Badge variant="secondary" className="text-xs">
+                          <DollarSign size={12} className="mr-0.5" />
+                          {job.salary_range}
                         </Badge>
-                      ) : (
-                        <Button 
-                          variant="gradient" 
-                          size="sm" 
-                          className="w-full lg:w-auto"
-                          onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
-                        >
-                          Apply Now
-                        </Button>
                       )}
                     </div>
+
+                    {job.requirements && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {job.requirements.split(",").slice(0, 2).map((req, idx) => (
+                          <Badge key={idx} variant="secondary" className="font-normal text-xs">
+                            {req.trim()}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action */}
+                  <div className="mt-4 pt-3 border-t">
+                    {appliedJobIds.includes(job.id) ? (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 w-full justify-center py-2">
+                        <CheckCircle size={14} className="mr-1.5" />
+                        Applied
+                      </Badge>
+                    ) : (
+                      <Button 
+                        variant="gradient" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
+                      >
+                        Apply Now
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
