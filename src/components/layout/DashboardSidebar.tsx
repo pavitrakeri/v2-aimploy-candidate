@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import aimployLogo from "@/assets/aimploy-logo.png";
 
 interface NavItem {
@@ -139,7 +140,13 @@ export const DashboardSidebar = () => {
       </nav>
 
       {/* User Section */}
-      <div className="p-3 border-t border-sidebar-border">
+      <div className="p-3 border-t border-sidebar-border space-y-1">
+        <div className={cn("flex items-center", collapsed ? "justify-center" : "px-3")}>
+          <ThemeToggle />
+          {!collapsed && (
+            <span className="text-sm text-sidebar-muted ml-2">Theme</span>
+          )}
+        </div>
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full"

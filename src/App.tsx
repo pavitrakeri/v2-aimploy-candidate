@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
@@ -26,43 +27,45 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/auth/google/callback" element={<GoogleCallback />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="jobs" element={<BrowseJobs />} />
-              <Route path="applications" element={<Applications />} />
-              <Route path="programs" element={<Programs />} />
-              <Route path="challenges" element={<Challenges />} />
-              <Route path="verification" element={<Verification />} />
-              <Route path="profile" element={<Profile />} />
-            </Route>
-            <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
-            <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
-            <Route path="/dashboard/jobs/:jobId/apply" element={<JobApply />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ThemeProvider defaultTheme="dark" storageKey="aimploy-theme">
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="jobs" element={<BrowseJobs />} />
+                <Route path="applications" element={<Applications />} />
+                <Route path="programs" element={<Programs />} />
+                <Route path="challenges" element={<Challenges />} />
+                <Route path="verification" element={<Verification />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
+              <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
+              <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
+              <Route path="/dashboard/jobs/:jobId/apply" element={<JobApply />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
