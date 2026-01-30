@@ -3,11 +3,9 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Clock,
   ArrowRight,
-  Play,
   Briefcase,
   TrendingUp,
   Megaphone,
@@ -57,17 +55,6 @@ const aimployPrograms = [
     badgeColor: "bg-accent/20 text-accent",
     icon: Megaphone,
     image: "📈",
-  },
-];
-
-const myEnrolledPrograms = [
-  {
-    id: 1,
-    title: "Full Stack Development Bootcamp",
-    provider: "Aimploy Academy",
-    duration: "12 weeks",
-    image: "💻",
-    progress: 45,
   },
 ];
 
@@ -210,42 +197,6 @@ export const Programs = () => {
         </div>
       </motion.div>
 
-      {/* My Programs */}
-      {myEnrolledPrograms.length > 0 && (
-        <motion.div variants={itemVariants}>
-          <h2 className="font-display text-xl font-semibold mb-4">My Programs</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {myEnrolledPrograms.map((program) => (
-              <Card key={program.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardContent className="p-0">
-                  <div className="bg-gradient-primary p-6 text-center">
-                    <span className="text-5xl">{program.image}</span>
-                  </div>
-                  <div className="p-5 space-y-4">
-                    <div>
-                      <h3 className="font-semibold line-clamp-1">{program.title}</h3>
-                      <p className="text-sm text-muted-foreground">{program.provider}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{program.progress}%</span>
-                      </div>
-                      <Progress value={program.progress} className="h-2" />
-                    </div>
-
-                    <Button variant="gradient" className="w-full">
-                      Continue Learning
-                      <Play size={16} />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </motion.div>
-      )}
 
       {/* Info Banner */}
       <motion.div variants={itemVariants}>
