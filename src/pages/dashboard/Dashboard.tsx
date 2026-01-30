@@ -13,39 +13,33 @@ import {
   Clock,
   Building2,
   MapPin,
-  Lightbulb,
   TrendingUp,
-  Target,
   CheckCircle2,
   Circle,
   Sparkles,
-  Award,
+  Flame,
+  DollarSign,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { applicationsApi, jobsApi, Application, Job } from "@/services/api";
 
-const careerTips = [
-  {
-    title: "Optimize Your Resume",
-    tip: "Tailor your resume for each job application. Use keywords from the job description to pass ATS filters.",
-    icon: FileText,
-  },
-  {
-    title: "Build Your Network",
-    tip: "Connect with professionals in your field. 85% of jobs are filled through networking.",
-    icon: TrendingUp,
-  },
-  {
-    title: "Practice Interview Skills",
-    tip: "Prepare STAR method responses for behavioral questions. Practice makes perfect!",
-    icon: Target,
-  },
-  {
-    title: "Keep Learning",
-    tip: "Invest 30 minutes daily in learning new skills. Continuous learning sets you apart.",
-    icon: Lightbulb,
-  },
-];
+const marketInsights = {
+  trendingSkills: [
+    { name: "React", growth: "+24%", hot: true },
+    { name: "TypeScript", growth: "+31%", hot: true },
+    { name: "AI/ML", growth: "+45%", hot: true },
+    { name: "Python", growth: "+18%", hot: false },
+    { name: "AWS", growth: "+15%", hot: false },
+  ],
+  salaryTrends: [
+    { role: "Frontend Dev", range: "$80k - $130k", trend: "up" },
+    { role: "Full Stack", range: "$90k - $150k", trend: "up" },
+    { role: "Data Analyst", range: "$70k - $110k", trend: "stable" },
+  ],
+  hotIndustries: ["FinTech", "HealthTech", "AI/SaaS", "E-commerce"],
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -119,10 +113,6 @@ export const Dashboard = () => {
   ];
   const completedFields = profileFields.filter(f => f.completed).length;
   const profileCompletion = Math.round((completedFields / profileFields.length) * 100);
-
-  // Get random daily tip based on day
-  const todaysTip = careerTips[new Date().getDay() % careerTips.length];
-  const TipIcon = todaysTip.icon;
 
   const firstName = user?.first_name || user?.full_name?.split(" ")[0] || "there";
 
@@ -246,35 +236,65 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Daily Career Tip */}
+        {/* Job Market Insights */}
         <Card className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20">
           <CardHeader className="pb-2">
             <CardTitle className="font-display text-lg flex items-center gap-2">
-              <Lightbulb className="text-accent" size={20} />
-              Daily Career Insight
+              <BarChart3 className="text-primary" size={20} />
+              Job Market Insights
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                <TipIcon size={24} />
+          <CardContent className="space-y-4">
+            {/* Trending Skills */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Zap size={14} className="text-accent" />
+                <span className="text-sm font-medium">Trending Skills</span>
               </div>
-              <div>
-                <h3 className="font-semibold mb-2">{todaysTip.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {todaysTip.tip}
-                </p>
+              <div className="flex flex-wrap gap-2">
+                {marketInsights.trendingSkills.map((skill) => (
+                  <div
+                    key={skill.name}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm"
+                  >
+                    {skill.hot && <Flame size={12} className="text-destructive" />}
+                    <span>{skill.name}</span>
+                    <span className="text-xs text-primary font-medium">{skill.growth}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="mt-4 pt-4 border-t border-border/50">
+
+            {/* Salary Trends */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign size={14} className="text-primary" />
+                <span className="text-sm font-medium">Salary Ranges</span>
+              </div>
+              <div className="space-y-1.5">
+                {marketInsights.salaryTrends.map((item) => (
+                  <div key={item.role} className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{item.role}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{item.range}</span>
+                      {item.trend === "up" && <TrendingUp size={12} className="text-primary" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hot Industries */}
+            <div className="pt-2 border-t border-border/50">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Award className="text-primary" size={16} />
-                  <span className="text-sm font-medium">Pro Tip</span>
+                <span className="text-xs text-muted-foreground">Hot Industries:</span>
+                <div className="flex gap-1.5">
+                  {marketInsights.hotIndustries.map((industry) => (
+                    <Badge key={industry} variant="secondary" className="text-xs">
+                      {industry}
+                    </Badge>
+                  ))}
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  Updated Daily
-                </Badge>
               </div>
             </div>
           </CardContent>
