@@ -301,7 +301,17 @@ export const Login = () => {
                             <span className="block mt-1">Expires in {Math.floor(otpExpiry / 60)} minutes</span>
                           )}
                         </p>
-                        <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                        <InputOTP 
+                          maxLength={6} 
+                          value={otp} 
+                          onChange={setOtp}
+                          onComplete={handleOTPLogin}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && otp.length === 6) {
+                              handleOTPLogin();
+                            }
+                          }}
+                        >
                           <InputOTPGroup className="gap-2">
                             <InputOTPSlot index={0} className="h-12 w-12" />
                             <InputOTPSlot index={1} className="h-12 w-12" />
