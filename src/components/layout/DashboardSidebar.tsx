@@ -144,14 +144,14 @@ export const DashboardSidebar = () => {
         <div className={cn("flex items-center", collapsed ? "justify-center" : "px-3")}>
           <ThemeToggle />
           {!collapsed && (
-            <span className="text-sm text-sidebar-muted ml-2">Theme</span>
+            <span className="text-sm text-sidebar-foreground ml-2">Theme</span>
           )}
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors w-full"
         >
-          <LogOut size={20} className="shrink-0" />
+          <LogOut size={20} className="shrink-0 text-sidebar-foreground" />
           <AnimatePresence mode="wait">
             {!collapsed && (
               <motion.span
