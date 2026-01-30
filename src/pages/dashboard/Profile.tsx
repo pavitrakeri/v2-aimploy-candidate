@@ -181,7 +181,21 @@ export const Profile = () => {
                   </Badge>
                 )}
                 <Badge variant="secondary">Open to Work</Badge>
+                {user?.linkedin_url && (
+                  <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-full bg-[#0A66C2] text-white hover:bg-[#004182] transition-colors">
+                    <Linkedin size={14} />
+                  </a>
+                )}
               </div>
+
+              {/* Resume Status */}
+              {user?.resume_url && (
+                <div className="mt-3">
+                  <Badge className="bg-green-100 text-green-700">
+                    ✓ Resume Submitted
+                  </Badge>
+                </div>
+              )}
 
               <div className="mt-6 space-y-3 text-left">
                 <div className="flex items-center gap-3 text-sm">
