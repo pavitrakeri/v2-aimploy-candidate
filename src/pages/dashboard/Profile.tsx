@@ -224,13 +224,6 @@ export const Profile = () => {
                     </a>
                   </Button>
                 )}
-                {user?.linkedin_url && (
-                  <Button variant="outline" size="icon" asChild>
-                    <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer">
-                      <Linkedin size={18} />
-                    </a>
-                  </Button>
-                )}
                 {user?.github_url && (
                   <Button variant="outline" size="icon" asChild>
                     <a href={user.github_url} target="_blank" rel="noopener noreferrer">
