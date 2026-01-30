@@ -128,10 +128,35 @@ export const Verification = () => {
     >
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="font-display text-3xl font-bold">Background Verification</h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="font-display text-3xl font-bold">Background Verification</h1>
+          <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-medium">
+            <Clock size={14} className="mr-1" />
+            Coming Soon
+          </Badge>
+        </div>
         <p className="text-muted-foreground mt-1">
           Complete your verification to increase trust with employers
         </p>
+      </motion.div>
+
+      {/* Coming Soon Banner */}
+      <motion.div variants={itemVariants}>
+        <Card className="border-dashed border-2 border-amber-200 bg-amber-50/50">
+          <CardContent className="py-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck className="text-amber-600" size={32} />
+            </div>
+            <h2 className="font-display text-xl font-semibold mb-2">Background Verification Coming Soon!</h2>
+            <p className="text-muted-foreground max-w-md mx-auto mb-4">
+              We're partnering with trusted verification providers to offer comprehensive 
+              background checks that will help you stand out to employers.
+            </p>
+            <Badge variant="outline" className="text-amber-700 border-amber-300">
+              Expected Launch: Q2 2026
+            </Badge>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Progress Overview */}
