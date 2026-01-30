@@ -386,7 +386,7 @@ export const Applications = () => {
 
       {/* Application Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Application Details</DialogTitle>
           </DialogHeader>
