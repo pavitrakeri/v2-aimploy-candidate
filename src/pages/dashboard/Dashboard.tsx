@@ -13,12 +13,10 @@ import {
   Clock,
   Building2,
   MapPin,
-  TrendingUp,
   CheckCircle2,
   Circle,
   Sparkles,
   Flame,
-  DollarSign,
   BarChart3,
   Zap,
 } from "lucide-react";
@@ -32,11 +30,6 @@ const marketInsights = {
     { name: "AI/ML", growth: "+45%", hot: true },
     { name: "Python", growth: "+18%", hot: false },
     { name: "AWS", growth: "+15%", hot: false },
-  ],
-  salaryTrends: [
-    { role: "Frontend Dev", range: "$80k - $130k", trend: "up" },
-    { role: "Full Stack", range: "$90k - $150k", trend: "up" },
-    { role: "Data Analyst", range: "$70k - $110k", trend: "stable" },
   ],
   hotIndustries: ["FinTech", "HealthTech", "AI/SaaS", "E-commerce"],
 };
@@ -264,26 +257,6 @@ export const Dashboard = () => {
                 ))}
               </div>
             </div>
-
-            {/* Salary Trends */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <DollarSign size={14} className="text-primary" />
-                <span className="text-sm font-medium">Salary Ranges</span>
-              </div>
-              <div className="space-y-1.5">
-                {marketInsights.salaryTrends.map((item) => (
-                  <div key={item.role} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{item.role}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{item.range}</span>
-                      {item.trend === "up" && <TrendingUp size={12} className="text-primary" />}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Hot Industries */}
             <div className="pt-2 border-t border-border/50">
               <div className="flex items-center justify-between">
