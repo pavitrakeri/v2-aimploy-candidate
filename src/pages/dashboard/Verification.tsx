@@ -152,9 +152,6 @@ export const Verification = () => {
               We're partnering with trusted verification providers to offer comprehensive 
               background checks that will help you stand out to employers.
             </p>
-            <Badge variant="outline" className="text-amber-700 border-amber-300">
-              Expected Launch: Q2 2026
-            </Badge>
           </CardContent>
         </Card>
       </motion.div>

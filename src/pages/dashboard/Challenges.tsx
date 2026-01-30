@@ -127,9 +127,6 @@ export const Challenges = () => {
               We're building an exciting platform where you can compete in coding challenges, 
               showcase your skills, and win amazing prizes from top companies.
             </p>
-            <Badge variant="outline" className="text-amber-700 border-amber-300">
-              Expected Launch: Q2 2026
-            </Badge>
           </CardContent>
         </Card>
       </motion.div>
