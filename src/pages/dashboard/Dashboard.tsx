@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import {
   Briefcase,
   FileText,
@@ -12,9 +13,39 @@ import {
   Clock,
   Building2,
   MapPin,
+  Lightbulb,
+  TrendingUp,
+  Target,
+  CheckCircle2,
+  Circle,
+  Sparkles,
+  Award,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { applicationsApi, jobsApi, Application, Job } from "@/services/api";
+
+const careerTips = [
+  {
+    title: "Optimize Your Resume",
+    tip: "Tailor your resume for each job application. Use keywords from the job description to pass ATS filters.",
+    icon: FileText,
+  },
+  {
+    title: "Build Your Network",
+    tip: "Connect with professionals in your field. 85% of jobs are filled through networking.",
+    icon: TrendingUp,
+  },
+  {
+    title: "Practice Interview Skills",
+    tip: "Prepare STAR method responses for behavioral questions. Practice makes perfect!",
+    icon: Target,
+  },
+  {
+    title: "Keep Learning",
+    tip: "Invest 30 minutes daily in learning new skills. Continuous learning sets you apart.",
+    icon: Lightbulb,
+  },
+];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -74,6 +105,24 @@ export const Dashboard = () => {
   const recommendedJobs = jobsData?.jobs || [];
   const totalApplications = applicationsData?.total || 0;
   const totalJobs = jobsData?.total || 0;
+
+  // Calculate profile completion
+  const profileFields = [
+    { name: "Name", completed: !!user?.full_name },
+    { name: "Email", completed: !!user?.email },
+    { name: "Phone", completed: !!user?.phone },
+    { name: "Location", completed: !!user?.location },
+    { name: "Resume", completed: !!user?.resume_url },
+    { name: "LinkedIn", completed: !!user?.linkedin_url },
+    { name: "Skills", completed: !!user?.skills && user.skills.length > 0 },
+    { name: "Experience", completed: !!user?.years_of_experience },
+  ];
+  const completedFields = profileFields.filter(f => f.completed).length;
+  const profileCompletion = Math.round((completedFields / profileFields.length) * 100);
+
+  // Get random daily tip based on day
+  const todaysTip = careerTips[new Date().getDay() % careerTips.length];
+  const TipIcon = todaysTip.icon;
 
   const firstName = user?.first_name || user?.full_name?.split(" ")[0] || "there";
 
@@ -138,6 +187,94 @@ export const Dashboard = () => {
                 <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/profile")} className="flex-1 sm:flex-none">
                   Profile
                 </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Profile Completion & Career Tip */}
+      <motion.div variants={itemVariants} className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+        {/* Profile Completion */}
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-primary opacity-10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <CardHeader className="pb-2">
+            <CardTitle className="font-display text-lg flex items-center gap-2">
+              <Sparkles className="text-primary" size={20} />
+              Profile Completion
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center">
+                  <span className="text-xl font-bold text-primary-foreground">{profileCompletion}%</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <Progress value={profileCompletion} className="h-2 mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  {completedFields} of {profileFields.length} sections completed
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {profileFields.map((field) => (
+                <div key={field.name} className="flex items-center gap-2 text-sm">
+                  {field.completed ? (
+                    <CheckCircle2 size={14} className="text-primary" />
+                  ) : (
+                    <Circle size={14} className="text-muted-foreground" />
+                  )}
+                  <span className={field.completed ? "text-foreground" : "text-muted-foreground"}>
+                    {field.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {profileCompletion < 100 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-4"
+                onClick={() => navigate("/dashboard/profile")}
+              >
+                Complete Your Profile
+                <ArrowRight size={14} />
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Daily Career Tip */}
+        <Card className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-display text-lg flex items-center gap-2">
+              <Lightbulb className="text-accent" size={20} />
+              Daily Career Insight
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                <TipIcon size={24} />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">{todaysTip.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {todaysTip.tip}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Award className="text-primary" size={16} />
+                  <span className="text-sm font-medium">Pro Tip</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  Updated Daily
+                </Badge>
               </div>
             </div>
           </CardContent>
