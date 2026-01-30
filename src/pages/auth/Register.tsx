@@ -14,7 +14,7 @@ import authRegisterHero from "@/assets/auth-register-hero.jpg";
 
 export const Register = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -86,10 +86,9 @@ export const Register = () => {
         await authApi.register(registerData);
       }
 
-      toast({ title: "Success", description: "Account created successfully!" });
+      toast({ title: "Success", description: "Account created successfully! Please login to continue." });
       
-      await login(formData.email, formData.password);
-      navigate("/dashboard", { replace: true });
+      navigate("/login", { replace: true });
     } catch (error) {
       toast({
         title: "Registration Failed",
