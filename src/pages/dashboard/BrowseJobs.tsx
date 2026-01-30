@@ -572,7 +572,10 @@ export const BrowseJobs = () => {
         <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {jobs.map((job) => (
             <motion.div key={job.id} variants={itemVariants}>
-              <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group h-full flex flex-col">
+              <Card 
+                className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group h-full flex flex-col"
+                onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
+              >
                 <CardContent className="p-4 sm:p-5 flex flex-col h-full">
                   {/* Header */}
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -650,16 +653,32 @@ export const BrowseJobs = () => {
                   {/* Action */}
                   <div className="mt-4 pt-3 border-t">
                     {appliedJobIds.includes(job.id) ? (
-                      <Badge className="bg-primary/10 text-primary border-primary/20 w-full justify-center py-2">
-                        <CheckCircle size={14} className="mr-1.5" />
-                        Applied
-                      </Badge>
+                      <div className="flex flex-col gap-2">
+                        <Badge className="bg-primary/10 text-primary border-primary/20 w-full justify-center py-2">
+                          <CheckCircle size={14} className="mr-1.5" />
+                          Applied
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/dashboard/jobs/${job.id}/apply`);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
                     ) : (
                       <Button 
                         variant="gradient" 
                         size="sm" 
                         className="w-full"
-                        onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/dashboard/jobs/${job.id}/apply`);
+                        }}
                       >
                         Apply Now
                       </Button>
