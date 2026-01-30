@@ -86,24 +86,24 @@ export const Dashboard = () => {
     >
       {/* Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="font-display text-3xl font-bold">Welcome back, {firstName}! 👋</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold">Welcome back, {firstName}! 👋</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Here's what's happening with your job search
         </p>
       </motion.div>
 
       {/* Stats Grid */}
-      <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={itemVariants} className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-md transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Applications</p>
-                <p className="text-3xl font-bold mt-1">{totalApplications}</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1">{totalApplications}</p>
                 <p className="text-xs text-muted-foreground mt-1">All time</p>
               </div>
-              <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                <FileText size={24} />
+              <div className="p-2 sm:p-3 rounded-xl bg-primary/10 text-primary">
+                <FileText size={20} className="sm:w-6 sm:h-6" />
               </div>
             </div>
           </CardContent>
@@ -114,39 +114,37 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Available Jobs</p>
-                <p className="text-3xl font-bold mt-1">{totalJobs}</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1">{totalJobs}</p>
                 <p className="text-xs text-muted-foreground mt-1">Open positions</p>
               </div>
-              <div className="p-3 rounded-xl bg-accent/10 text-accent">
-                <Briefcase size={24} />
+              <div className="p-2 sm:p-3 rounded-xl bg-accent/10 text-accent">
+                <Briefcase size={20} className="sm:w-6 sm:h-6" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow col-span-2">
+        <Card className="hover:shadow-md transition-shadow col-span-1 sm:col-span-2">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Quick Actions</p>
-                <div className="flex gap-3 mt-3">
-                  <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/jobs")}>
-                    Browse Jobs
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/applications")}>
-                    View Applications
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/profile")}>
-                    Update Profile
-                  </Button>
-                </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">Quick Actions</p>
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/jobs")} className="flex-1 sm:flex-none">
+                  Browse Jobs
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/applications")} className="flex-1 sm:flex-none">
+                  Applications
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/profile")} className="flex-1 sm:flex-none">
+                  Profile
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Recent Applications */}
         <motion.div variants={itemVariants}>
           <Card>
@@ -184,17 +182,17 @@ export const Dashboard = () => {
                 recentApplications.map((app: Application) => (
                   <div
                     key={app.id}
-                    className="flex items-center justify-between p-4 rounded-xl border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-xl border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer gap-3"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-                        <Building2 className="text-primary-foreground" size={20} />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+                        <Building2 className="text-primary-foreground" size={18} />
                       </div>
-                      <div>
-                        <p className="font-medium">{app.job?.title || "Position"}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">{app.job?.title || "Position"}</p>
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           {app.job?.location && (
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-1 truncate">
                               <MapPin size={12} />
                               {app.job.location}
                             </span>
@@ -202,9 +200,9 @@ export const Dashboard = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 justify-end">
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-0 ml-13 sm:ml-0">
+                      <Badge className={`${getStatusColor(app.status)} text-xs`}>{app.status}</Badge>
+                      <p className="text-xs text-muted-foreground sm:mt-1 flex items-center gap-1">
                         <Clock size={12} />
                         {formatDate(app.created_at)}
                       </p>
@@ -248,31 +246,31 @@ export const Dashboard = () => {
                 recommendedJobs.map((job: Job) => (
                   <div
                     key={job.id}
-                    className="p-4 rounded-xl border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
+                    className="p-3 sm:p-4 rounded-xl border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
                     onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                          <Building2 className="text-primary-foreground" size={18} />
+                    <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-primary flex items-center justify-center shrink-0">
+                          <Building2 className="text-primary-foreground" size={16} />
                         </div>
-                        <div>
-                          <p className="font-medium">{job.title}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{job.title}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
                             {job.department || "General"}
                           </p>
                         </div>
                       </div>
                       {job.employment_type && (
-                        <Badge variant="secondary">{job.employment_type}</Badge>
+                        <Badge variant="secondary" className="text-xs shrink-0">{job.employment_type}</Badge>
                       )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1 sm:gap-2">
                         {job.location && (
                           <span className="px-2 py-1 rounded-md bg-muted text-muted-foreground text-xs flex items-center gap-1">
                             <MapPin size={10} />
-                            {job.location}
+                            <span className="truncate max-w-[120px] sm:max-w-none">{job.location}</span>
                           </span>
                         )}
                       </div>
