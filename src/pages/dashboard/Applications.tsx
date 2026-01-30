@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +73,7 @@ const itemVariants = {
 };
 
 export const Applications = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -284,8 +286,13 @@ export const Applications = () => {
 
                         {/* Actions */}
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex-1">
-                            <ExternalLink size={14} />
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => navigate(`/dashboard/jobs/${app.job_id}/apply`)}
+                          >
+                            <ExternalLink size={14} className="mr-1" />
                             View Details
                           </Button>
                           <Button variant="ghost" size="sm">
