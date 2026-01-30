@@ -297,8 +297,8 @@ export const BrowseJobs = () => {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 sm:w-96 p-0 max-h-[80vh] overflow-hidden" align="end">
-            <div className="p-4 border-b bg-muted/50">
+          <PopoverContent className="w-80 sm:w-96 p-0 max-h-[70vh] flex flex-col" align="end">
+            <div className="p-4 border-b bg-muted/50 shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold flex items-center gap-2">
                   <SlidersHorizontal size={16} />
@@ -312,7 +312,7 @@ export const BrowseJobs = () => {
               </div>
             </div>
             
-            <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+            <div className="p-4 space-y-3 overflow-y-auto flex-1 min-h-0">
               {/* Experience Level */}
               <Collapsible open={openSections.experience} onOpenChange={() => toggleSection("experience")}>
                 <CollapsibleTrigger className="flex items-center justify-between w-full py-2 font-medium text-sm hover:bg-muted/50 px-2 rounded-md -mx-2">
@@ -466,7 +466,7 @@ export const BrowseJobs = () => {
             </div>
 
             {/* Apply Button */}
-            <div className="p-4 border-t bg-muted/50">
+            <div className="p-4 border-t bg-muted/50 shrink-0">
               <Button variant="gradient" className="w-full" onClick={handleApplyFilters}>
                 Apply Filters
               </Button>
