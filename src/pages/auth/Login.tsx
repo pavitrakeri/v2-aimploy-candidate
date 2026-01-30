@@ -219,6 +219,12 @@ export const Login = () => {
                     className="pl-10 h-12"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && loginMethod === "otp" && !showOTPInput && email) {
+                        e.preventDefault();
+                        handleRequestOTP();
+                      }
+                    }}
                     disabled={isLoading}
                   />
                 </div>
