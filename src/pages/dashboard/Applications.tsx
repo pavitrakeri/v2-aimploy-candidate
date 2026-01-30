@@ -5,6 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -19,6 +25,11 @@ import {
   MoreVertical,
   Loader2,
   FileText,
+  CheckCircle2,
+  Clock,
+  Briefcase,
+  TrendingUp,
+  AlertCircle,
 } from "lucide-react";
 import { applicationsApi, Application } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -78,6 +89,8 @@ export const Applications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -132,6 +145,45 @@ export const Applications = () => {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const handleViewDetails = (app: Application) => {
+    setSelectedApplication(app);
+    setIsDetailsOpen(true);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return <Clock className="h-5 w-5 text-yellow-600" />;
+      case "reviewing":
+        return <TrendingUp className="h-5 w-5 text-blue-600" />;
+      case "shortlisted":
+        return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+      case "rejected":
+        return <AlertCircle className="h-5 w-5 text-red-600" />;
+      case "hired":
+        return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+      default:
+        return <Clock className="h-5 w-5 text-muted-foreground" />;
+    }
+  };
+
+  const getStatusMessage = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "Your application is being processed. We'll notify you once it's reviewed.";
+      case "reviewing":
+        return "Great news! Your application is currently under review by the hiring team.";
+      case "shortlisted":
+        return "Congratulations! You've been shortlisted for the next round.";
+      case "rejected":
+        return "Unfortunately, your application was not selected for this position.";
+      case "hired":
+        return "Congratulations! You've been selected for this position!";
+      default:
+        return "Your application status will be updated soon.";
+    }
   };
 
   return (
@@ -290,7 +342,7 @@ export const Applications = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex-1"
-                            onClick={() => navigate(`/dashboard/jobs/${app.job_id}/apply`)}
+                            onClick={() => handleViewDetails(app)}
                           >
                             <ExternalLink size={14} className="mr-1" />
                             View Details
@@ -331,6 +383,146 @@ export const Applications = () => {
           </Button>
         </motion.div>
       )}
+
+      {/* Application Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Application Details</DialogTitle>
+          </DialogHeader>
+          
+          {selectedApplication && (
+            <div className="space-y-6">
+              {/* Job Info */}
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+                  <span className="text-primary-foreground text-lg font-bold">
+                    {selectedApplication.job?.title?.charAt(0) || "J"}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{selectedApplication.job?.title || "Job Title"}</h3>
+                  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mt-1">
+                    {selectedApplication.job?.department && (
+                      <span className="flex items-center gap-1">
+                        <Building2 size={14} />
+                        {selectedApplication.job.department}
+                      </span>
+                    )}
+                    {selectedApplication.job?.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin size={14} />
+                        {selectedApplication.job.location}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Card */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  {getStatusIcon(selectedApplication.status)}
+                  <div>
+                    <p className="text-sm text-muted-foreground">Current Status</p>
+                    <Badge variant="outline" className={getStatusColor(selectedApplication.status)}>
+                      {selectedApplication.status || "Pending"}
+                    </Badge>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {getStatusMessage(selectedApplication.status)}
+                </p>
+              </div>
+
+              {/* Application Timeline */}
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Briefcase size={16} />
+                  Application Progress
+                </h4>
+                <div className="space-y-3">
+                  {stages.map((stageName, index) => {
+                    const stage = getStageFromStatus(selectedApplication.status);
+                    const isCompleted = index < stage;
+                    const isCurrent = index === stage - 1;
+                    return (
+                      <div key={stageName} className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          isCompleted 
+                            ? "bg-primary text-primary-foreground" 
+                            : isCurrent 
+                              ? "bg-primary/20 text-primary border-2 border-primary"
+                              : "bg-muted text-muted-foreground"
+                        }`}>
+                          {isCompleted ? (
+                            <CheckCircle2 size={16} />
+                          ) : (
+                            <span className="text-xs font-medium">{index + 1}</span>
+                          )}
+                        </div>
+                        <span className={`text-sm ${isCompleted || isCurrent ? "font-medium" : "text-muted-foreground"}`}>
+                          {stageName}
+                        </span>
+                        {isCurrent && (
+                          <Badge variant="secondary" className="text-xs ml-auto">Current</Badge>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Match Score */}
+              {selectedApplication.match_score !== undefined && selectedApplication.match_score !== null && (
+                <div className="bg-primary/5 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Match Score</span>
+                    <span className="text-lg font-bold text-primary">{Math.round(selectedApplication.match_score)}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-primary rounded-full transition-all"
+                      style={{ width: `${selectedApplication.match_score}%` }}
+                    />
+                  </div>
+                  {selectedApplication.match_skills && selectedApplication.match_skills.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-1">Matching Skills</p>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedApplication.match_skills.slice(0, 5).map((skill, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">{skill}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Applied Date */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-4">
+                <Calendar size={14} />
+                <span>Applied on {formatDate(selectedApplication.created_at)}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setIsDetailsOpen(false);
+                    navigate(`/dashboard/jobs/${selectedApplication.job_id}/apply`);
+                  }}
+                >
+                  <ExternalLink size={14} className="mr-2" />
+                  View Job Posting
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
