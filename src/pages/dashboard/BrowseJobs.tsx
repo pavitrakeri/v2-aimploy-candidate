@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import {
   Search,
-  MapPin,
   Building2,
   Bookmark,
   Clock,
@@ -26,6 +26,7 @@ import {
   Calendar,
   GraduationCap,
   SlidersHorizontal,
+  MapPin,
 } from "lucide-react";
 import {
   Select,
@@ -274,14 +275,12 @@ export const BrowseJobs = () => {
             className="pl-10 h-11 sm:h-12"
           />
         </div>
-        <div className="relative flex-1 sm:flex-none">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input
-            placeholder="City or Remote"
+        <div className="flex-1 sm:flex-none sm:w-56">
+          <LocationAutocomplete
             value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
+            onChange={setLocationFilter}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="pl-10 h-11 sm:h-12 w-full sm:w-48"
+            className="h-11 sm:h-12"
           />
         </div>
         
