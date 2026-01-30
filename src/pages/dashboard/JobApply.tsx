@@ -21,7 +21,7 @@ import {
   Users,
   Calendar,
 } from "lucide-react";
-import { jobsApi, Job } from "@/services/api";
+import { jobsApi, Job, applicationsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import AudioQuestionFlow from "@/components/audio/AudioQuestionFlow";
 const containerVariants = {
@@ -50,6 +50,7 @@ export const JobApply = () => {
 
   const [job, setJob] = useState<Job | null>(null);
   const [isLoadingJob, setIsLoadingJob] = useState(true);
+  const [hasApplied, setHasApplied] = useState(false);
   const [showApplication, setShowApplication] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,15 +77,22 @@ export const JobApply = () => {
       if (!jobId) return;
 
       try {
-        const [jobData, prefillData, questionsData] = await Promise.all([
+        const [jobData, prefillData, questionsData, applicationsData] = await Promise.all([
           jobsApi.getJobById(parseInt(jobId)),
           jobsApi.getApplicationPrefill().catch(() => null),
           jobsApi.getJobAudioQuestions(parseInt(jobId)),
+          applicationsApi.getMyApplications({ page_size: 100 }).catch(() => ({ applications: [] })),
         ]);
 
         setJob(jobData);
         setAudioQuestions(questionsData.questions || []);
         setAudioRecordings(new Array(questionsData.questions?.length || 0).fill(null));
+
+        // Check if already applied to this job
+        const appliedJobIds = applicationsData.applications
+          .filter((app) => app.job_id)
+          .map((app) => app.job_id);
+        setHasApplied(appliedJobIds.includes(parseInt(jobId)));
 
         if (prefillData) {
           setFullName(prefillData.full_name || "");
@@ -341,26 +349,50 @@ export const JobApply = () => {
           </motion.div>
         )}
 
-        {/* Apply CTA */}
         <motion.div variants={itemVariants}>
-          <Card className="border-primary/30 bg-primary/5">
+          <Card className={hasApplied ? "border-green-500/30 bg-green-500/5" : "border-primary/30 bg-primary/5"}>
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-display text-lg font-semibold">Ready to Apply?</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Submit your application and take the next step in your career
-                  </p>
-                </div>
-                <Button
-                  variant="gradient"
-                  size="lg"
-                  className="w-full md:w-auto"
-                  onClick={() => setShowApplication(true)}
-                >
-                  Apply Now
-                  <ArrowRight size={18} className="ml-2" />
-                </Button>
+                {hasApplied ? (
+                  <>
+                    <div>
+                      <h3 className="font-display text-lg font-semibold text-green-700 dark:text-green-400 flex items-center gap-2">
+                        <CheckCircle2 size={20} />
+                        Application Submitted
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        You have already applied for this position. Check your applications for status updates.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full md:w-auto"
+                      onClick={() => navigate("/dashboard/applications")}
+                    >
+                      View My Applications
+                      <ArrowRight size={18} className="ml-2" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h3 className="font-display text-lg font-semibold">Ready to Apply?</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Submit your application and take the next step in your career
+                      </p>
+                    </div>
+                    <Button
+                      variant="gradient"
+                      size="lg"
+                      className="w-full md:w-auto"
+                      onClick={() => setShowApplication(true)}
+                    >
+                      Apply Now
+                      <ArrowRight size={18} className="ml-2" />
+                    </Button>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
