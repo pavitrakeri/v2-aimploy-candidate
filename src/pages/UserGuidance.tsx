@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, LayoutDashboard, Briefcase, FileText, GraduationCap, Trophy, ShieldCheck, User } from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
+import moduleDashboard from "@/assets/module-dashboard.png";
+import moduleBrowseJobs from "@/assets/module-browse-jobs.png";
+import moduleApplications from "@/assets/module-applications.png";
 
 const modules = [
   {
@@ -17,6 +20,7 @@ const modules = [
       "See trending skills and hot industries",
       "Quick access to all platform features",
     ],
+    screenshot: moduleDashboard,
   },
   {
     id: "browse-jobs",
@@ -29,6 +33,7 @@ const modules = [
       "View match scores for each job",
       "Save jobs for later applications",
     ],
+    screenshot: moduleBrowseJobs,
   },
   {
     id: "applications",
@@ -41,6 +46,7 @@ const modules = [
       "See match scores and feedback",
       "Get interview scheduling updates",
     ],
+    screenshot: moduleApplications,
   },
   {
     id: "programs",
@@ -188,13 +194,21 @@ export const UserGuidance = () => {
                         </ul>
                       </div>
 
-                      {/* Screenshot Placeholder Side */}
+                      {/* Screenshot Side */}
                       <div className={`bg-muted/50 p-6 flex items-center justify-center min-h-[300px] ${index % 2 === 1 ? "lg:order-1" : ""}`}>
-                        <div className="w-full max-w-md aspect-video rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-3">
-                          <module.icon className="text-primary/40" size={48} />
-                          <p className="text-sm text-muted-foreground font-medium">{module.title} Screenshot</p>
-                          <p className="text-xs text-muted-foreground">Coming Soon</p>
-                        </div>
+                        {module.screenshot ? (
+                          <img 
+                            src={module.screenshot} 
+                            alt={`${module.title} screenshot`}
+                            className="w-full rounded-lg shadow-lg border"
+                          />
+                        ) : (
+                          <div className="w-full max-w-md aspect-video rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-3">
+                            <module.icon className="text-primary/40" size={48} />
+                            <p className="text-sm text-muted-foreground font-medium">{module.title} Screenshot</p>
+                            <p className="text-xs text-muted-foreground">Coming Soon</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
