@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Briefcase, Shield, Users, Sparkles, CheckCircle, TrendingUp, Award, Globe, Zap, Star, Quote } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, Briefcase, Shield, Users, Sparkles, CheckCircle, TrendingUp, Award, Globe, Zap, Star, Quote, BookOpen } from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import landingHero from "@/assets/landing-hero.jpg";
 import teamPhoto from "@/assets/team-photo.jpg";
@@ -134,6 +135,9 @@ export const Landing = () => {
             </a>
             <Link to="/dashboard/programs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Programs
+            </Link>
+            <Link to="/user-guidance" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              User Guide
             </Link>
           </div>
           <div className="flex items-center gap-3">
@@ -346,6 +350,58 @@ export const Landing = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* User Guidance Card */}
+      <section className="py-12 px-6">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <Card className="overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all hover:shadow-purple-lg">
+              <CardContent className="p-0">
+                <div className="grid md:grid-cols-2 gap-0">
+                  <div className="p-8 md:p-10 flex flex-col justify-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium w-fit mb-4">
+                      <BookOpen size={14} />
+                      Platform Guide
+                    </div>
+                    <h3 className="font-display text-2xl md:text-3xl font-bold mb-3">
+                      New to <span className="text-gradient">Aimploy</span>?
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Explore our comprehensive guide to understand all the powerful features and modules available to help you succeed in your job search.
+                    </p>
+                    <Button variant="gradient" size="lg" className="w-fit" asChild>
+                      <Link to="/user-guidance">
+                        Explore User Guide
+                        <ArrowRight size={18} />
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-8 flex items-center justify-center min-h-[250px]">
+                    <div className="grid grid-cols-3 gap-4">
+                      {[Briefcase, Shield, Users, Sparkles, TrendingUp, Award].map((Icon, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: idx * 0.1 }}
+                          className="w-16 h-16 rounded-xl bg-card border shadow-sm flex items-center justify-center"
+                        >
+                          <Icon className="text-primary" size={24} />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
 

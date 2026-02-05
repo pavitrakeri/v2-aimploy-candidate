@@ -23,6 +23,7 @@ import Challenges from "./pages/dashboard/Challenges";
 import Verification from "./pages/dashboard/Verification";
 import Profile from "./pages/dashboard/Profile";
 import NotFound from "./pages/NotFound";
+import UserGuidance from "./pages/UserGuidance";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <ScrollToTop />
             <Routes>
               <Route path="/" element={<Landing />} />
+              <Route path="/user-guidance" element={<UserGuidance />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/auth/google/callback" element={<GoogleCallback />} />
