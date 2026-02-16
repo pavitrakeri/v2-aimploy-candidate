@@ -1,5 +1,5 @@
 // API Service for Aimploy Backend
-const API_BASE_URL = "https://aimploy.onrender.com/api/v1";
+const API_BASE_URL = "https://api.aimploy.org/api/v1";
 
 // Types
 export interface CandidateRegisterRequest {
