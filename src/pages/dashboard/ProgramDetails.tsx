@@ -7,7 +7,7 @@ import {
   Clock,
   Calendar,
   MapPin,
-  DollarSign,
+  IndianRupee,
   ArrowRight,
   Check,
   ChevronLeft,
@@ -56,8 +56,8 @@ const programsData: Record<string, {
   aincubatr: {
     id: "aincubatr",
     title: "Aincubatr Residency Program",
-    subtitle: "Transform your career with our intensive residency program in partnership with SOUL Incubator",
-    provider: "Aimploy × SOUL Incubator",
+    subtitle: "Transform your career with our intensive residency program in partnership with partner incubator",
+    provider: "Aimploy × partner incubator",
     duration: "3 months",
     type: "Residency",
     startDate: "Rolling admissions",
@@ -70,7 +70,7 @@ const programsData: Record<string, {
       { icon: Target, text: "CTO & CEO training tracks" },
       { icon: Briefcase, text: "Hands-on project experience" },
       { icon: Users, text: "Industry expert mentorship" },
-      { icon: Building2, text: "SOUL Incubator partnership" },
+      { icon: Building2, text: "Partner incubator partnership" },
       { icon: Network, text: "Professional networking" },
       { icon: Award, text: "Portfolio development" },
       { icon: Rocket, text: "Career support" },
@@ -364,7 +364,7 @@ export const ProgramDetails = () => {
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <DollarSign className="mx-auto text-primary mb-3" size={32} />
+                <IndianRupee className="mx-auto text-primary mb-3" size={32} />
                 <p className="text-sm text-muted-foreground mb-1">Fee</p>
                 <p className="font-semibold">{program.isPaid ? "Paid by candidates" : "Free"}</p>
               </CardContent>

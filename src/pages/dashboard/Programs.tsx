@@ -19,7 +19,7 @@ const aimployPrograms = [
   {
     id: "aincubatr",
     title: "Aincubatr Residency Program",
-    provider: "Aimploy × SOUL Incubator",
+    provider: "Aimploy × partner incubator",
     duration: "3 months",
     type: "Residency",
     tracks: ["CTO Training", "CEO Training"],
@@ -27,7 +27,7 @@ const aimployPrograms = [
     highlights: [
       "Hands-on leadership experience",
       "Mentorship from industry experts",
-      "Partnership with SOUL Incubator",
+      "Partnership with partner incubator",
       "Network with fellow entrepreneurs",
     ],
     isPaid: true,

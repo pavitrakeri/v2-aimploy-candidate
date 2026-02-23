@@ -15,6 +15,7 @@ import {
   MapPin,
   Building2,
   DollarSign,
+  IndianRupee,
   CheckCircle2,
   Clock,
   Briefcase,
@@ -290,7 +291,7 @@ export const JobApply = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {job.salary_range && (
                   <div className="text-center p-4 bg-muted/50 rounded-lg">
-                    <DollarSign className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <IndianRupee className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-xs text-muted-foreground">Salary</p>
                     <p className="font-semibold">{job.salary_range}</p>
                   </div>
@@ -443,7 +444,7 @@ export const JobApply = () => {
               )}
               {job.salary_range && (
                 <span className="flex items-center gap-1 text-primary font-medium">
-                  <DollarSign size={14} />
+                  <IndianRupee size={14} />
                   {job.salary_range}
                 </span>
               )}

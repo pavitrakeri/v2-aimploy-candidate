@@ -15,6 +15,7 @@ import {
   Bookmark,
   Clock,
   DollarSign,
+  IndianRupee,
   Loader2,
   Briefcase,
   X,
@@ -342,7 +343,7 @@ export const BrowseJobs = () => {
               <Collapsible open={openSections.salary} onOpenChange={() => toggleSection("salary")}>
                 <CollapsibleTrigger className="flex items-center justify-between w-full py-2 font-medium text-sm hover:bg-muted/50 px-2 rounded-md -mx-2">
                   <span className="flex items-center gap-2">
-                    <DollarSign size={16} className="text-primary" />
+                    <IndianRupee size={16} className="text-primary" />
                     Salary Range (LPA)
                   </span>
                   {openSections.salary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -633,7 +634,7 @@ export const BrowseJobs = () => {
                       )}
                       {job.salary_range && (
                         <Badge variant="secondary" className="text-xs">
-                          <DollarSign size={12} className="mr-0.5" />
+                          <IndianRupee size={12} className="mr-0.5" />
                           {job.salary_range}
                         </Badge>
                       )}

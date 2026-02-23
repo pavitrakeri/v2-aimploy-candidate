@@ -46,7 +46,7 @@ const programsData: Record<string, {
   aincubatr: {
     id: "aincubatr",
     title: "Aincubatr Residency Program",
-    provider: "Aimploy × SOUL Incubator",
+    provider: "Aimploy × partner incubator",
     duration: "3 months",
     type: "Residency",
     tracks: ["CTO Training", "CEO Training"],

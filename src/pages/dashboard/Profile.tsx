@@ -8,6 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Camera,
   Mail,
   Phone,
@@ -23,6 +32,7 @@ import {
   Loader2,
   Upload,
   Save,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileApi } from "@/services/api";
@@ -47,6 +57,32 @@ export const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Modal states
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
+  const [isExperienceModalOpen, setIsExperienceModalOpen] = useState(false);
+  const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
+  
+  // Form states
+  const [newSkill, setNewSkill] = useState("");
+  const [newExperience, setNewExperience] = useState({
+    company: "",
+    position: "",
+    start_date: "",
+    end_date: "",
+    is_current: false,
+    location: "",
+    description: "",
+  });
+  const [newEducation, setNewEducation] = useState({
+    institution: "",
+    degree: "",
+    field_of_study: "",
+    start_date: "",
+    end_date: "",
+    grade: "",
+    description: "",
+  });
+  
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -57,6 +93,9 @@ export const Profile = () => {
     github_url: "",
     linkedin_url: "",
     portfolio_url: "",
+    skills: [] as string[],
+    professional_experience: [] as any[],
+    education: [] as any[],
   });
 
   useEffect(() => {
@@ -71,12 +110,75 @@ export const Profile = () => {
         github_url: user.github_url || "",
         linkedin_url: user.linkedin_url || "",
         portfolio_url: user.portfolio_url || "",
+        skills: user.skills || [],
+        professional_experience: user.professional_experience || [],
+        education: user.education || [],
       });
     }
   }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // Handler functions for adding items
+  const handleAddSkill = () => {
+    if (newSkill.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        skills: [...(prev.skills || []), newSkill.trim()],
+      }));
+      setNewSkill("");
+      setIsSkillModalOpen(false);
+      toast({ title: "Success", description: "Skill added successfully!" });
+    }
+  };
+
+  const handleAddExperience = () => {
+    if (newExperience.company && newExperience.position && newExperience.start_date) {
+      setFormData((prev) => ({
+        ...prev,
+        professional_experience: [...(prev.professional_experience || []), { ...newExperience }],
+      }));
+      setNewExperience({
+        company: "",
+        position: "",
+        start_date: "",
+        end_date: "",
+        is_current: false,
+        location: "",
+        description: "",
+      });
+      setIsExperienceModalOpen(false);
+      toast({ title: "Success", description: "Experience added successfully!" });
+    }
+  };
+
+  const handleAddEducation = () => {
+    if (newEducation.institution && newEducation.degree && newEducation.start_date) {
+      setFormData((prev) => ({
+        ...prev,
+        education: [...(prev.education || []), { ...newEducation }],
+      }));
+      setNewEducation({
+        institution: "",
+        degree: "",
+        field_of_study: "",
+        start_date: "",
+        end_date: "",
+        grade: "",
+        description: "",
+      });
+      setIsEducationModalOpen(false);
+      toast({ title: "Success", description: "Education added successfully!" });
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills?.filter((skill) => skill !== skillToRemove) || [],
+    }));
   };
 
   const handleSave = async () => {
@@ -392,20 +494,51 @@ export const Profile = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-display">Skills</CardTitle>
-              <Button variant="ghost" size="sm">
-                <Plus size={14} />
-                Add Skill
-              </Button>
+              <Dialog open={isSkillModalOpen} onOpenChange={setIsSkillModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Plus size={14} />
+                    Add Skill
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Skill</DialogTitle>
+                    <DialogDescription>
+                      Enter a skill you want to add to your profile.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="skill">Skill</Label>
+                      <Input
+                        id="skill"
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="e.g., JavaScript, Project Management, etc."
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsSkillModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddSkill}>Add Skill</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {user?.skills?.map((skill) => (
+                {formData.skills?.map((skill) => (
                   <Badge
                     key={skill}
                     variant="secondary"
-                    className="px-3 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer group relative"
+                    onClick={() => handleRemoveSkill(skill)}
                   >
                     {skill}
+                    <X size={10} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Badge>
                 )) || (
                   <p className="text-muted-foreground text-sm">No skills added yet</p>
@@ -418,14 +551,103 @@ export const Profile = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-display">Experience</CardTitle>
-              <Button variant="ghost" size="sm">
-                <Plus size={14} />
-                Add
-              </Button>
+              <Dialog open={isExperienceModalOpen} onOpenChange={setIsExperienceModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Plus size={14} />
+                    Add
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Work Experience</DialogTitle>
+                    <DialogDescription>
+                      Add your professional work experience to your profile.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="company">Company</Label>
+                        <Input
+                          id="company"
+                          value={newExperience.company}
+                          onChange={(e) => setNewExperience(prev => ({ ...prev, company: e.target.value }))}
+                          placeholder="Company name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="position">Position</Label>
+                        <Input
+                          id="position"
+                          value={newExperience.position}
+                          onChange={(e) => setNewExperience(prev => ({ ...prev, position: e.target.value }))}
+                          placeholder="Job title"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="start_date">Start Date</Label>
+                        <Input
+                          id="start_date"
+                          type="month"
+                          value={newExperience.start_date}
+                          onChange={(e) => setNewExperience(prev => ({ ...prev, start_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="end_date">End Date</Label>
+                        <Input
+                          id="end_date"
+                          type="month"
+                          value={newExperience.end_date}
+                          onChange={(e) => setNewExperience(prev => ({ ...prev, end_date: e.target.value }))}
+                          disabled={newExperience.is_current}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <Input
+                        id="location"
+                        value={newExperience.location}
+                        onChange={(e) => setNewExperience(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="City, Country"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="is_current"
+                        checked={newExperience.is_current}
+                        onChange={(e) => setNewExperience(prev => ({ ...prev, is_current: e.target.checked, end_date: "" }))}
+                      />
+                      <Label htmlFor="is_current">I currently work here</Label>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={newExperience.description}
+                        onChange={(e) => setNewExperience(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe your role and responsibilities..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsExperienceModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddExperience}>Add Experience</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="space-y-4">
-              {user?.professional_experience?.length ? (
-                user.professional_experience.map((exp, idx) => (
+              {formData.professional_experience?.length ? (
+                formData.professional_experience.map((exp, idx) => (
                   <div
                     key={idx}
                     className="flex items-start gap-4 p-4 rounded-xl border hover:border-primary/30 transition-colors"
@@ -446,6 +668,9 @@ export const Profile = () => {
                       <p className="text-xs text-muted-foreground mt-1">
                         {exp.start_date} - {exp.is_current ? "Present" : exp.end_date}
                       </p>
+                      {exp.description && (
+                        <p className="text-sm text-muted-foreground mt-2">{exp.description}</p>
+                      )}
                     </div>
                   </div>
                 ))
@@ -459,14 +684,102 @@ export const Profile = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-display">Education</CardTitle>
-              <Button variant="ghost" size="sm">
-                <Plus size={14} />
-                Add
-              </Button>
+              <Dialog open={isEducationModalOpen} onOpenChange={setIsEducationModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Plus size={14} />
+                    Add
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Education</DialogTitle>
+                    <DialogDescription>
+                      Add your educational background to your profile.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="institution">Institution</Label>
+                      <Input
+                        id="institution"
+                        value={newEducation.institution}
+                        onChange={(e) => setNewEducation(prev => ({ ...prev, institution: e.target.value }))}
+                        placeholder="University/College name"
+                      />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="degree">Degree</Label>
+                        <Input
+                          id="degree"
+                          value={newEducation.degree}
+                          onChange={(e) => setNewEducation(prev => ({ ...prev, degree: e.target.value }))}
+                          placeholder="e.g., Bachelor of Science"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="field_of_study">Field of Study</Label>
+                        <Input
+                          id="field_of_study"
+                          value={newEducation.field_of_study}
+                          onChange={(e) => setNewEducation(prev => ({ ...prev, field_of_study: e.target.value }))}
+                          placeholder="e.g., Computer Science"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="edu_start_date">Start Date</Label>
+                        <Input
+                          id="edu_start_date"
+                          type="month"
+                          value={newEducation.start_date}
+                          onChange={(e) => setNewEducation(prev => ({ ...prev, start_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edu_end_date">End Date</Label>
+                        <Input
+                          id="edu_end_date"
+                          type="month"
+                          value={newEducation.end_date}
+                          onChange={(e) => setNewEducation(prev => ({ ...prev, end_date: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="grade">Grade/CGPA</Label>
+                      <Input
+                        id="grade"
+                        value={newEducation.grade}
+                        onChange={(e) => setNewEducation(prev => ({ ...prev, grade: e.target.value }))}
+                        placeholder="e.g., 3.8 GPA, First Class"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edu_description">Description</Label>
+                      <Textarea
+                        id="edu_description"
+                        value={newEducation.description}
+                        onChange={(e) => setNewEducation(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Additional details about your education..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsEducationModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddEducation}>Add Education</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="space-y-4">
-              {user?.education?.length ? (
-                user.education.map((edu, idx) => (
+              {formData.education?.length ? (
+                formData.education.map((edu, idx) => (
                   <div
                     key={idx}
                     className="flex items-start gap-4 p-4 rounded-xl border hover:border-primary/30 transition-colors"
@@ -477,9 +790,15 @@ export const Profile = () => {
                     <div>
                       <h3 className="font-semibold">{edu.degree}</h3>
                       <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                      {edu.field_of_study && (
+                        <p className="text-sm text-muted-foreground">{edu.field_of_study}</p>
+                      )}
                       <p className="text-xs text-muted-foreground mt-1">
                         {edu.start_date} - {edu.end_date}
                       </p>
+                      {edu.grade && (
+                        <p className="text-sm text-muted-foreground mt-1">Grade: {edu.grade}</p>
+                      )}
                     </div>
                   </div>
                 ))
