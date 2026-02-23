@@ -168,16 +168,13 @@ export const Register = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md py-8"
           >
-            <Link to="/" className="inline-block mb-8 lg:hidden">
-              <img src={aimployLogo} alt="Aimploy" className="h-8" />
-            </Link>
+            <div className="border border-gray-200/30 rounded-lg p-6 bg-white/10 backdrop-blur-sm shadow-sm">
+              <h1 className="font-display text-3xl font-bold mb-2">Create an account</h1>
+              <p className="text-muted-foreground mb-8">
+                Join Aimploy and find your dream job today
+              </p>
 
-            <h1 className="font-display text-3xl font-bold mb-2">Create an account</h1>
-            <p className="text-muted-foreground mb-8">
-              Join Aimploy and find your dream job today
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <div className="relative">
@@ -353,7 +350,8 @@ export const Register = () => {
                   </>
                 )}
               </Button>
-            </form>
+              </form>
+            </div>
 
 
             <p className="text-center text-sm text-muted-foreground mt-8">

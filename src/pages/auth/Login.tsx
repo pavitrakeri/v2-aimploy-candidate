@@ -122,10 +122,6 @@ export const Login = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Link to="/" className="inline-block mb-8">
-                <img src={aimployLogo} alt="Aimploy" className="h-10" />
-              </Link>
-              
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-6">
                 <Sparkles size={16} />
                 Welcome Back
@@ -166,182 +162,186 @@ export const Login = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <Link to="/" className="inline-block mb-8 lg:hidden">
-              <img src={aimployLogo} alt="Aimploy" className="h-8" />
-            </Link>
-
-            <h1 className="font-display text-3xl font-bold mb-2">Welcome back</h1>
-            <p className="text-muted-foreground mb-8">
-              Enter your credentials to access your account
-            </p>
-
-            {/* Login Method Toggle */}
-            <div className="flex gap-2 mb-6">
-              <Button
-                variant={loginMethod === "password" ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  setLoginMethod("password");
-                  setShowOTPInput(false);
-                }}
-              >
-                Password
-              </Button>
-              <Button
-                variant={loginMethod === "otp" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setLoginMethod("otp")}
-              >
-                OTP Login
-              </Button>
+            <div className="flex justify-center mb-6">
+              <Link to="/" className="inline-block">
+                <img src={aimployLogo} alt="Aimploy" className="h-10" />
+              </Link>
             </div>
 
-            <form onSubmit={handlePasswordLogin} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    className="pl-10 h-12"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && loginMethod === "otp" && !showOTPInput && email) {
-                        e.preventDefault();
-                        handleRequestOTP();
-                      }
-                    }}
-                    disabled={isLoading}
-                  />
-                </div>
+            <div className="border border-gray-200/30 rounded-lg p-6 bg-white/10 backdrop-blur-sm shadow-sm">
+              <h1 className="font-display text-3xl font-bold mb-2">Welcome back</h1>
+              <p className="text-muted-foreground mb-8">
+                Enter your credentials to access your account
+              </p>
+
+              {/* Login Method Toggle */}
+              <div className="flex gap-2 mb-6">
+                <Button
+                  variant={loginMethod === "password" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setLoginMethod("password");
+                    setShowOTPInput(false);
+                  }}
+                >
+                  Password
+                </Button>
+                <Button
+                  variant={loginMethod === "otp" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setLoginMethod("otp")}
+                >
+                  OTP Login
+                </Button>
               </div>
 
-              {loginMethod === "password" ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        className="pl-10 h-12"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={isLoading}
-                      />
-                    </div>
+              <form onSubmit={handlePasswordLogin} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      className="pl-10 h-12"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && loginMethod === "otp" && !showOTPInput && email) {
+                          e.preventDefault();
+                          handleRequestOTP();
+                        }
+                      }}
+                      disabled={isLoading}
+                    />
                   </div>
+                </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="remember" />
-                      <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                        Remember me
-                      </Label>
+                {loginMethod === "password" ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Enter your password"
+                          className="pl-10 h-12"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
                     </div>
-                    <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                      Forgot password?
-                    </Link>
-                  </div>
 
-                  <Button
-                    variant="hero"
-                    size="xl"
-                    className="w-full"
-                    type="submit"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="animate-spin" size={18} />
-                    ) : (
-                      <>
-                        Sign In
-                        <ArrowRight size={18} />
-                      </>
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {!showOTPInput ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox id="remember" />
+                        <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
+                          Remember me
+                        </Label>
+                      </div>
+                      <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
+
                     <Button
                       variant="hero"
                       size="xl"
                       className="w-full"
-                      type="button"
-                      onClick={handleRequestOTP}
+                      type="submit"
                       disabled={isLoading}
                     >
                       {isLoading ? (
                         <Loader2 className="animate-spin" size={18} />
                       ) : (
                         <>
-                          Send OTP
+                          Sign In
                           <ArrowRight size={18} />
                         </>
                       )}
                     </Button>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Enter OTP</Label>
-                        <p className="text-sm text-muted-foreground">
-                          We sent a 6-digit code to {email}
-                          {otpExpiry && (
-                            <span className="block mt-1">Expires in {Math.floor(otpExpiry / 60)} minutes</span>
-                          )}
-                        </p>
-                        <InputOTP 
-                          maxLength={6} 
-                          value={otp} 
-                          onChange={setOtp}
-                          onComplete={handleOTPLogin}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && otp.length === 6) {
-                              handleOTPLogin();
-                            }
-                          }}
-                        >
-                          <InputOTPGroup className="gap-2">
-                            <InputOTPSlot index={0} className="h-12 w-12" />
-                            <InputOTPSlot index={1} className="h-12 w-12" />
-                            <InputOTPSlot index={2} className="h-12 w-12" />
-                            <InputOTPSlot index={3} className="h-12 w-12" />
-                            <InputOTPSlot index={4} className="h-12 w-12" />
-                            <InputOTPSlot index={5} className="h-12 w-12" />
-                          </InputOTPGroup>
-                        </InputOTP>
+                  </>
+                ) : (
+                  <>
+                    {!showOTPInput ? (
+                      <Button
+                        variant="hero"
+                        size="xl"
+                        className="w-full"
+                        type="button"
+                        onClick={handleRequestOTP}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <Loader2 className="animate-spin" size={18} />
+                        ) : (
+                          <>
+                            Send OTP
+                            <ArrowRight size={18} />
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Enter OTP</Label>
+                          <p className="text-sm text-muted-foreground">
+                            We sent a 6-digit code to {email}
+                            {otpExpiry && (
+                              <span className="block mt-1">Expires in {Math.floor(otpExpiry / 60)} minutes</span>
+                            )}
+                          </p>
+                          <InputOTP 
+                            maxLength={6} 
+                            value={otp} 
+                            onChange={setOtp}
+                            onComplete={handleOTPLogin}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && otp.length === 6) {
+                                handleOTPLogin();
+                              }
+                            }}
+                          >
+                            <InputOTPGroup className="gap-2">
+                              <InputOTPSlot index={0} className="h-12 w-12" />
+                              <InputOTPSlot index={1} className="h-12 w-12" />
+                              <InputOTPSlot index={2} className="h-12 w-12" />
+                              <InputOTPSlot index={3} className="h-12 w-12" />
+                              <InputOTPSlot index={4} className="h-12 w-12" />
+                              <InputOTPSlot index={5} className="h-12 w-12" />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            type="button"
+                            onClick={handleRequestOTP}
+                            disabled={isLoading}
+                          >
+                            Resend OTP
+                          </Button>
+                          <Button
+                            variant="hero"
+                            className="flex-1"
+                            type="button"
+                            onClick={handleOTPLogin}
+                            disabled={isLoading || otp.length !== 6}
+                          >
+                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : "Verify & Login"}
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          type="button"
-                          onClick={handleRequestOTP}
-                          disabled={isLoading}
-                        >
-                          Resend OTP
-                        </Button>
-                        <Button
-                          variant="hero"
-                          className="flex-1"
-                          type="button"
-                          onClick={handleOTPLogin}
-                          disabled={isLoading || otp.length !== 6}
-                        >
-                          {isLoading ? <Loader2 className="animate-spin" size={18} /> : "Verify & Login"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </form>
+                    )}
+                  </>
+                )}
+              </form>
+            </div>
 
 
             <p className="text-center text-sm text-muted-foreground mt-8">
