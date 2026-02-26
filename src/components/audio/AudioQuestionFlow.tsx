@@ -51,6 +51,9 @@ export const AudioQuestionFlow = ({
   const [recordingTime, setRecordingTime] = useState(0);
   const [retakeTime, setRetakeTime] = useState(RETAKE_WINDOW_TIME);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [attemptCounts, setAttemptCounts] = useState<number[]>(
+    new Array(questions.length).fill(0)
+  );
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -119,6 +122,14 @@ export const AudioQuestionFlow = ({
   // Retake window timer
   useEffect(() => {
     if (questionState === "retake-window") {
+      const hasRetakeAvailable = (attemptCounts[currentQuestionIndex] || 0) < 2;
+      
+      // If no retake available, skip directly to completed
+      if (!hasRetakeAvailable) {
+        setQuestionState("completed");
+        return;
+      }
+
       timerRef.current = setInterval(() => {
         setRetakeTime((prev) => {
           if (prev <= 1) {
@@ -134,7 +145,7 @@ export const AudioQuestionFlow = ({
         if (timerRef.current) clearInterval(timerRef.current);
       };
     }
-  }, [questionState]);
+  }, [questionState, attemptCounts, currentQuestionIndex]);
 
   const startCountdown = useCallback(async () => {
     try {
@@ -173,6 +184,13 @@ export const AudioQuestionFlow = ({
       }
       newRecordings[currentQuestionIndex] = { blob: audioBlob, url: audioUrl, duration };
       setRecordings(newRecordings);
+
+      // Increment attempt count
+      setAttemptCounts((prev) => {
+        const updated = [...prev];
+        updated[currentQuestionIndex] = (updated[currentQuestionIndex] || 0) + 1;
+        return updated;
+      });
 
       // Start retake window
       setRetakeTime(RETAKE_WINDOW_TIME);
@@ -364,6 +382,9 @@ export const AudioQuestionFlow = ({
                   <Check size={16} className="mr-2" />
                   Recorded ({formatTime(currentRecording?.duration || 0)})
                 </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Attempt {attemptCounts[currentQuestionIndex]} / 2
+                </Badge>
               </div>
 
               <div className="bg-muted/50 rounded-lg p-4 text-center">
@@ -378,9 +399,13 @@ export const AudioQuestionFlow = ({
               </div>
 
               <div className="flex justify-center gap-3">
-                <Button variant="outline" onClick={handleRetake}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleRetake}
+                  disabled={(attemptCounts[currentQuestionIndex] || 0) >= 2}
+                >
                   <RotateCcw size={16} className="mr-2" />
-                  Retake
+                  {(attemptCounts[currentQuestionIndex] || 0) >= 2 ? "No Retakes Left" : "Retake"}
                 </Button>
                 <Button onClick={handleNext}>
                   {isLastQuestion ? "Finish" : "Next Question"}
