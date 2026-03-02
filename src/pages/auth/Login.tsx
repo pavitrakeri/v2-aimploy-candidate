@@ -236,16 +236,13 @@ export const Login = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <div className="flex items-center gap-2">
                         <Checkbox id="remember" />
                         <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
                           Remember me
                         </Label>
                       </div>
-                      <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                        Forgot password?
-                      </Link>
                     </div>
 
                     <Button
