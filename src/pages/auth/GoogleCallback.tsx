@@ -10,6 +10,7 @@ export const GoogleCallback = () => {
   const { handleGoogleCallback } = useAuth();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const processCallback = async () => {
@@ -28,16 +29,20 @@ export const GoogleCallback = () => {
         return;
       }
 
-      if (!code) {
-        setError("No authorization code received");
-        toast({
-          title: "Authentication Failed",
-          description: "No authorization code received from Google",
-          variant: "destructive",
-        });
-        setTimeout(() => navigate("/login"), 3000);
+      if (!code || isProcessing) {
+        if (!code) {
+          setError("No authorization code received");
+          toast({
+            title: "Authentication Failed",
+            description: "No authorization code received from Google",
+            variant: "destructive",
+          });
+          setTimeout(() => navigate("/login"), 3000);
+        }
         return;
       }
+
+      setIsProcessing(true);
 
       try {
         await handleGoogleCallback(code, state || undefined);
