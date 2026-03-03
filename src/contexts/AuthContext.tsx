@@ -73,8 +73,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const handleGoogleCallback = async (code: string, state?: string) => {
-    const response = await authApi.googleCallback({ code, state });
-    await handleAuthSuccess(response);
+    // Make direct API call to GET callback endpoint
+    const token = localStorage.getItem("access_token");
+    const params = new URLSearchParams({ code });
+    if (state) params.append('state', state);
+    
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "https://backend.aimploy.org/api/v1"}/candidate/login/google/callback?${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "An error occurred" }));
+      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    const authResponse = await response.json();
+    await handleAuthSuccess(authResponse);
   };
 
   const logout = () => {

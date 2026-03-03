@@ -291,11 +291,11 @@ export const authApi = {
     return apiRequest("/candidate/login/google/url");
   },
 
-  googleCallback: async (data: GoogleCallbackRequest): Promise<AuthResponse> => {
-    return apiRequest<AuthResponse>("/candidate/login/google/callback", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+  googleCallback: async (code: string, state?: string): Promise<AuthResponse> => {
+    // For Google OAuth callback, we need to handle this differently
+    // The callback will be handled by the GoogleCallback component directly
+    // This method is kept for compatibility but won't be used
+    throw new Error("Google callback should be handled by redirect, not API call");
   },
 };
 
