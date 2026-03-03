@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, ArrowRight, Loader2, Sparkles, CheckCircle } from "lucide-react";
+import { Chrome } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +16,7 @@ import authLoginHero from "@/assets/auth-login-hero.jpg";
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithOTP, requestOTP } = useAuth();
+  const { login, loginWithOTP, requestOTP, loginWithGoogle } = useAuth();
   const { toast } = useToast();
 
   const [email, setEmail] = useState("");
@@ -27,6 +28,18 @@ export const Login = () => {
   const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      toast({
+        title: "Google Login Failed",
+        description: error instanceof Error ? error.message : "Unable to connect with Google",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,6 +351,30 @@ export const Login = () => {
                   </>
                 )}
               </form>
+
+              {/* Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              {/* Google Login Button */}
+              <Button
+                variant="outline"
+                size="xl"
+                className="w-full h-12"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                <Chrome className="mr-2 h-5 w-5" />
+                Sign in with Google
+              </Button>
             </div>
 
 
