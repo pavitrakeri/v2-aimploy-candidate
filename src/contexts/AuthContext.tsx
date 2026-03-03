@@ -73,15 +73,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const handleGoogleCallback = async (code: string, state?: string) => {
-    // Call the new exchange endpoint to process the Google code
+    // Make direct API call to GET callback endpoint
     const token = localStorage.getItem("access_token");
+    const params = new URLSearchParams({ code });
+    if (state) params.append('state', state);
     
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "https://backend.aimploy.org/api/v1"}/candidate/login/google/exchange`, {
-      method: "POST",
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "https://backend.aimploy.org/api/v1"}/candidate/login/google/callback?${params}`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ code, state }),
     });
 
     if (!response.ok) {
