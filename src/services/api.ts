@@ -1,5 +1,5 @@
 // API Service for Aimploy Backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://backend.aimploy.org/api/v1";
+const API_BASE_URL = import.meta.env.DEV ? '/api/v1' : (import.meta.env.VITE_API_BASE_URL || "https://backend.aimploy.org/api/v1");
 
 // Types
 export interface CandidateRegisterRequest {
@@ -325,6 +325,35 @@ export const profileApi = {
 
 // Jobs APIs
 export const jobsApi = {
+  getPublicJobs: async (params?: {
+    page?: number;
+    page_size?: number;
+    location?: string;
+    employment_type?: string;
+    department?: string;
+    search?: string;
+  }): Promise<JobsResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append("page", params.page.toString());
+    if (params?.page_size) searchParams.append("page_size", params.page_size.toString());
+    if (params?.location) searchParams.append("location", params.location);
+    if (params?.employment_type) searchParams.append("employment_type", params.employment_type);
+    if (params?.department) searchParams.append("department", params.department);
+    if (params?.search) searchParams.append("search", params.search);
+
+    const query = searchParams.toString();
+    
+    // Use fetch directly for public endpoint (no authentication needed)
+    const response = await fetch(`${API_BASE_URL}/public/jobs${query ? `?${query}` : ""}`);
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "An error occurred" }));
+      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
   getJobs: async (params?: {
     page?: number;
     page_size?: number;

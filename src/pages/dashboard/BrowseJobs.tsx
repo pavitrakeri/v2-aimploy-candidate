@@ -166,7 +166,7 @@ export const BrowseJobs = () => {
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
-      const response = await jobsApi.getJobs({
+      const response = await jobsApi.getPublicJobs({
         page,
         page_size: 12,
         search: searchQuery || undefined,

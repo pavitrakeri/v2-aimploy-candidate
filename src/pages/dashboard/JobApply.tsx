@@ -324,7 +324,10 @@ export const JobApply = () => {
                 <CardTitle className="font-display">About the Role</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground whitespace-pre-wrap">{job.description}</p>
+                <div 
+                  className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300"
+                  dangerouslySetInnerHTML={{ __html: job.description }}
+                />
               </CardContent>
             </Card>
           </motion.div>
