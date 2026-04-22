@@ -12,13 +12,6 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
-    proxy: {
-      '/api': {
-        target: 'https://backend.aimploy.org',
-        changeOrigin: true,
-        secure: true,
-      },
-    },
   },
   build: {
     outDir: 'dist',
