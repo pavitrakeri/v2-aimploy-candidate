@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { VerificationProvider } from "@/contexts/VerificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -21,6 +22,8 @@ import ProgramDetails from "./pages/dashboard/ProgramDetails";
 import ProgramApply from "./pages/dashboard/ProgramApply";
 import Challenges from "./pages/dashboard/Challenges";
 import Verification from "./pages/dashboard/Verification";
+import VerificationManagement from "./pages/dashboard/VerificationManagement";
+import ValidationDemo from '@/components/verification/ValidationDemo';
 import Profile from "./pages/dashboard/Profile";
 import NotFound from "./pages/NotFound";
 import UserGuidance from "./pages/UserGuidance";
@@ -31,7 +34,8 @@ const App = () => (
   <ThemeProvider defaultTheme="light" storageKey="aimploy-theme">
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
+        <VerificationProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -56,6 +60,8 @@ const App = () => (
                 <Route path="programs" element={<Programs />} />
                 <Route path="challenges" element={<Challenges />} />
                 <Route path="verification" element={<Verification />} />
+                <Route path="verification-management" element={<VerificationManagement />} />
+                <Route path="validation-demo" element={<ValidationDemo />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
               <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
@@ -65,6 +71,7 @@ const App = () => (
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+        </VerificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ThemeProvider>

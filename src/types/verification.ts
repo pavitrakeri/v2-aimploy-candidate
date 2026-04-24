@@ -3,6 +3,11 @@ export interface UploadedFile {
   name: string;
   size: number;
   type: string;
+  // OpenAI validation fields
+  validation_score?: number;
+  validation_details?: Record<string, any>;
+  analysis_method?: string;
+  validation_status?: 'pending' | 'verified' | 'rejected' | 'needs_review';
 }
 
 export interface IdentityData {
