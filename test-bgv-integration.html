@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGV Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .checkbox-group {
+            margin: 10px 0;
+        }
+        .checkbox-group label {
+            display: block;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 BGV Integration Test</h1>
+        <p>This page tests the Background Verification API endpoints.</p>
+
+        <!-- Configuration -->
+        <div class="section">
+            <h3>⚙️ Configuration</h3>
+            <label>API Base URL:</label>
+            <input type="text" id="apiBaseUrl" value="https://aimploy-backend-main.onrender.com/api/v1" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <br>
+            <label>Candidate ID:</label>
+            <input type="number" id="candidateId" value="97" style="padding: 5px; margin: 5px 0;">
+            <br>
+            <button class="btn" onclick="testHealthCheck()">🏥 Test Health Check</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <!-- Start Verification -->
+        <div class="section">
+            <h3>🚀 Start Verification</h3>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="identity" checked> Identity Verification</label>
+                <label><input type="checkbox" id="address"> Address Verification</label>
+                <label><input type="checkbox" id="education"> Education Verification</label>
+                <label><input type="checkbox" id="employment"> Employment Verification</label>
+                <label><input type="checkbox" id="criminal"> Criminal Background Check</label>
+            </div>
+            <label>Notes (optional):</label>
+            <textarea id="verificationNotes" placeholder="Any additional notes..."></textarea>
+            <button class="btn" onclick="startVerification()">🎯 Start Verification</button>
+            <div id="startResult"></div>
+        </div>
+
+        <!-- Get Verification Status -->
+        <div class="section">
+            <h3>📊 Get Verification Status</h3>
+            <label>Verification ID:</label>
+            <input type="number" id="verificationId" value="1" style="padding: 5px; margin: 5px 0;">
+            <br>
+            <button class="btn" onclick="getVerification()">📋 Get Verification</button>
+            <button class="btn" onclick="getCandidateStatus()">👤 Get Candidate Status</button>
+            <div id="statusResult"></div>
+        </div>
+
+        <!-- Upload Document -->
+        <div class="section">
+            <h3>📄 Upload Document</h3>
+            <label>Verification ID:</label>
+            <input type="number" id="docVerificationId" value="1" style="padding: 5px; margin: 5px 0;">
+            <br>
+            <label>Document Type:</label>
+            <select id="documentType" style="padding: 5px; margin: 5px 0;">
+                <option value="identity">Identity Document</option>
+                <option value="address_proof">Address Proof</option>
+                <option value="education_certificate">Education Certificate</option>
+                <option value="experience_letter">Experience Letter</option>
+                <option value="salary_slip">Salary Slip</option>
+            </select>
+            <br>
+            <label>File:</label>
+            <input type="file" id="documentFile" accept=".pdf,.jpg,.jpeg,.png" style="margin: 5px 0;">
+            <br>
+            <button class="btn" onclick="uploadDocument()">📤 Upload Document</button>
+            <div id="uploadResult"></div>
+        </div>
+
+        <!-- Add Reference -->
+        <div class="section">
+            <h3>👥 Add Reference</h3>
+            <label>Verification ID:</label>
+            <input type="number" id="refVerificationId" value="1" style="padding: 5px; margin: 5px 0;">
+            <br>
+            <label>Reference Name:</label>
+            <input type="text" id="referenceName" placeholder="John Doe" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <label>Reference Email:</label>
+            <input type="email" id="referenceEmail" placeholder="john@example.com" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <label>Reference Phone:</label>
+            <input type="tel" id="referencePhone" placeholder="+1234567890" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <label>Relationship:</label>
+            <input type="text" id="relationship" placeholder="Manager" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <label>Company:</label>
+            <input type="text" id="company" placeholder="ABC Corp" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <label>Position:</label>
+            <input type="text" id="position" placeholder="Senior Developer" style="width: 100%; padding: 5px; margin: 5px 0;">
+            <br>
+            <button class="btn" onclick="addReference()">➕ Add Reference</button>
+            <div id="referenceResult"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="section">
+            <h3>📝 API Responses</h3>
+            <textarea id="apiResponses" readonly placeholder="API responses will appear here..."></textarea>
+            <button class="btn" onclick="clearResponses()">🗑️ Clear Responses</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = document.getElementById('apiBaseUrl').value;
+        
+        function logResponse(message, type = 'info') {
+            const responses = document.getElementById('apiResponses');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8';
+            responses.value += `[${timestamp}] ${message}\n`;
+            responses.scrollTop = responses.scrollHeight;
+        }
+
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<span class="${type}">${message}</span>`;
+        }
+
+        async function apiRequest(endpoint, method = 'GET', body = null, isFormData = false) {
+            const url = `${document.getElementById('apiBaseUrl').value}${endpoint}`;
+            const token = localStorage.getItem('access_token');
+            
+            const options = {
+                method,
+                headers: {},
+            };
+
+            if (!isFormData && body) {
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(body);
+            }
+
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            if (isFormData && body) {
+                options.body = body;
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || `HTTP ${response.status}`);
+                }
+                
+                return data;
+            } catch (error) {
+                logResponse(`❌ API Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function testHealthCheck() {
+            updateResult('healthResult', 'Testing...', 'info');
+            try {
+                const result = await apiRequest('/health');
+                updateResult('healthResult', `✅ Health check passed. Database: ${result.database}`, 'success');
+                logResponse(`✅ Health check: ${JSON.stringify(result, null, 2)}`, 'success');
+            } catch (error) {
+                updateResult('healthResult', `❌ Health check failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function startVerification() {
+            updateResult('startResult', 'Starting verification...', 'info');
+            
+            const verificationTypes = [];
+            if (document.getElementById('identity').checked) verificationTypes.push('identity');
+            if (document.getElementById('address').checked) verificationTypes.push('address');
+            if (document.getElementById('education').checked) verificationTypes.push('education');
+            if (document.getElementById('employment').checked) verificationTypes.push('employment');
+            if (document.getElementById('criminal').checked) verificationTypes.push('criminal');
+
+            if (verificationTypes.length === 0) {
+                updateResult('startResult', '❌ Please select at least one verification type', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiRequest('/verification/start', 'POST', {
+                    candidate_id: parseInt(document.getElementById('candidateId').value),
+                    consent_given: true,
+                    no_criminal_record: true,
+                    verification_types: verificationTypes,
+                    initiated_by: parseInt(document.getElementById('candidateId').value),
+                    notes: document.getElementById('verificationNotes').value
+                });
+
+                updateResult('startResult', `✅ Verification started! ID: ${result.id}`, 'success');
+                document.getElementById('verificationId').value = result.id;
+                document.getElementById('docVerificationId').value = result.id;
+                document.getElementById('refVerificationId').value = result.id;
+                logResponse(`✅ Verification started: ${JSON.stringify(result, null, 2)}`, 'success');
+            } catch (error) {
+                updateResult('startResult', `❌ Failed to start verification: ${error.message}`, 'error');
+            }
+        }
+
+        async function getVerification() {
+            updateResult('statusResult', 'Getting verification...', 'info');
+            try {
+                const result = await apiRequest(`/verification/${document.getElementById('verificationId').value}`);
+                updateResult('statusResult', `✅ Status: ${result.status}`, 'success');
+                logResponse(`✅ Verification details: ${JSON.stringify(result, null, 2)}`, 'success');
+            } catch (error) {
+                updateResult('statusResult', `❌ Failed to get verification: ${error.message}`, 'error');
+            }
+        }
+
+        async function getCandidateStatus() {
+            updateResult('statusResult', 'Getting candidate status...', 'info');
+            try {
+                const result = await apiRequest(`/verification/candidate/${document.getElementById('candidateId').value}`);
+                updateResult('statusResult', `✅ Overall Status: ${result.overall_status}`, 'success');
+                logResponse(`✅ Candidate status: ${JSON.stringify(result, null, 2)}`, 'success');
+            } catch (error) {
+                updateResult('statusResult', `❌ Failed to get candidate status: ${error.message}`, 'error');
+            }
+        }
+
+        async function uploadDocument() {
+            updateResult('uploadResult', 'Uploading document...', 'info');
+            
+            const fileInput = document.getElementById('documentFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                updateResult('uploadResult', '❌ Please select a file', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('verification_id', document.getElementById('docVerificationId').value);
+            formData.append('document_type', document.getElementById('documentType').value);
+            formData.append('file', file);
+            formData.append('description', `Uploaded ${document.getElementById('documentType').value}`);
+
+            try {
+                const result = await apiRequest('/verification/documents', 'POST', formData, true);
+                updateResult('uploadResult', `✅ Document uploaded! ID: ${result.id}`, 'success');
+                logResponse(`✅ Document uploaded: ${JSON.stringify(result, null, 2)}`, 'success');
+                fileInput.value = '';
+            } catch (error) {
+                updateResult('uploadResult', `❌ Failed to upload document: ${error.message}`, 'error');
+            }
+        }
+
+        async function addReference() {
+            updateResult('referenceResult', 'Adding reference...', 'info');
+            
+            try {
+                const result = await apiRequest('/verification/references', 'POST', {
+                    verification_id: parseInt(document.getElementById('refVerificationId').value),
+                    reference_name: document.getElementById('referenceName').value,
+                    reference_email: document.getElementById('referenceEmail').value,
+                    reference_phone: document.getElementById('referencePhone').value,
+                    relationship: document.getElementById('relationship').value,
+                    company: document.getElementById('company').value,
+                    position: document.getElementById('position').value,
+                    is_current: false
+                });
+
+                updateResult('referenceResult', `✅ Reference added! ID: ${result.id}`, 'success');
+                logResponse(`✅ Reference added: ${JSON.stringify(result, null, 2)}`, 'success');
+                
+                // Clear form
+                document.getElementById('referenceName').value = '';
+                document.getElementById('referenceEmail').value = '';
+                document.getElementById('referencePhone').value = '';
+                document.getElementById('relationship').value = '';
+                document.getElementById('company').value = '';
+                document.getElementById('position').value = '';
+            } catch (error) {
+                updateResult('referenceResult', `❌ Failed to add reference: ${error.message}`, 'error');
+            }
+        }
+
+        function clearResponses() {
+            document.getElementById('apiResponses').value = '';
+            document.getElementById('healthResult').innerHTML = '';
+            document.getElementById('startResult').innerHTML = '';
+            document.getElementById('statusResult').innerHTML = '';
+            document.getElementById('uploadResult').innerHTML = '';
+            document.getElementById('referenceResult').innerHTML = '';
+        }
+
+        // Auto-test health check on page load
+        window.addEventListener('load', () => {
+            logResponse('🚀 BGV Integration Test Page Loaded', 'info');
+            testHealthCheck();
+        });
+    </script>
+</body>
+</html>

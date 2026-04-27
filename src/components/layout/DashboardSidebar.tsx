@@ -6,6 +6,7 @@ import {
   FileText,
   GraduationCap,
   ShieldCheck,
+  UserCheck,
   User,
   ChevronLeft,
   ChevronRight,
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
   { label: "Programs", icon: GraduationCap, path: "/dashboard/programs" },
   { label: "Verification", icon: ShieldCheck, path: "/dashboard/verification" },
+  { label: "BGV Check", icon: UserCheck, path: "/dashboard/bgv-verification" },
   { label: "Profile", icon: User, path: "/dashboard/profile" },
 ];
 

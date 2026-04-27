@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { VerificationProvider } from "@/contexts/VerificationContext";
+import { BGVProvider } from "@/contexts/BGVContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -23,6 +24,7 @@ import ProgramApply from "./pages/dashboard/ProgramApply";
 import Challenges from "./pages/dashboard/Challenges";
 import Verification from "./pages/dashboard/Verification";
 import VerificationManagement from "./pages/dashboard/VerificationManagement";
+import BGVVerificationWrapper from "./pages/dashboard/BGVVerificationWrapper";
 import ValidationDemo from '@/components/verification/ValidationDemo';
 import Profile from "./pages/dashboard/Profile";
 import NotFound from "./pages/NotFound";
@@ -35,35 +37,37 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <VerificationProvider>
-          <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/user-guidance" element={<UserGuidance />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/auth/google/callback" element={<GoogleCallback />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Dashboard />} />
-                <Route path="jobs" element={<BrowseJobs />} />
-                <Route path="applications" element={<Applications />} />
-                <Route path="programs" element={<Programs />} />
-                <Route path="challenges" element={<Challenges />} />
-                <Route path="verification" element={<Verification />} />
-                <Route path="verification-management" element={<VerificationManagement />} />
-                <Route path="validation-demo" element={<ValidationDemo />} />
-                <Route path="profile" element={<Profile />} />
-              </Route>
+          <BGVProvider>
+            <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/user-guidance" element={<UserGuidance />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/auth/google/callback" element={<GoogleCallback />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Dashboard />} />
+                  <Route path="jobs" element={<BrowseJobs />} />
+                  <Route path="applications" element={<Applications />} />
+                  <Route path="programs" element={<Programs />} />
+                  <Route path="challenges" element={<Challenges />} />
+                  <Route path="verification" element={<Verification />} />
+                  <Route path="verification-management" element={<VerificationManagement />} />
+                  <Route path="bgv-verification" element={<BGVVerificationWrapper />} />
+                  <Route path="validation-demo" element={<ValidationDemo />} />
+                  <Route path="profile" element={<Profile />} />
+                </Route>
               <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
               <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
               <Route path="/dashboard/jobs/:jobId/apply" element={<JobApply />} />
@@ -71,6 +75,7 @@ const App = () => (
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+          </BGVProvider>
         </VerificationProvider>
       </AuthProvider>
     </QueryClientProvider>
