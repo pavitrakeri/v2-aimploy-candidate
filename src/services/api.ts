@@ -1,5 +1,5 @@
 // API Service for Aimploy Backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://aimploy-backend-main.onrender.com/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.aimploy.org/api/v1";
 
 // Types
 export interface CandidateRegisterRequest {
