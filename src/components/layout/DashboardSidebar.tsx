@@ -5,8 +5,6 @@ import {
   Briefcase,
   FileText,
   GraduationCap,
-  ShieldCheck,
-  UserCheck,
   User,
   ChevronLeft,
   ChevronRight,
@@ -29,8 +27,6 @@ const navItems: NavItem[] = [
   { label: "Browse Jobs", icon: Briefcase, path: "/dashboard/jobs" },
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
   { label: "Programs", icon: GraduationCap, path: "/dashboard/programs" },
-  { label: "Verification", icon: ShieldCheck, path: "/dashboard/verification" },
-  { label: "BGV Check", icon: UserCheck, path: "/dashboard/bgv-verification" },
   { label: "Profile", icon: User, path: "/dashboard/profile" },
 ];
 
@@ -99,11 +95,6 @@ export const DashboardSidebar = () => {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  onClick={() => {
-                    if (item.path === "/dashboard/verification") {
-                      toggleCollapsed();
-                    }
-                  }}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                     isActive
