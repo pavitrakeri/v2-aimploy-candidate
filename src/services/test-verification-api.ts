@@ -42,7 +42,7 @@ export const testVerificationAPI = async () => {
 };
 
 // Export for use in development
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
   // Auto-run tests in development
   testVerificationAPI();
 }

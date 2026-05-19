@@ -1,20 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { useBGV } from '../../contexts/BGVContext';
+import { useDigiLocker, DigiLockerProvider } from '../../contexts/DigiLockerContext';
 import { bgvApi } from '../../services/bgv-api';
-import { FileUploadZone } from '../../components/ui/FileUploadZone';
+import { ValidatedFileUpload } from '../../components/ui/ValidatedFileUpload';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Alert } from '../../components/ui/alert';
 import { Progress } from '../../components/ui/progress';
-import { CheckCircle, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { FileValidationResult } from '../../components/ui/FileValidationResult';
+import { DigiLockerConnect } from '../../components/digilocker/DigiLockerConnect';
+import { DigiLockerDocumentFetcher } from '../../components/digilocker/DigiLockerDocumentFetcher';
+import { CheckCircle, AlertCircle, Wifi, WifiOff, Info, FileText, Download } from 'lucide-react';
+import { ValidationResult } from '../../services/fileValidation';
+import { fileValidationService } from '../../services/fileValidation';
+
+// Type for combined documents (uploaded + pending)
+interface CombinedDocument {
+  id: number | string;
+  verification_id: number;
+  document_type: string;
+  file_name: string;
+  file_url: string;
+  file_size: number;
+  validation_score?: number;
+  validation_status?: 'pending' | 'processing' | 'approved' | 'rejected';
+  validation_details?: any;
+  description?: string;
+  uploaded_at: string;
+  created_at: string;
+  updated_at: string;
+  is_pending?: boolean;
+}
 
 interface BGVVerificationProps {
   candidateId: number;
 }
 
 export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId }) => {
+  return (
+    <DigiLockerProvider>
+      <BGVVerificationInner candidateId={candidateId} />
+    </DigiLockerProvider>
+  );
+};
+
+const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) => {
   const { state, actions } = useBGV();
+  const { state: digiLockerState } = useDigiLocker();
   const [selectedVerificationTypes, setSelectedVerificationTypes] = useState<string[]>([]);
   const [referenceForm, setReferenceForm] = useState({
     reference_name: '',
@@ -27,6 +60,10 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
   });
   const [showReferenceForm, setShowReferenceForm] = useState(false);
   const [notes, setNotes] = useState('');
+  
+  // Validation states
+  const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null);
+  const [validatingFile, setValidatingFile] = useState<{ file: File; documentType: string } | null>(null);
 
   const verificationTypes = [
     { id: 'identity', label: 'Identity Verification', description: 'Government ID verification' },
@@ -38,11 +75,41 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
   ];
 
   const documentTypes = [
-    { id: 'identity', label: 'Identity Document', required: true },
-    { id: 'address_proof', label: 'Address Proof', required: false },
-    { id: 'education_certificate', label: 'Education Certificate', required: false },
-    { id: 'experience_letter', label: 'Experience Letter', required: false },
-    { id: 'salary_slip', label: 'Salary Slip', required: false },
+    { 
+      id: 'identity', 
+      label: 'Identity Document', 
+      required: true,
+      accept: '.pdf,.jpg,.jpeg,.png',
+      maxSize: 5 * 1024 * 1024 // 5MB
+    },
+    { 
+      id: 'address_proof', 
+      label: 'Address Proof', 
+      required: false,
+      accept: '.pdf,.jpg,.jpeg,.png',
+      maxSize: 3 * 1024 * 1024 // 3MB
+    },
+    { 
+      id: 'education_certificate', 
+      label: 'Education Certificate', 
+      required: false,
+      accept: '.pdf,.jpg,.jpeg,.png',
+      maxSize: 5 * 1024 * 1024 // 5MB
+    },
+    { 
+      id: 'experience_letter', 
+      label: 'Experience Letter', 
+      required: false,
+      accept: '.pdf,.jpg,.jpeg,.png',
+      maxSize: 3 * 1024 * 1024 // 3MB
+    },
+    { 
+      id: 'salary_slip', 
+      label: 'Salary Slip', 
+      required: false,
+      accept: '.pdf,.jpg,.jpeg,.png',
+      maxSize: 2 * 1024 * 1024 // 2MB
+    },
   ];
 
   const handleSyncPendingUploads = async () => {
@@ -65,6 +132,35 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
     }
   };
 
+  // Combine uploaded docs and pending docs for display
+  const getAllDocuments = (): CombinedDocument[] => {
+    console.log('State documents:', state.documents);
+    console.log('Pending uploads:', pendingUploads);
+    
+    const allDocs: CombinedDocument[] = [...state.documents];
+    
+    // Add pending docs that aren't already in the uploaded docs
+    pendingUploads.forEach((pendingDoc: any) => {
+      const exists = allDocs.find(doc => doc.document_type === pendingDoc.document_type);
+      console.log(`Checking pending doc ${pendingDoc.document_type}: exists=${!!exists}`);
+      if (!exists) {
+        const combinedDoc = {
+          ...pendingDoc,
+          validation_status: 'pending',
+          file_url: pendingDoc.file_data,
+          file_name: pendingDoc.file_name,
+          file_size: pendingDoc.file_size,
+          is_pending: true
+        } as CombinedDocument;
+        console.log('Adding combined doc:', combinedDoc);
+        allDocs.push(combinedDoc);
+      }
+    });
+    
+    console.log('Final all docs:', allDocs);
+    return allDocs;
+  };
+
   const pendingUploads = getPendingUploads();
 
   useEffect(() => {
@@ -72,6 +168,18 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
       actions.getCandidateStatus(candidateId);
     }
   }, [candidateId]);
+
+  // Refresh component when pending uploads change
+  useEffect(() => {
+    // This will trigger re-render when pending uploads are added/removed
+    console.log('Pending uploads changed, refreshing...');
+  }, [pendingUploads.length]);
+
+  // Force refresh when state changes
+  const [refreshKey, setRefreshKey] = useState(0);
+  useEffect(() => {
+    setRefreshKey(prev => prev + 1);
+  }, [state.documents, state.error]);
 
   const handleStartVerification = async () => {
     if (selectedVerificationTypes.length === 0) {
@@ -90,12 +198,110 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
       return;
     }
 
-    await actions.uploadDocument(
-      state.verification.id,
-      file,
-      documentType,
-      `Uploaded ${documentType} document`
-    );
+    try {
+      // First validate the file
+      setValidatingFile({ file, documentType });
+      const validation = await actions.validateDocument(file, documentType);
+      
+      console.log('Validation results:', validation);
+      
+      if (!validation.isValid) {
+        console.log('Validation failed, showing errors:', validation.errors);
+        // Show validation results for invalid files
+        setPendingValidation(validation);
+        return;
+      }
+      
+      // Show warnings if any but proceed
+      if (validation.warnings.length > 0) {
+        const proceedWithWarnings = confirm(
+          `File has warnings:\n${validation.warnings.join('\n')}\n\nProceed anyway?`
+        );
+        if (!proceedWithWarnings) {
+          return;
+        }
+      }
+      
+      console.log('Validation passed, uploading file...');
+      // Upload the file
+      await actions.uploadDocument(
+        state.verification.id,
+        file,
+        documentType,
+        `Uploaded ${documentType} document`
+      );
+      
+      console.log('File uploaded successfully');
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setValidatingFile(null);
+    }
+  };
+
+  const handleValidationProceed = async () => {
+    if (pendingValidation && validatingFile) {
+      // Skip validation and upload anyway
+      await actions.uploadDocument(
+        state.verification!.id,
+        validatingFile.file,
+        validatingFile.documentType,
+        `Uploaded ${validatingFile.documentType} document`
+      );
+      
+      setPendingValidation(null);
+      setValidatingFile(null);
+    }
+  };
+
+  const handleValidationCancel = () => {
+    setPendingValidation(null);
+    setValidatingFile(null);
+  };
+
+  // Simple upload function for testing (bypasses validation)
+  const handleSimpleUpload = async (file: File, documentType: string) => {
+    console.log('Simple upload test - bypassing validation');
+    
+    if (!state.verification) {
+      alert('Please start verification first');
+      return;
+    }
+
+    try {
+      setValidatingFile({ file, documentType });
+      
+      // Skip validation and go directly to upload
+      await actions.uploadDocument(
+        state.verification.id,
+        file,
+        documentType,
+        `Test upload ${documentType} document`,
+        true // skip validation
+      );
+      
+      console.log('Simple upload completed');
+      
+    } catch (error) {
+      console.error('Simple upload error:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setValidatingFile(null);
+    }
+  };
+
+  const getValidationRules = (documentType: string) => {
+    const config = fileValidationService.getValidationRules(documentType);
+    if (!config) return null;
+    
+    return {
+      allowedTypes: config.allowedTypes.join(', '),
+      maxSize: `${(config.maxSize / (1024 * 1024)).toFixed(1)}MB`,
+      namePatterns: config.namePatterns.map(p => p.source).join(', '),
+      expectedContent: config.expectedContent.join(', ')
+    };
   };
 
   const handleAddReference = async () => {
@@ -153,15 +359,11 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
         <p className="text-gray-600">Complete your background verification process</p>
         
         {state.overallStatus && (
-          <div className="mt-4">
+          <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">Progress</span>
-              <span className="text-sm font-medium text-gray-700">{getProgressPercentage()}%</span>
-            </div>
-            <Progress value={getProgressPercentage()} className="h-2" />
-            <div className="mt-2">
+              <h3 className="text-lg font-semibold text-gray-900">Overall Status</h3>
               <Badge className={getStatusColor(state.overallStatus.overall_status)}>
-                {state.overall_status.overall_status.replace('_', ' ').toUpperCase()}
+                {state.overallStatus.overall_status.replace('_', ' ').toUpperCase()}
               </Badge>
             </div>
           </div>
@@ -170,8 +372,33 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
 
       {state.error && (
         <Alert variant="destructive">
-          <AlertDescription>{state.error}</AlertDescription>
+          {state.error}
         </Alert>
+      )}
+
+      {/* Validation Result Modal */}
+      {pendingValidation && validatingFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <FileValidationResult
+              validation={pendingValidation}
+              documentType={validatingFile.documentType}
+              onProceed={handleValidationProceed}
+              onCancel={handleValidationCancel}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Loading overlay for validation */}
+      {validatingFile && !pendingValidation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-700">Validating file...</p>
+            <p className="text-sm text-gray-500 mt-2">{validatingFile.file.name}</p>
+          </div>
+        </div>
       )}
 
       {/* Start Verification Section */}
@@ -212,6 +439,71 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
               </div>
             </div>
 
+            {/* DigiLocker Option - Prominent */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <Wifi className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    🚀 Quick Start with DigiLocker
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Connect your DigiLocker account to instantly fetch verified government documents. 
+                    No manual uploads required for Aadhaar, PAN, Passport, and more.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      ✓ Instant Verification
+                    </Badge>
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                      ✓ 70+ Document Types
+                    </Badge>
+                    <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                      ✓ Government Verified
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 flex space-x-3">
+                <Button
+                  onClick={() => {
+                    // Start verification with DigiLocker enabled
+                    setSelectedVerificationTypes(['identity', 'address', 'education', 'employment', 'financial']);
+                    handleStartVerification();
+                  }}
+                  disabled={state.loading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Wifi className="w-4 h-4 mr-2" />
+                  Start with DigiLocker
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Scroll to learn more section
+                    const element = document.querySelector('#digilocker-info');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  Learn More
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">OR</span>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Additional Notes (Optional)
@@ -236,37 +528,188 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
         </Card>
       )}
 
+      {/* DigiLocker Information Section */}
+      <Card id="digilocker-info">
+        <CardHeader>
+          <CardTitle>🔐 About DigiLocker Integration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">📄 Available Documents</h3>
+              <div className="space-y-2">
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Identity Documents</div>
+                    <div className="text-sm text-gray-600">Aadhaar Card, PAN Card, Passport, Driving License, Voter ID</div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Address Proof</div>
+                    <div className="text-sm text-gray-600">Aadhaar Address, Driving License Address, Passport Address</div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Education Certificates</div>
+                    <div className="text-sm text-gray-600">Mark Sheets, Degree Certificates, Diplomas</div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Employment Documents</div>
+                    <div className="text-sm text-gray-600">Offer Letters, Experience Certificates, Salary Slips</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">🚀 Benefits</h3>
+              <div className="space-y-2">
+                <div className="flex items-start space-x-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-xs font-bold">1</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">70% Faster</div>
+                    <div className="text-sm text-gray-600">Document collection and verification process</div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-xs font-bold">2</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">40% Higher Accuracy</div>
+                    <div className="text-sm text-gray-600">Government-verified documents reduce errors</div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-xs font-bold">3</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">Zero Manual Uploads</div>
+                    <div className="text-sm text-gray-600">Documents fetched directly from DigiLocker</div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-xs font-bold">4</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">Enhanced Security</div>
+                    <div className="text-sm text-gray-600">Digital signatures and tamper-proof documents</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <Alert>
+            <Info className="h-4 w-4" />
+            <div>
+              <div className="font-medium">How It Works</div>
+              <div className="text-sm text-gray-600 mt-1">
+                1. Click "Start with DigiLocker" → 2. Connect your DigiLocker account → 3. Select documents to fetch → 4. Documents automatically added to your verification
+              </div>
+            </div>
+          </Alert>
+        </CardContent>
+      </Card>
+
       {/* Verification Status */}
       {state.verification && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Documents Section */}
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Documents</CardTitle>
+              <CardTitle className="flex justify-between items-center">
+                <span>Documents</span>
                 {pendingUploads.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-orange-600 border-orange-600">
-                      <WifiOff className="w-3 h-3 mr-1" />
-                      {pendingUploads.length} pending
-                    </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSyncPendingUploads}
+                    disabled={state.loading}
+                  >
+                    <Wifi className="w-3 h-3 mr-1" />
+                    Sync
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* DigiLocker Integration - Show even before verification starts */}
+              <div className="space-y-4">
+                <Alert>
+                  <Wifi className="h-4 w-4" />
+                  <div>
+                    <div className="font-medium">DigiLocker Integration Available</div>
+                    <div className="text-sm text-gray-600">
+                      Connect your DigiLocker account to fetch verified government documents instantly.
+                      {state.verification ? ' Documents will be automatically added to your verification.' : ' Start verification first to enable document fetching.'}
+                    </div>
+                  </div>
+                </Alert>
+                
+                {state.verification ? (
+                  <>
+                    <DigiLockerConnect
+                      verificationId={state.verification.id}
+                      candidateId={candidateId}
+                      onConnected={(userDetails) => {
+                        console.log('DigiLocker connected:', userDetails);
+                      }}
+                      onDocumentFetched={(document) => {
+                        console.log('Document fetched:', document);
+                      }}
+                    />
+                    
+                    {digiLockerState.isConnected && (
+                      <DigiLockerDocumentFetcher
+                        verificationId={state.verification.id}
+                        candidateId={candidateId}
+                        documentType="identity"
+                        onDocumentFetched={(document) => {
+                          console.log('Document fetched:', document);
+                        }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Start Verification to Use DigiLocker</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Begin your background verification process to enable DigiLocker document fetching.
+                    </p>
                     <Button
+                      onClick={() => {
+                        // Scroll to verification start section
+                        const element = document.querySelector('[data-verification-start]');
+                        element?.scrollIntoView({ behavior: 'smooth' });
+                      }}
                       variant="outline"
-                      size="sm"
-                      onClick={handleSyncPendingUploads}
-                      disabled={state.loading}
                     >
-                      <Wifi className="w-3 h-3 mr-1" />
-                      Sync
+                      Start Verification
                     </Button>
                   </div>
                 )}
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              
+              {/* Document Types */}
               {documentTypes.map((docType) => {
-                const uploadedDoc = state.documents.find(doc => doc.document_type === docType.id);
-                const pendingDoc = pendingUploads.find(doc => doc.document_type === docType.id);
+                const allDocs = getAllDocuments();
+                const uploadedDoc = allDocs.find(doc => doc.document_type === docType.id);
+                const isPending = uploadedDoc?.is_pending;
+                const rules = getValidationRules(docType.id);
                 
                 return (
                   <div key={docType.id} className="border rounded-lg p-4">
@@ -279,19 +722,42 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
                       </div>
                       <div className="flex items-center space-x-2">
                         {uploadedDoc && (
-                          <Badge className={getStatusColor(uploadedDoc.validation_status || 'pending')}>
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            {uploadedDoc.validation_status || 'pending'}
-                          </Badge>
-                        )}
-                        {pendingDoc && (
-                          <Badge variant="outline" className="text-orange-600 border-orange-600">
-                            <WifiOff className="w-3 h-3 mr-1" />
-                            Pending
+                          <Badge className={
+                            isPending 
+                              ? 'text-orange-600 border-orange-600 bg-orange-50' 
+                              : getStatusColor(uploadedDoc.validation_status || 'pending')
+                          }>
+                            {isPending ? (
+                              <>
+                                <WifiOff className="w-3 h-3 mr-1" />
+                                Saved Locally
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                {uploadedDoc.validation_status || 'pending'}
+                              </>
+                            )}
                           </Badge>
                         )}
                       </div>
                     </div>
+                    
+                    {/* Validation Rules */}
+                    {rules && (
+                      <div className="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
+                        <div className="flex items-center text-blue-800 text-sm font-medium mb-2">
+                          <Info className="w-4 h-4 mr-1" />
+                          Validation Requirements:
+                        </div>
+                        <div className="text-xs text-blue-700 space-y-1">
+                          <div><strong>File Types:</strong> {rules.allowedTypes}</div>
+                          <div><strong>Max Size:</strong> {rules.maxSize}</div>
+                          <div><strong>Expected Names:</strong> {rules.namePatterns}</div>
+                          <div><strong>Content:</strong> {rules.expectedContent}</div>
+                        </div>
+                      </div>
+                    )}
                     
                     {uploadedDoc ? (
                       <div className="space-y-2">
@@ -301,57 +767,71 @@ export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId })
                           {uploadedDoc.validation_score && (
                             <div>Validation Score: {uploadedDoc.validation_score}%</div>
                           )}
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => actions.deleteDocument(uploadedDoc.id)}
-                          disabled={state.loading}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ) : pendingDoc ? (
-                      <div className="space-y-2">
-                        <div className="text-sm text-gray-600">
-                          <div className="flex items-center text-orange-600">
-                            <WifiOff className="w-3 h-3 mr-1" />
-                            File saved locally (pending sync)
-                          </div>
-                          <div>File: {pendingDoc.file_name}</div>
-                          <div>Size: {(pendingDoc.file_size / 1024).toFixed(1)} KB</div>
+                          {isPending && (
+                            <div className="flex items-center text-orange-600">
+                              <WifiOff className="w-3 h-3 mr-1" />
+                              Saved locally (will sync when connection is restored)
+                            </div>
+                          )}
                         </div>
                         <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleSyncPendingUploads}
-                            disabled={state.loading}
-                          >
-                            <Wifi className="w-3 h-3 mr-1" />
-                            Sync Now
-                          </Button>
+                          {isPending && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleSyncPendingUploads}
+                              disabled={state.loading}
+                            >
+                              <Wifi className="w-3 h-3 mr-1" />
+                              Sync Now
+                            </Button>
+                          )}
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => {
-                              // Remove from pending uploads
-                              const pending = JSON.parse(localStorage.getItem('bgv_pending_uploads') || '[]');
-                              const updated = pending.filter((p: any) => p.id !== pendingDoc.id);
-                              localStorage.setItem('bgv_pending_uploads', JSON.stringify(updated));
-                              window.location.reload();
+                              if (isPending) {
+                                // Remove from pending uploads
+                                const pending = JSON.parse(localStorage.getItem('bgv_pending_uploads') || '[]');
+                                const updated = pending.filter((p: any) => p.document_type !== docType.id);
+                                localStorage.setItem('bgv_pending_uploads', JSON.stringify(updated));
+                                window.location.reload();
+                              } else {
+                                // Only uploaded docs have numeric IDs
+                                if (typeof uploadedDoc.id === 'number') {
+                                  actions.deleteDocument(uploadedDoc.id);
+                                }
+                              }
                             }}
+                            disabled={state.loading}
                           >
                             Remove
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <FileUploadZone
-                        onFileSelect={(file) => handleDocumentUpload(file, docType.id)}
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        maxSize={5 * 1024 * 1024} // 5MB
-                      />
+                      <div className="space-y-3">
+                        <ValidatedFileUpload
+                          onFileSelect={(file) => handleDocumentUpload(file, docType.id)}
+                          accept={docType.accept}
+                          maxSize={docType.maxSize}
+                          documentType={docType.id}
+                          disabled={state.loading}
+                        />
+                        {/* Debug button to bypass validation */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            console.log('Debug: Testing simple upload without validation');
+                            const testFile = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
+                            handleSimpleUpload(testFile, docType.id);
+                          }}
+                          disabled={state.loading}
+                        >
+                          Debug Upload Test
+                        </Button>
+                      </div>
                     )}
                   </div>
                 );

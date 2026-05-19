@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi } from 'lucide-react';
 import { VerificationHeader } from '@/components/verification/VerificationHeader';
 import { StepSidebar } from '@/components/verification/StepSidebar';
 import { IdentityStep } from '@/components/verification/steps/IdentityStep';
@@ -16,8 +16,13 @@ import { STEPS, initialState, type VerificationState } from '@/types/verificatio
 import { useVerification } from '@/contexts/VerificationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { useDigiLocker, DigiLockerProvider } from '../../contexts/DigiLockerContext';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { DigiLockerConnect } from '../../components/digilocker/DigiLockerConnect';
+import { DigiLockerDocumentFetcher } from '../../components/digilocker/DigiLockerDocumentFetcher';
 
-const Verification = () => {
+const VerificationInner = () => {
   const { 
     state, 
     updateState, 
@@ -28,6 +33,8 @@ const Verification = () => {
     startVerification, 
     submitVerification 
   } = useVerification();
+  const { state: digiLockerState } = useDigiLocker();
+  const { toggleCollapsed, setCollapsed } = useSidebar();
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const step = state.currentStep;
@@ -123,12 +130,83 @@ const Verification = () => {
                   </ul>
                 </div>
               </div>
+
+              {/* DigiLocker Option - Prominent */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <Wifi className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      🚀 Quick Start with DigiLocker
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Connect your DigiLocker account to instantly fetch verified government documents. 
+                      No manual uploads required for Aadhaar, PAN, Passport, and more.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                        ✓ Instant Verification
+                      </Badge>
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                        ✓ 70+ Document Types
+                      </Badge>
+                      <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                        ✓ Government Verified
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex space-x-3">
+                  <Button
+                    onClick={() => {
+                      handleStartVerification();
+                      setCollapsed(true);
+                    }}
+                    disabled={isLoading}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Wifi className="w-4 h-4 mr-2" />
+                    Start with DigiLocker
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      // Scroll to learn more section
+                      const element = document.querySelector('#digilocker-info');
+                      element?.scrollIntoView({ behavior: 'smooth' });
+                      setCollapsed(true);
+                    }}
+                  >
+                    Learn More
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">OR</span>
+                </div>
+              </div>
+
               <Button 
-                onClick={handleStartVerification}
+                onClick={() => {
+                  handleStartVerification();
+                  setCollapsed(true);
+                }}
                 size="lg"
                 className="w-full sm:w-auto"
+                disabled={isLoading}
+                variant="outline"
               >
-                Start Verification
+                {isLoading ? 'Starting...' : 'Start Verification (Manual)'}
               </Button>
             </CardContent>
           </Card>
@@ -287,6 +365,14 @@ const Verification = () => {
         </>
       )}
     </div>
+  );
+};
+
+const Verification = () => {
+  return (
+    <DigiLockerProvider>
+      <VerificationInner />
+    </DigiLockerProvider>
   );
 };
 

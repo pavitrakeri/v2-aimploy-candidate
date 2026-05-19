@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { bgvApi, BGVVerificationResponse, BGVOverallStatus, BGVDocumentResponse, BGVReferenceResponse } from '../services/bgv-api';
+import { fileValidationService, ValidationResult } from '../services/fileValidation';
 
 // Local storage key for pending uploads
 const PENDING_UPLOADS_KEY = 'bgv_pending_uploads';
@@ -115,7 +116,8 @@ const BGVContext = createContext<{
   actions: {
     startVerification: (candidateId: number, verificationTypes: string[], notes?: string) => Promise<void>;
     getCandidateStatus: (candidateId: number) => Promise<void>;
-    uploadDocument: (verificationId: number, file: File, documentType: string, description?: string) => Promise<void>;
+    validateDocument: (file: File, documentType: string) => Promise<ValidationResult>;
+    uploadDocument: (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean) => Promise<void>;
     deleteDocument: (documentId: number) => Promise<void>;
     addReference: (verificationId: number, referenceData: Omit<import('../services/bgv-api').BGVReferenceCreate, 'verification_id'>) => Promise<void>;
     deleteReference: (referenceId: number) => Promise<void>;
@@ -243,13 +245,39 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const status = await bgvApi.getCandidateVerificationStatus(candidateId);
         dispatch({ type: 'SET_OVERALL_STATUS', payload: status });
       } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get verification status' });
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get candidate status' });
       }
     },
 
-    uploadDocument: async (verificationId: number, file: File, documentType: string, description?: string) => {
+    validateDocument: async (file: File, documentType: string) => {
+      try {
+        const validation = await fileValidationService.validateFile(file, documentType);
+        return validation;
+      } catch (error) {
+        throw new Error(`Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    },
+
+    uploadDocument: async (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean) => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
+
+        // Validate file unless explicitly skipped
+        if (!skipValidation) {
+          const validation = await fileValidationService.validateFile(file, documentType);
+          if (!validation.isValid) {
+            dispatch({ type: 'SET_ERROR', payload: `Validation failed: ${validation.errors.join(', ')}` });
+            return;
+          }
+          
+          // Show warnings if any
+          if (validation.warnings.length > 0) {
+            console.warn('File validation warnings:', validation.warnings);
+          }
+        }
+        
+        // Register file for duplicate detection
+        await fileValidationService.registerUploadedFile(file, documentType);
         
         const document = await bgvApi.uploadDocument({
           verification_id: verificationId,
@@ -262,10 +290,13 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       } catch (error) {
         // Fallback: Save file locally if API fails
         try {
+          console.log('API failed, saving file locally...');
           const fallbackDoc = await saveFileLocally(verificationId, file, documentType, description);
+          console.log('File saved locally:', fallbackDoc);
           dispatch({ type: 'ADD_DOCUMENT', payload: fallbackDoc });
           dispatch({ type: 'SET_ERROR', payload: 'Document saved locally. Will sync with server when connection is restored.' });
         } catch (fallbackError) {
+          console.error('Fallback save failed:', fallbackError);
           dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to upload document' });
         }
       }

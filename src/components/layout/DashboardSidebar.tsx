@@ -6,6 +6,7 @@ import {
   FileText,
   GraduationCap,
   User,
+  Shield,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { label: "Browse Jobs", icon: Briefcase, path: "/dashboard/jobs" },
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
   { label: "Programs", icon: GraduationCap, path: "/dashboard/programs" },
+  { label: "Verification", icon: Shield, path: "/dashboard/verification" },
   { label: "Profile", icon: User, path: "/dashboard/profile" },
 ];
 

@@ -122,7 +122,7 @@ export const AudioQuestionFlow = ({
   // Retake window timer
   useEffect(() => {
     if (questionState === "retake-window") {
-      const hasRetakeAvailable = (attemptCounts[currentQuestionIndex] || 0) < 2;
+      const hasRetakeAvailable = (attemptCounts[currentQuestionIndex] || 0) < 1;
       
       // If no retake available, skip directly to completed
       if (!hasRetakeAvailable) {
@@ -383,7 +383,7 @@ export const AudioQuestionFlow = ({
                   Recorded ({formatTime(currentRecording?.duration || 0)})
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  Attempt {attemptCounts[currentQuestionIndex]} / 2
+                  Attempt {attemptCounts[currentQuestionIndex]} / 1
                 </Badge>
               </div>
 
@@ -402,10 +402,10 @@ export const AudioQuestionFlow = ({
                 <Button 
                   variant="outline" 
                   onClick={handleRetake}
-                  disabled={(attemptCounts[currentQuestionIndex] || 0) >= 2}
+                  disabled={(attemptCounts[currentQuestionIndex] || 0) >= 1}
                 >
                   <RotateCcw size={16} className="mr-2" />
-                  {(attemptCounts[currentQuestionIndex] || 0) >= 2 ? "No Retakes Left" : "Retake"}
+                  {(attemptCounts[currentQuestionIndex] || 0) >= 1 ? "No Retakes Left" : "Retake"}
                 </Button>
                 <Button onClick={handleNext}>
                   {isLastQuestion ? "Finish" : "Next Question"}
