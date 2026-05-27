@@ -93,7 +93,7 @@ GET  /api/v1/digilocker/health              - Health check
 
 ### Frontend (.env)
 ```bash
-VITE_API_URL=https://aimploy-backend-main.onrender.com/api/v1
+VITE_API_URL=https://api.aimploy.org/api/v1
 VITE_FRONTEND_URL=http://localhost:5173
 VITE_NODE_ENV=development
 ```

@@ -98,7 +98,7 @@ async function bgvApiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = localStorage.getItem("access_token");
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://aimploy-backend-main.onrender.com/api/v1";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.aimploy.org/api/v1";
   
   const headers: HeadersInit = {
     ...options.headers,
