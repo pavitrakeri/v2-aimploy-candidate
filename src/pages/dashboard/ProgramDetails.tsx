@@ -1,129 +1,37 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { programsApi } from "@/services/api";
+import * as Icons from "lucide-react";
 import {
   Clock,
   Calendar,
   MapPin,
   IndianRupee,
   ArrowRight,
-  Check,
   ChevronLeft,
   Users,
-  Award,
   Briefcase,
-  Target,
-  Lightbulb,
-  Network,
-  GraduationCap,
-  Rocket,
-  Building2,
   FileText,
   MessageSquare,
   CheckCircle,
-  Code,
-  TrendingUp,
-  PieChart,
-  Zap,
 } from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import aincubatrHero from "@/assets/aincubatr-hero.png";
 import aimaktHero from "@/assets/aimakt-hero.png";
 
-const programsData: Record<string, {
-  id: string;
-  title: string;
-  subtitle: string;
-  provider: string;
-  duration: string;
-  type: string;
-  tracks: {
-    id: string;
-    title: string;
-    description: string;
-    tags: string[];
-    icon: React.ElementType;
-  }[];
-  isPaid: boolean;
-  startDate: string;
-  location: string;
-  highlights: { icon: React.ElementType; text: string }[];
-  description: string;
-  heroImage: string;
-}> = {
-  aincubatr: {
-    id: "aincubatr",
-    title: "Aincubatr Residency Program",
-    subtitle: "Transform your career with our intensive residency program in partnership with partner incubator",
-    provider: "Aimploy × partner incubator",
-    duration: "3 months",
-    type: "Residency",
-    startDate: "Rolling admissions",
-    location: "Hybrid",
-    isPaid: true,
-    heroImage: aincubatrHero,
-    description: "Join our selective residency program designed to train the next generation of technology leaders and entrepreneurs.",
-    highlights: [
-      { icon: Clock, text: "3-month intensive program" },
-      { icon: Target, text: "CTO & CEO training tracks" },
-      { icon: Briefcase, text: "Hands-on project experience" },
-      { icon: Users, text: "Industry expert mentorship" },
-      { icon: Building2, text: "Partner incubator partnership" },
-      { icon: Network, text: "Professional networking" },
-      { icon: Award, text: "Portfolio development" },
-      { icon: Rocket, text: "Career support" },
-    ],
-    tracks: [
-      {
-        id: "cto",
-        title: "CTO Track",
-        description: "Develop technical leadership and build scalable solutions.",
-        tags: ["Technical Architecture", "Team Leadership", "Product Dev", "Agile"],
-        icon: Code,
-      },
-      {
-        id: "ceo",
-        title: "CEO Track",
-        description: "Master business strategy and company building.",
-        tags: ["Business Strategy", "Fundraising", "Operations", "Growth"],
-        icon: TrendingUp,
-      },
-    ],
-  },
-  aimakt: {
-    id: "aimakt",
-    title: "AImakt Internship",
-    subtitle: "Comprehensive marketing certification program to accelerate your marketing career",
-    provider: "Aimploy Academy",
-    duration: "3 months",
-    type: "Internship",
-    startDate: "Rolling admissions",
-    location: "Remote",
-    isPaid: false,
-    heroImage: aimaktHero,
-    description: "Gain practical marketing experience with our industry-recognized certification program.",
-    highlights: [
-      { icon: Award, text: "Marketing Certification included" },
-      { icon: Briefcase, text: "Real-world project experience" },
-      { icon: GraduationCap, text: "Industry-recognized credential" },
-      { icon: Rocket, text: "Career placement support" },
-      { icon: Users, text: "Expert mentorship" },
-      { icon: Network, text: "Professional networking" },
-      { icon: Lightbulb, text: "Creative campaigns" },
-      { icon: Target, text: "Growth strategies" },
-    ],
-    tracks: [
-      {
-        id: "marketing",
-        title: "Marketing Certification Program",
-        description: "Comprehensive training in digital marketing, brand strategy, and growth hacking.",
-        tags: ["Digital Marketing", "Brand Strategy", "Content", "Analytics"],
-        icon: PieChart,
-      },
-    ],
-  },
+const getHeroImage = (slug: string) => {
+  if (slug === "aincubatr") return aincubatrHero;
+  if (slug === "aimakt") return aimaktHero;
+  return aincubatrHero;
+};
+
+const getIconComponent = (iconName: string) => {
+  const Icon = (Icons as any)[iconName];
+  return Icon || Icons.HelpCircle;
 };
 
 const applicationSteps = [
@@ -169,15 +77,33 @@ const itemVariants = {
 export const ProgramDetails = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
-  const program = programId ? programsData[programId] : null;
+  const location = useLocation();
+  const isDashboard = location.pathname.startsWith("/dashboard");
 
-  if (!program) {
+  const { data: program, isLoading, error } = useQuery({
+    queryKey: ["program", programId],
+    queryFn: () => programsApi.getProgramById(programId || ""),
+    enabled: !!programId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground text-sm">Loading program details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !program) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="p-8 text-center">
+        <Card className="p-8 text-center max-w-md">
           <h2 className="text-xl font-semibold mb-2">Program not found</h2>
-          <p className="text-muted-foreground mb-4">The program you're looking for doesn't exist.</p>
-          <Button variant="gradient" onClick={() => navigate("/dashboard/programs")}>
+          <p className="text-muted-foreground mb-4">The program you're looking for doesn't exist or failed to load.</p>
+          <Button variant="gradient" onClick={() => navigate(isDashboard ? "/dashboard/programs" : "/programs")}>
             Back to Programs
           </Button>
         </Card>
@@ -187,28 +113,46 @@ export const ProgramDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard/programs")}
-            >
-              <ChevronLeft size={18} />
-              Back to Programs
-            </Button>
+      {/* Public Header */}
+      {!isDashboard && (
+        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
+          <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/programs")}
+              >
+                <ChevronLeft size={18} />
+                Back to Programs
+              </Button>
+            </div>
+            <Link to="/">
+              <img src={aimployLogo} alt="Aimploy" className="h-6" />
+            </Link>
           </div>
-          <img src={aimployLogo} alt="Aimploy" className="h-6" />
+        </header>
+      )}
+
+      {/* Dashboard Back Button */}
+      {isDashboard && (
+        <div className="px-6 py-4 border-b">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/dashboard/programs")}
+          >
+            <ChevronLeft size={18} />
+            Back to Programs
+          </Button>
         </div>
-      </header>
+      )}
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={program.heroImage}
+            src={getHeroImage(program.slug)}
             alt={program.title}
             className="w-full h-full object-cover"
           />
@@ -238,17 +182,10 @@ export const ProgramDetails = () => {
               <Button
                 variant="hero"
                 size="xl"
-                onClick={() => navigate(`/dashboard/programs/apply/${program.id}`)}
+                onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
               >
                 Apply Now
                 <ArrowRight size={18} />
-              </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                className="border-primary-foreground/30 text-foreground bg-card hover:bg-card/90 hover:text-foreground"
-              >
-                Learn More
               </Button>
             </div>
           </div>
@@ -271,63 +208,73 @@ export const ProgramDetails = () => {
           </motion.div>
 
           {/* Highlights Grid */}
-          <motion.div variants={itemVariants}>
-            <h3 className="font-display text-xl font-semibold text-center mb-8">Program Highlights</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {program.highlights.map((highlight, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-card border hover:border-primary/30 hover:shadow-md transition-all"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <highlight.icon className="text-primary" size={20} />
-                  </div>
-                  <span className="text-sm font-medium">{highlight.text}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+          {program.highlights && program.highlights.length > 0 && (
+            <motion.div variants={itemVariants}>
+              <h3 className="font-display text-xl font-semibold text-center mb-8">Program Highlights</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {program.highlights.map((highlight, index) => {
+                  const HighlightIcon = getIconComponent(highlight.icon);
+                  return (
+                    <motion.div
+                      key={index}
+                      variants={itemVariants}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-card border hover:border-primary/30 hover:shadow-md transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <HighlightIcon className="text-primary" size={20} />
+                      </div>
+                      <span className="text-sm font-medium">{highlight.text}</span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
         </motion.section>
 
         {/* Tracks Section */}
-        <motion.section
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <motion.div variants={itemVariants} className="text-center mb-12">
-            <h2 className="font-display text-3xl font-bold mb-4">Program Tracks</h2>
-          </motion.div>
+        {program.tracks && program.tracks.length > 0 && (
+          <motion.section
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={itemVariants} className="text-center mb-12">
+              <h2 className="font-display text-3xl font-bold mb-4">Program Tracks</h2>
+            </motion.div>
 
-          <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-            {program.tracks.map((track) => (
-              <motion.div key={track.id} variants={itemVariants}>
-                <Card className="h-full hover:shadow-lg hover:border-primary/30 transition-all">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
-                        <track.icon className="text-primary-foreground" size={28} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-display text-xl font-bold mb-2">{track.title}</h3>
-                        <p className="text-muted-foreground mb-4">{track.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {track.tags.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="font-normal">
-                              {tag}
-                            </Badge>
-                          ))}
+            <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+              {program.tracks.map((track) => {
+                const TrackIcon = getIconComponent(track.icon);
+                return (
+                  <motion.div key={track.id} variants={itemVariants}>
+                    <Card className="h-full hover:shadow-lg hover:border-primary/30 transition-all">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+                            <TrackIcon className="text-primary-foreground" size={28} />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-display text-xl font-bold mb-2">{track.title}</h3>
+                            <p className="text-muted-foreground mb-4">{track.description}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {track.tags && track.tags.map((tag) => (
+                                <Badge key={tag} variant="secondary" className="font-normal">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
 
         {/* Program Details */}
         <motion.section
@@ -345,14 +292,14 @@ export const ProgramDetails = () => {
               <CardContent className="p-6">
                 <Clock className="mx-auto text-primary mb-3" size={32} />
                 <p className="text-sm text-muted-foreground mb-1">Duration</p>
-                <p className="font-semibold">{program.duration} full-time</p>
+                <p className="font-semibold">{program.duration}</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <Calendar className="mx-auto text-primary mb-3" size={32} />
                 <p className="text-sm text-muted-foreground mb-1">Start Date</p>
-                <p className="font-semibold">{program.startDate}</p>
+                <p className="font-semibold">{program.start_date}</p>
               </CardContent>
             </Card>
             <Card className="text-center">
@@ -366,7 +313,7 @@ export const ProgramDetails = () => {
               <CardContent className="p-6">
                 <IndianRupee className="mx-auto text-primary mb-3" size={32} />
                 <p className="text-sm text-muted-foreground mb-1">Fee</p>
-                <p className="font-semibold">{program.isPaid ? "Paid by candidates" : "Free"}</p>
+                <p className="font-semibold">{program.is_paid ? "Paid program" : "Free certification"}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -375,7 +322,7 @@ export const ProgramDetails = () => {
             <Button
               variant="gradient"
               size="lg"
-              onClick={() => navigate(`/dashboard/programs/apply/${program.id}`)}
+              onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
             >
               Apply Now
               <ArrowRight size={18} />
@@ -421,7 +368,7 @@ export const ProgramDetails = () => {
             <Button
               variant="hero"
               size="xl"
-              onClick={() => navigate(`/dashboard/programs/apply/${program.id}`)}
+              onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
             >
               Start Your Application
               <ArrowRight size={18} />
@@ -456,7 +403,7 @@ export const ProgramDetails = () => {
                 <Button
                   size="xl"
                   className="bg-card text-foreground hover:bg-card/90"
-                  onClick={() => navigate(`/dashboard/programs/apply/${program.id}`)}
+                  onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
                 >
                   Apply Now
                   <ArrowRight size={18} />
@@ -465,7 +412,7 @@ export const ProgramDetails = () => {
                   variant="outline"
                   size="xl"
                   className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-                  onClick={() => navigate("/dashboard/programs")}
+                  onClick={() => navigate(isDashboard ? "/dashboard/programs" : "/programs")}
                 >
                   Explore Other Programs
                 </Button>
@@ -475,15 +422,17 @@ export const ProgramDetails = () => {
         </motion.section>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container mx-auto px-6 text-center">
-          <img src={aimployLogo} alt="Aimploy" className="h-6 mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">
-            © 2024 Aimploy. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      {/* Public Footer */}
+      {!isDashboard && (
+        <footer className="border-t py-8">
+          <div className="container mx-auto px-6 text-center">
+            <img src={aimployLogo} alt="Aimploy" className="h-6 mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">
+              © 2024 Aimploy. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 };

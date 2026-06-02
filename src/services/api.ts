@@ -456,3 +456,60 @@ export const tokenUtils = {
     return !!localStorage.getItem("access_token");
   },
 };
+
+// Programs Interfaces
+export interface ProgramTrack {
+  id: string;
+  title: string;
+  description: string;
+  tags: string[];
+  icon: string;
+}
+
+export interface ProgramHighlight {
+  icon: string;
+  text: string;
+}
+
+export interface Program {
+  id: number;
+  slug: string;
+  title: string;
+  subtitle?: string;
+  provider?: string;
+  duration?: string;
+  type?: string;
+  tracks: ProgramTrack[];
+  description?: string;
+  highlights: ProgramHighlight[];
+  is_paid: boolean;
+  badge?: string;
+  badge_color?: string;
+  image?: string;
+  start_date?: string;
+  location?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// Programs APIs
+export const programsApi = {
+  getPrograms: async (): Promise<Program[]> => {
+    const response = await fetch(`${API_BASE_URL}/public/programs`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "An error occurred" }));
+      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  getProgramById: async (slug: string): Promise<Program> => {
+    const response = await fetch(`${API_BASE_URL}/public/programs/${slug}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "An error occurred" }));
+      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+};
+

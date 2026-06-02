@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +26,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Browse Jobs", icon: Briefcase, path: "/dashboard/jobs" },
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
+  { label: "Programs", icon: GraduationCap, path: "/dashboard/programs" },
   { label: "Profile", icon: User, path: "/dashboard/profile" },
 ];
 
@@ -86,7 +88,9 @@ export const DashboardSidebar = () => {
       <nav className="flex-1 py-6 px-3 overflow-y-auto sidebar-scroll">
         <ul className="space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = item.path === "/dashboard" 
+              ? location.pathname === "/dashboard" 
+              : location.pathname.startsWith(item.path);
             const Icon = item.icon;
 
             return (

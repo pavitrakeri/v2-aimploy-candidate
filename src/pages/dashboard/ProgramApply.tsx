@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useQuery } from "@tanstack/react-query";
+import { programsApi } from "@/services/api";
 import {
   Select,
   SelectContent,
@@ -33,38 +35,6 @@ import {
 } from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
 
-const programsData: Record<string, {
-  id: string;
-  title: string;
-  provider: string;
-  duration: string;
-  type: string;
-  tracks: string[];
-  isPaid: boolean;
-  description: string;
-}> = {
-  aincubatr: {
-    id: "aincubatr",
-    title: "Aincubatr Residency Program",
-    provider: "Aimploy × partner incubator",
-    duration: "3 months",
-    type: "Residency",
-    tracks: ["CTO Training", "CEO Training"],
-    isPaid: true,
-    description: "Intensive leadership training program designed to develop the next generation of tech leaders.",
-  },
-  aimakt: {
-    id: "aimakt",
-    title: "AImakt Internship",
-    provider: "Aimploy Academy",
-    duration: "3 months",
-    type: "Internship",
-    tracks: ["Marketing Certification Program"],
-    isPaid: false,
-    description: "Comprehensive marketing internship program with certification.",
-  },
-};
-
 const experienceLevels = [
   "0-1 years",
   "1-3 years",
@@ -83,7 +53,8 @@ const steps = [
 export const ProgramApply = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
-  const program = programId ? programsData[programId] : null;
+  const location = useLocation();
+  const isDashboard = location.pathname.startsWith("/dashboard");
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,13 +73,30 @@ export const ProgramApply = () => {
     agreePayment: false,
   });
 
-  if (!program) {
+  const { data: program, isLoading, error } = useQuery({
+    queryKey: ["program", programId],
+    queryFn: () => programsApi.getProgramById(programId || ""),
+    enabled: !!programId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground text-sm">Loading application form...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !program) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="p-8 text-center">
+        <Card className="p-8 text-center max-w-md">
           <h2 className="text-xl font-semibold mb-2">Program not found</h2>
-          <p className="text-muted-foreground mb-4">The program you're looking for doesn't exist.</p>
-          <Button variant="gradient" onClick={() => navigate("/dashboard/programs")}>
+          <p className="text-muted-foreground mb-4">The program you're looking for doesn't exist or failed to load.</p>
+          <Button variant="gradient" onClick={() => navigate(isDashboard ? "/dashboard/programs" : "/programs")}>
             Back to Programs
           </Button>
         </Card>
@@ -144,7 +132,7 @@ export const ProgramApply = () => {
       case 3:
         return formData.experience && formData.motivation;
       case 4:
-        return formData.agreeTerms && (!program.isPaid || formData.agreePayment);
+        return formData.agreeTerms && (!program.is_paid || formData.agreePayment);
       default:
         return true;
     }
@@ -196,7 +184,7 @@ export const ProgramApply = () => {
               <Button
                 variant="gradient"
                 className="w-full"
-                onClick={() => navigate("/dashboard/programs")}
+                onClick={() => navigate(isDashboard ? "/dashboard/programs" : "/programs")}
               >
                 Back to Programs
               </Button>
@@ -216,13 +204,15 @@ export const ProgramApply = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/dashboard/programs")}
+              onClick={() => navigate(isDashboard ? "/dashboard/programs" : "/programs")}
             >
               <ChevronLeft size={18} />
               Back
             </Button>
             <div className="h-6 w-px bg-border" />
-            <img src={aimployLogo} alt="Aimploy" className="h-6" />
+            <Link to="/">
+              <img src={aimployLogo} alt="Aimploy" className="h-6" />
+            </Link>
           </div>
           <div className="text-sm text-muted-foreground">
             Application for <span className="font-medium text-foreground">{program.title}</span>
@@ -296,25 +286,27 @@ export const ProgramApply = () => {
                     onValueChange={setSelectedTrack}
                     className="space-y-4"
                   >
-                    {program.tracks.map((track) => (
+                    {program.tracks && program.tracks.map((track) => (
                       <Label
-                        key={track}
-                        htmlFor={track}
+                        key={track.id || track.title}
+                        htmlFor={track.title}
                         className={`flex items-start gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all ${
-                          selectedTrack === track
+                          selectedTrack === track.title
                             ? "border-primary bg-primary/5 shadow-purple"
                             : "border-border hover:border-primary/50"
                         }`}
                       >
-                        <RadioGroupItem value={track} id={track} className="mt-1" />
+                        <RadioGroupItem value={track.title} id={track.title} className="mt-1" />
                         <div className="flex-1">
-                          <span className="font-semibold text-lg">{track}</span>
+                          <span className="font-semibold text-lg">{track.title}</span>
                           <p className="text-sm text-muted-foreground mt-1">
-                            {track.includes("CTO")
-                              ? "Focus on technical leadership, system architecture, and building engineering teams. Perfect for aspiring technology leaders."
-                              : track.includes("CEO")
-                              ? "Focus on business strategy, fundraising, and company vision. Ideal for future entrepreneurs and business leaders."
-                              : "Comprehensive marketing training covering digital marketing, brand strategy, content creation, and growth hacking techniques."}
+                            {track.description || (
+                              track.title.includes("CTO")
+                                ? "Focus on technical leadership, system architecture, and building engineering teams. Perfect for aspiring technology leaders."
+                                : track.title.includes("CEO")
+                                ? "Focus on business strategy, fundraising, and company vision. Ideal for future entrepreneurs and business leaders."
+                                : "Comprehensive marketing training covering digital marketing, brand strategy, content creation, and growth hacking techniques."
+                            )}
                           </p>
                           <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
@@ -587,7 +579,7 @@ export const ProgramApply = () => {
                       </Label>
                     </div>
 
-                    {program.isPaid && (
+                    {program.is_paid && (
                       <div className="flex items-start gap-3 p-4 rounded-xl border border-primary/30 bg-primary/5">
                         <Checkbox
                           id="agreePayment"

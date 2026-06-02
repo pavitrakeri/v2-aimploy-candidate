@@ -133,7 +133,7 @@ export const Landing = () => {
             <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               About
             </a>
-            <Link to="/dashboard/programs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/programs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Programs
             </Link>
             <Link to="/user-guidance" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">

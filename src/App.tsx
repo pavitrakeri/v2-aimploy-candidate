@@ -49,6 +49,9 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth/google/callback" element={<GoogleCallback />} />
+                <Route path="/programs" element={<Programs />} />
+                <Route path="/programs/:programId" element={<ProgramDetails />} />
+                <Route path="/programs/apply/:programId" element={<ProgramApply />} />
                 <Route
                   path="/dashboard"
                   element={
@@ -61,6 +64,8 @@ const App = () => (
                   <Route path="jobs" element={<BrowseJobs />} />
                   <Route path="applications" element={<Applications />} />
                   <Route path="programs" element={<Programs />} />
+                  <Route path="programs/:programId" element={<ProgramDetails />} />
+                  <Route path="programs/apply/:programId" element={<ProgramApply />} />
                   <Route path="challenges" element={<Challenges />} />
                   <Route path="verification" element={<Verification />} />
                   <Route path="verification-management" element={<VerificationManagement />} />
@@ -68,8 +73,6 @@ const App = () => (
                   <Route path="validation-demo" element={<ValidationDemo />} />
                   <Route path="profile" element={<Profile />} />
                 </Route>
-              <Route path="/dashboard/programs/:programId" element={<ProgramDetails />} />
-              <Route path="/dashboard/programs/apply/:programId" element={<ProgramApply />} />
               <Route path="/dashboard/jobs/:jobId/apply" element={<JobApply />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
