@@ -5,10 +5,11 @@ import BGVVerification from './BGVVerification';
 const BGVVerificationWrapper: React.FC = () => {
   const { user } = useAuth();
   
-  // Get candidate ID from user context
+  // Get candidate ID and name from user context
   const candidateId = user?.id || 0;
+  const candidateName = user?.name || user?.email || 'Candidate';
   
-  return <BGVVerification candidateId={candidateId} />;
+  return <BGVVerification candidateId={candidateId} candidateName={candidateName} />;
 };
 
 export default BGVVerificationWrapper;

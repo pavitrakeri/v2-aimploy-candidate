@@ -64,6 +64,7 @@ export interface BGVDocumentCreate {
   document_type: string;
   file: File;
   description?: string;
+  metadata?: any;
 }
 
 export interface BGVDocumentResponse {
@@ -163,7 +164,7 @@ export const bgvApi = {
   },
 
   getReferences: async (verificationId: number): Promise<BGVReferenceResponse[]> => {
-    return bgvApiRequest<BGVReferenceResponse[]>(`/verification/${verificationId}/references`);
+    return bgvApiRequest<BGVReferenceResponse[]>(`/verification/references/${verificationId}`);
   },
 
   updateReference: async (
@@ -189,15 +190,16 @@ export const bgvApi = {
     formData.append("document_type", data.document_type);
     formData.append("file", data.file);
     if (data.description) formData.append("description", data.description);
+    if (data.metadata) formData.append("metadata_json", JSON.stringify(data.metadata));
 
-    return bgvApiRequest<BGVDocumentResponse>("/verification/documents", {
+    return bgvApiRequest<BGVDocumentResponse>("/verification/documents/upload", {
       method: "POST",
       body: formData,
     });
   },
 
   getDocuments: async (verificationId: number): Promise<BGVDocumentResponse[]> => {
-    return bgvApiRequest<BGVDocumentResponse[]>(`/verification/${verificationId}/documents`);
+    return bgvApiRequest<BGVDocumentResponse[]>(`/verification/documents/${verificationId}`);
   },
 
   deleteDocument: async (documentId: number): Promise<void> => {
@@ -214,16 +216,17 @@ export const bgvApi = {
     const formData = new FormData();
     formData.append("verification_id", verificationId.toString());
     
-    documents.forEach((doc, index) => {
-      formData.append(`files`, doc.file);
+    documents.forEach((doc) => {
+      formData.append(`documents`, doc.file);
       formData.append(`document_types`, doc.document_type);
       if (doc.description) formData.append(`descriptions`, doc.description);
     });
 
-    return bgvApiRequest<BGVDocumentResponse[]>("/verification/documents/bulk", {
+    const response = await bgvApiRequest<{ message: string; documents: BGVDocumentResponse[] }>("/verification/documents/bulk-upload", {
       method: "POST",
       body: formData,
     });
+    return response.documents;
   },
 
   bulkAddReferences: async (
@@ -234,5 +237,16 @@ export const bgvApi = {
       method: "POST",
       body: JSON.stringify({ references }),
     });
+  },
+
+  // BGV AI & Submission Flows
+  submitVerification: async (verificationId: number, candidateName: string): Promise<any> => {
+    return bgvApiRequest<any>(`/bgv/verification/${verificationId}/submit?candidate_name=${encodeURIComponent(candidateName)}`, {
+      method: "POST",
+    });
+  },
+
+  getHRVerificationStatus: async (verificationId: number): Promise<any> => {
+    return bgvApiRequest<any>(`/bgv/verification/${verificationId}/hr-status`);
   },
 };

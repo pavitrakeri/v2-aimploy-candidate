@@ -35,19 +35,33 @@ interface CombinedDocument {
 
 interface BGVVerificationProps {
   candidateId: number;
+  candidateName?: string;
 }
 
-export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId }) => {
+export const BGVVerification: React.FC<BGVVerificationProps> = ({ candidateId, candidateName }) => {
   return (
     <DigiLockerProvider>
-      <BGVVerificationInner candidateId={candidateId} />
+      <BGVVerificationInner candidateId={candidateId} candidateName={candidateName} />
     </DigiLockerProvider>
   );
 };
 
-const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) => {
+const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId, candidateName }) => {
   const { state, actions } = useBGV();
   const { state: digiLockerState } = useDigiLocker();
+  const [employmentForm, setEmploymentForm] = useState({
+    company_declared: '',
+    designation_declared: '',
+    joining_date_declared: '',
+    leaving_date_declared: '',
+    is_current_employer: false,
+    hr_email: '',
+    manager_name: '',
+  });
+  const [showEmploymentModal, setShowEmploymentModal] = useState(false);
+  const [activeUploadFile, setActiveUploadFile] = useState<{ file: File; documentType: string } | null>(null);
+  const [hrStatus, setHrStatus] = useState<any>(null);
+
   const [selectedVerificationTypes, setSelectedVerificationTypes] = useState<string[]>([]);
   const [referenceForm, setReferenceForm] = useState({
     reference_name: '',
@@ -95,6 +109,13 @@ const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) =
       required: false,
       accept: '.pdf,.jpg,.jpeg,.png',
       maxSize: 5 * 1024 * 1024 // 5MB
+    },
+    { 
+      id: 'offer_letter', 
+      label: 'Offer Letter', 
+      required: false,
+      accept: '.pdf,.jpg,.jpeg,.png',
+      maxSize: 3 * 1024 * 1024 // 3MB
     },
     { 
       id: 'experience_letter', 
@@ -169,6 +190,20 @@ const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) =
     }
   }, [candidateId]);
 
+  useEffect(() => {
+    const fetchHRStatus = async () => {
+      if (state.verification && state.verification.status !== 'pending') {
+        try {
+          const res = await actions.getHRVerificationStatus(state.verification.id);
+          setHrStatus(res);
+        } catch (err) {
+          console.error("Failed to fetch HR status:", err);
+        }
+      }
+    };
+    fetchHRStatus();
+  }, [state.verification?.id, state.verification?.status]);
+
   // Refresh component when pending uploads change
   useEffect(() => {
     // This will trigger re-render when pending uploads are added/removed
@@ -222,19 +257,81 @@ const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) =
         }
       }
       
-      console.log('Validation passed, uploading file...');
-      // Upload the file
-      await actions.uploadDocument(
-        state.verification.id,
-        file,
-        documentType,
-        `Uploaded ${documentType} document`
-      );
-      
-      console.log('File uploaded successfully');
-      
+      const EMPLOYMENT_DOC_TYPES = ['experience_letter', 'offer_letter', 'relieving_letter', 'employment_certificate', 'salary_slip'];
+      if (EMPLOYMENT_DOC_TYPES.includes(documentType)) {
+        setActiveUploadFile({ file, documentType });
+        setShowEmploymentModal(true);
+      } else {
+        console.log('Validation passed, uploading file...');
+        // Upload the file
+        await actions.uploadDocument(
+          state.verification.id,
+          file,
+          documentType,
+          `Uploaded ${documentType} document`
+        );
+        console.log('File uploaded successfully');
+      }
     } catch (error) {
       console.error('Upload error:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setValidatingFile(null);
+    }
+  };
+
+  const handleEmploymentSubmit = async () => {
+    if (!activeUploadFile || !state.verification) return;
+    
+    if (!employmentForm.company_declared) {
+      alert('Company Name is required');
+      return;
+    }
+    if (!employmentForm.designation_declared) {
+      alert('Designation is required');
+      return;
+    }
+    if (!employmentForm.hr_email) {
+      alert('HR Email is required for verification');
+      return;
+    }
+
+    try {
+      setValidatingFile(activeUploadFile);
+      setShowEmploymentModal(false);
+      
+      const metadata = {
+        company_declared: employmentForm.company_declared,
+        designation_declared: employmentForm.designation_declared,
+        joining_date_declared: employmentForm.joining_date_declared || null,
+        leaving_date_declared: employmentForm.leaving_date_declared || null,
+        is_current_employer: employmentForm.is_current_employer,
+        hr_email: employmentForm.hr_email,
+        manager_name: employmentForm.manager_name || null,
+      };
+
+      await actions.uploadDocument(
+        state.verification.id,
+        activeUploadFile.file,
+        activeUploadFile.documentType,
+        `Uploaded ${activeUploadFile.documentType} - ${employmentForm.company_declared}`,
+        true, // skip validation
+        metadata
+      );
+
+      // Reset Form
+      setEmploymentForm({
+        company_declared: '',
+        designation_declared: '',
+        joining_date_declared: '',
+        leaving_date_declared: '',
+        is_current_employer: false,
+        hr_email: '',
+        manager_name: '',
+      });
+      setActiveUploadFile(null);
+    } catch (error) {
+      console.error('Employment upload error:', error);
       alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setValidatingFile(null);
@@ -369,6 +466,150 @@ const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) =
           </div>
         )}
       </div>
+
+      {/* Submit BGV Banner */}
+      {state.verification && state.verification.status === 'pending' && (
+        <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-amber-900 flex items-center">
+                  📝 Verification Draft Mode
+                </h3>
+                <p className="text-sm text-amber-800">
+                  You have uploaded draft documents. Please click **Submit Background Verification** below to finalise and trigger verification checks (including HR emails to your former employers).
+                </p>
+              </div>
+              <Button
+                onClick={async () => {
+                  if (confirm("Are you sure you want to submit your background verification? This will send verification emails to the HR contacts you provided.")) {
+                    try {
+                      await actions.submitVerification(state.verification!.id, candidateName || "Candidate");
+                      alert("Background verification submitted successfully!");
+                    } catch (err) {
+                      alert(`Submission failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                    }
+                  }
+                }}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-6 shadow-sm whitespace-nowrap self-start md:self-center"
+              >
+                Submit Verification
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Employment Metadata Modal */}
+      {showEmploymentModal && activeUploadFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl text-left">
+            <h3 className="text-lg font-bold text-gray-900">
+              💼 Employment Details for {activeUploadFile.documentType.replace('_', ' ').toUpperCase()}
+            </h3>
+            <p className="text-sm text-gray-500">
+              Please enter details about your employment. This information will be used to send an automated verification request to the HR contact.
+            </p>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase">Company Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Google India"
+                  value={employmentForm.company_declared}
+                  onChange={(e) => setEmploymentForm({...employmentForm, company_declared: e.target.value})}
+                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase">Designation *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Software Engineer"
+                  value={employmentForm.designation_declared}
+                  onChange={(e) => setEmploymentForm({...employmentForm, designation_declared: e.target.value})}
+                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase">Joining Date</label>
+                  <input
+                    type="date"
+                    value={employmentForm.joining_date_declared}
+                    onChange={(e) => setEmploymentForm({...employmentForm, joining_date_declared: e.target.value})}
+                    className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase">Leaving Date</label>
+                  <input
+                    type="date"
+                    disabled={employmentForm.is_current_employer}
+                    value={employmentForm.is_current_employer ? '' : employmentForm.leaving_date_declared}
+                    onChange={(e) => setEmploymentForm({...employmentForm, leaving_date_declared: e.target.value})}
+                    className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_current_employer"
+                  checked={employmentForm.is_current_employer}
+                  onChange={(e) => setEmploymentForm({...employmentForm, is_current_employer: e.target.checked})}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="is_current_employer" className="text-sm text-gray-700">
+                  This is my current employer
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase">HR Contact Email *</label>
+                <input
+                  type="email"
+                  placeholder="hr@company.com (for verification request)"
+                  value={employmentForm.hr_email}
+                  onChange={(e) => setEmploymentForm({...employmentForm, hr_email: e.target.value})}
+                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase">Reporting Manager Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={employmentForm.manager_name}
+                  onChange={(e) => setEmploymentForm({...employmentForm, manager_name: e.target.value})}
+                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-2 pt-2">
+              <Button onClick={handleEmploymentSubmit} className="flex-1 bg-blue-600 text-white hover:bg-blue-700">
+                Upload & Save
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowEmploymentModal(false);
+                  setActiveUploadFile(null);
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {state.error && (
         <Alert variant="destructive">
@@ -967,6 +1208,47 @@ const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId }) =
               )}
             </CardContent>
           </Card>
+
+          {/* HR Status Section */}
+          {hrStatus && hrStatus.requests && hrStatus.requests.length > 0 && (
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span>Employer HR Verifications</span>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    Status: {hrStatus.employment_verification_status?.replace('_', ' ').toUpperCase()}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {hrStatus.requests.map((req: any) => (
+                    <div key={req.id || req.hr_email} className="border rounded-lg p-4 space-y-2 bg-gray-50 text-left">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{req.company}</h4>
+                          <p className="text-xs text-gray-500">{req.designation}</p>
+                        </div>
+                        <Badge className={
+                          req.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          req.status === 'disputed' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }>
+                          {req.status?.toUpperCase() || 'PENDING'}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <div><span className="text-gray-400">HR Email:</span> {req.hr_email}</div>
+                        {req.manager_name && <div><span className="text-gray-400">Manager:</span> {req.manager_name}</div>}
+                        {req.response_date && <div><span className="text-gray-400">Responded:</span> {new Date(req.response_date).toLocaleDateString()}</div>}
+                        {req.notes && <div><span className="text-gray-400">Notes:</span> "{req.notes}"</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 

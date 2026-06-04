@@ -117,12 +117,14 @@ const BGVContext = createContext<{
     startVerification: (candidateId: number, verificationTypes: string[], notes?: string) => Promise<void>;
     getCandidateStatus: (candidateId: number) => Promise<void>;
     validateDocument: (file: File, documentType: string) => Promise<ValidationResult>;
-    uploadDocument: (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean) => Promise<void>;
+    uploadDocument: (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean, metadata?: any) => Promise<void>;
     deleteDocument: (documentId: number) => Promise<void>;
     addReference: (verificationId: number, referenceData: Omit<import('../services/bgv-api').BGVReferenceCreate, 'verification_id'>) => Promise<void>;
     deleteReference: (referenceId: number) => Promise<void>;
     refreshData: () => Promise<void>;
     syncPendingUploads: () => Promise<{ successful: number; failed: number }>;
+    submitVerification: (verificationId: number, candidateName: string) => Promise<any>;
+    getHRVerificationStatus: (verificationId: number) => Promise<any>;
   };
 } | null>(null);
 
@@ -258,7 +260,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     },
 
-    uploadDocument: async (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean) => {
+    uploadDocument: async (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean, metadata?: any) => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -284,6 +286,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           document_type: documentType,
           file,
           description,
+          metadata,
         });
         
         dispatch({ type: 'ADD_DOCUMENT', payload: document });
@@ -396,6 +399,33 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       } catch (error) {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to sync pending uploads' });
         return { successful: 0, failed: 0 };
+      }
+    },
+
+    submitVerification: async (verificationId: number, candidateName: string) => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        const response = await bgvApi.submitVerification(verificationId, candidateName);
+        dispatch({ type: 'UPDATE_VERIFICATION_STATUS', payload: 'in_progress' });
+        if (state.verification) {
+          await actions.getCandidateStatus(state.verification.candidate_id);
+        }
+        return response;
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to submit verification' });
+        throw error;
+      }
+    },
+
+    getHRVerificationStatus: async (verificationId: number) => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        const hrStatus = await bgvApi.getHRVerificationStatus(verificationId);
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return hrStatus;
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get HR verification status' });
+        throw error;
       }
     },
   };
