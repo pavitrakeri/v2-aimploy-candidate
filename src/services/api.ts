@@ -518,5 +518,11 @@ export const programsApi = {
       body: JSON.stringify(data),
     });
   },
+
+  getMyProgramApplications: async (): Promise<any[]> => {
+    return apiRequest<any[]>("/candidate/programs/applications", {
+      method: "GET",
+    });
+  },
 };
 
