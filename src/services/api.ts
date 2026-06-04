@@ -511,5 +511,12 @@ export const programsApi = {
     }
     return response.json();
   },
+
+  applyForProgram: async (slug: string, data: any): Promise<any> => {
+    return apiRequest<any>(`/candidate/programs/${slug}/apply`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
 };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useQuery } from "@tanstack/react-query";
-import { programsApi } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
+import { programsApi, jobsApi, Program, ProgramTrack, ProgramHighlight } from "@/services/api";
 import {
   Select,
   SelectContent,
@@ -56,6 +57,7 @@ export const ProgramApply = () => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith("/dashboard");
 
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -78,6 +80,23 @@ export const ProgramApply = () => {
     queryFn: () => programsApi.getProgramById(programId || ""),
     enabled: !!programId,
   });
+
+  const { data: prefillData } = useQuery({
+    queryKey: ["application-prefill"],
+    queryFn: () => jobsApi.getApplicationPrefill(),
+    enabled: isDashboard,
+  });
+
+  useEffect(() => {
+    if (prefillData) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: prefillData.full_name || prev.fullName,
+        email: prefillData.email || prev.email,
+        phone: prefillData.phone || prev.phone,
+      }));
+    }
+  }, [prefillData]);
 
   if (isLoading) {
     return (
@@ -118,9 +137,28 @@ export const ProgramApply = () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      await programsApi.applyForProgram(program.slug, {
+        track: selectedTrack,
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        linkedin: formData.linkedin,
+        experience_level: formData.experience,
+        current_role: formData.currentRole,
+        current_company: formData.currentCompany,
+        motivation: formData.motivation
+      });
+      setIsSubmitted(true);
+    } catch (err: any) {
+      toast({
+        title: "Application Error",
+        description: err.message || "Failed to submit program application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const canProceed = () => {
