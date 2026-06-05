@@ -56,10 +56,36 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: accept.split(',').reduce((acc, type) => {
-      acc[type] = [];
-      return acc;
-    }, {} as Record<string, string[]>),
+    accept: (() => {
+      const result: Record<string, string[]> = {};
+      accept.split(',').forEach(ext => {
+        const trimmed = ext.trim().toLowerCase();
+        if (trimmed === '.pdf') {
+          result['application/pdf'] = ['.pdf'];
+        } else if (trimmed === '.jpg') {
+          result['image/jpeg'] = result['image/jpeg'] ? [...result['image/jpeg'], '.jpg'] : ['.jpg'];
+        } else if (trimmed === '.jpeg') {
+          result['image/jpeg'] = result['image/jpeg'] ? [...result['image/jpeg'], '.jpeg'] : ['.jpeg'];
+        } else if (trimmed === '.png') {
+          result['image/png'] = ['.png'];
+        } else if (trimmed === '.webp') {
+          result['image/webp'] = ['.webp'];
+        } else if (trimmed === '.zip') {
+          result['application/zip'] = ['.zip'];
+        } else if (trimmed === '.doc') {
+          result['application/msword'] = ['.doc'];
+        } else if (trimmed === '.docx') {
+          result['application/vnd.openxmlformats-officedocument.wordprocessingml.document'] = ['.docx'];
+        } else {
+          if (trimmed.includes('/')) {
+            result[trimmed] = [];
+          } else {
+            result['application/octet-stream'] = result['application/octet-stream'] ? [...result['application/octet-stream'], trimmed] : [trimmed];
+          }
+        }
+      });
+      return result;
+    })(),
     maxSize,
     multiple: false
   });
