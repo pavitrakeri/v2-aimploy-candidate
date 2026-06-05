@@ -7,6 +7,8 @@ import { Camera, CheckCircle, AlertCircle } from 'lucide-react';
 interface PhotoStepProps {
   data: PhotoData;
   onChange: (data: PhotoData) => void;
+  onUploadDocument?: (file: File, docType: string) => Promise<void>;
+  onDeleteDocument?: (docType: string) => Promise<void>;
 }
 
 const photoGuidelines = [
@@ -42,17 +44,25 @@ const photoGuidelines = [
   }
 ];
 
-export const PhotoStep: React.FC<PhotoStepProps> = ({ data, onChange }) => {
-  const handleFileUpload = (file: UploadedFile) => {
-    onChange({
-      photo: file
-    });
+export const PhotoStep: React.FC<PhotoStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
+  const handleFileUpload = (file: UploadedFile, rawFile?: File) => {
+    if (onUploadDocument && rawFile) {
+      onUploadDocument(rawFile, 'photo');
+    } else {
+      onChange({
+        photo: file
+      });
+    }
   };
 
   const handleFileRemove = () => {
-    onChange({
-      photo: undefined
-    });
+    if (onDeleteDocument) {
+      onDeleteDocument('photo');
+    } else {
+      onChange({
+        photo: undefined
+      });
+    }
   };
 
   return (

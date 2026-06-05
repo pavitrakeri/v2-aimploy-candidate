@@ -53,19 +53,29 @@ const identityDocuments = [
   }
 ];
 
-export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange }) => {
-  const handleFileUpload = (key: keyof IdentityData) => (file: UploadedFile) => {
-    onChange({
-      ...data,
-      [key]: file
-    });
+export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
+  const handleFileUpload = (key: keyof IdentityData) => (file: UploadedFile, rawFile?: File) => {
+    const backendDocType = key === 'voterId' ? 'voter_id' : key === 'drivingLicence' ? 'driving_licence' : key;
+    if (onUploadDocument && rawFile) {
+      onUploadDocument(rawFile, backendDocType);
+    } else {
+      onChange({
+        ...data,
+        [key]: file
+      });
+    }
   };
 
   const handleFileRemove = (key: keyof IdentityData) => () => {
-    onChange({
-      ...data,
-      [key]: undefined
-    });
+    const backendDocType = key === 'voterId' ? 'voter_id' : key === 'drivingLicence' ? 'driving_licence' : key;
+    if (onDeleteDocument) {
+      onDeleteDocument(backendDocType);
+    } else {
+      onChange({
+        ...data,
+        [key]: undefined
+      });
+    }
   };
 
   const hasRequiredDocument = data.aadhaar || data.pan;

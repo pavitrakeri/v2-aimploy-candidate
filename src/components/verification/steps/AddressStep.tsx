@@ -10,9 +10,11 @@ import { MapPin, Home } from 'lucide-react';
 interface AddressStepProps {
   data: AddressData;
   onChange: (data: AddressData) => void;
+  onUploadDocument?: (file: File, docType: string) => Promise<void>;
+  onDeleteDocument?: (docType: string) => Promise<void>;
 }
 
-export const AddressStep: React.FC<AddressStepProps> = ({ data, onChange }) => {
+export const AddressStep: React.FC<AddressStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
   const handleInputChange = (field: keyof AddressData, value: string | boolean) => {
     onChange({
       ...data,
@@ -32,18 +34,26 @@ export const AddressStep: React.FC<AddressStepProps> = ({ data, onChange }) => {
     onChange(updatedData);
   };
 
-  const handleFileUpload = (file: UploadedFile) => {
-    onChange({
-      ...data,
-      addressProof: file
-    });
+  const handleFileUpload = (file: UploadedFile, rawFile?: File) => {
+    if (onUploadDocument && rawFile) {
+      onUploadDocument(rawFile, 'address_proof');
+    } else {
+      onChange({
+        ...data,
+        addressProof: file
+      });
+    }
   };
 
   const handleFileRemove = () => {
-    onChange({
-      ...data,
-      addressProof: undefined
-    });
+    if (onDeleteDocument) {
+      onDeleteDocument('address_proof');
+    } else {
+      onChange({
+        ...data,
+        addressProof: undefined
+      });
+    }
   };
 
   const addressProofTypes = [

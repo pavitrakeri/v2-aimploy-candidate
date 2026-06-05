@@ -9,6 +9,8 @@ import { GraduationCap, Award } from 'lucide-react';
 interface EducationStepProps {
   data: EducationEntry[];
   onChange: (data: EducationEntry[]) => void;
+  onUploadDocument?: (file: File, docType: string, id: string) => Promise<void>;
+  onDeleteDocument?: (docType: string, id: string) => Promise<void>;
 }
 
 const educationLevels = [
@@ -42,7 +44,7 @@ const educationLevels = [
   }
 ];
 
-export const EducationStep: React.FC<EducationStepProps> = ({ data, onChange }) => {
+export const EducationStep: React.FC<EducationStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
   const handleEntryChange = (id: string, field: keyof EducationEntry, value: string | UploadedFile) => {
     const updatedData = data.map(entry => 
       entry.id === id ? { ...entry, [field]: value } : entry
@@ -50,12 +52,20 @@ export const EducationStep: React.FC<EducationStepProps> = ({ data, onChange }) 
     onChange(updatedData);
   };
 
-  const handleFileUpload = (id: string) => (file: UploadedFile) => {
-    handleEntryChange(id, 'document', file);
+  const handleFileUpload = (id: string) => (file: UploadedFile, rawFile?: File) => {
+    if (onUploadDocument && rawFile) {
+      onUploadDocument(rawFile, 'education_certificate', id);
+    } else {
+      handleEntryChange(id, 'document', file);
+    }
   };
 
   const handleFileRemove = (id: string) => () => {
-    handleEntryChange(id, 'document', undefined);
+    if (onDeleteDocument) {
+      onDeleteDocument('education_certificate', id);
+    } else {
+      handleEntryChange(id, 'document', undefined);
+    }
   };
 
   return (

@@ -10,9 +10,11 @@ import { Briefcase, Plus, Trash2, Calendar } from 'lucide-react';
 interface EmploymentStepProps {
   data: EmploymentEntry[];
   onChange: (data: EmploymentEntry[]) => void;
+  onUploadDocument?: (file: File, docType: string, id: string) => Promise<void>;
+  onDeleteDocument?: (docType: string, id: string) => Promise<void>;
 }
 
-export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange }) => {
+export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
   const handleEntryChange = (id: string, field: keyof EmploymentEntry, value: string | UploadedFile) => {
     const updatedData = data.map(entry => 
       entry.id === id ? { ...entry, [field]: value } : entry
@@ -20,18 +22,28 @@ export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange }
     onChange(updatedData);
   };
 
-  const handleFileUpload = (id: string, documentType: 'offerLetter' | 'experienceLetter' | 'payslip') => (file: UploadedFile) => {
-    const updatedData = data.map(entry => 
-      entry.id === id ? { ...entry, [documentType]: file } : entry
-    );
-    onChange(updatedData);
+  const handleFileUpload = (id: string, documentType: 'offerLetter' | 'experienceLetter' | 'payslip') => (file: UploadedFile, rawFile?: File) => {
+    const backendDocType = documentType === 'offerLetter' ? 'offer_letter' : documentType === 'experienceLetter' ? 'experience_letter' : 'payslip';
+    if (onUploadDocument && rawFile) {
+      onUploadDocument(rawFile, backendDocType, id);
+    } else {
+      const updatedData = data.map(entry => 
+        entry.id === id ? { ...entry, [documentType]: file } : entry
+      );
+      onChange(updatedData);
+    }
   };
 
   const handleFileRemove = (id: string, documentType: 'offerLetter' | 'experienceLetter' | 'payslip') => () => {
-    const updatedData = data.map(entry => 
-      entry.id === id ? { ...entry, [documentType]: undefined } : entry
-    );
-    onChange(updatedData);
+    const backendDocType = documentType === 'offerLetter' ? 'offer_letter' : documentType === 'experienceLetter' ? 'experience_letter' : 'payslip';
+    if (onDeleteDocument) {
+      onDeleteDocument(backendDocType, id);
+    } else {
+      const updatedData = data.map(entry => 
+        entry.id === id ? { ...entry, [documentType]: undefined } : entry
+      );
+      onChange(updatedData);
+    }
   };
 
   const addEmploymentEntry = () => {

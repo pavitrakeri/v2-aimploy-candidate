@@ -8,7 +8,7 @@ import { Progress } from './progress';
 import { UploadedFile } from '@/types/verification';
 
 interface FileUploadZoneProps {
-  onFileUpload: (file: UploadedFile) => void;
+  onFileUpload: (file: UploadedFile, rawFile: File) => void;
   onFileRemove?: () => void;
   uploadedFile?: UploadedFile;
   accept?: string;
@@ -51,7 +51,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
       type: file.type
     };
 
-    onFileUpload(uploadedFile);
+    onFileUpload(uploadedFile, file);
   }, [onFileUpload, maxSize]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

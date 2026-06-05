@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import BGVVerification from './BGVVerification';
+import Verification from './Verification';
 
 const BGVVerificationWrapper: React.FC = () => {
   const { user } = useAuth();
@@ -9,7 +9,7 @@ const BGVVerificationWrapper: React.FC = () => {
   const candidateId = user?.id || 0;
   const candidateName = user?.name || user?.email || 'Candidate';
   
-  return <BGVVerification candidateId={candidateId} candidateName={candidateName} />;
+  return <Verification candidateId={candidateId} candidateName={candidateName} />;
 };
 
 export default BGVVerificationWrapper;

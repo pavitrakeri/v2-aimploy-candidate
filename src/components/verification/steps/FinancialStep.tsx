@@ -7,6 +7,8 @@ import { Landmark, FileText, DollarSign } from 'lucide-react';
 interface FinancialStepProps {
   data: FinancialData;
   onChange: (data: FinancialData) => void;
+  onUploadDocument?: (file: File, docType: string) => Promise<void>;
+  onDeleteDocument?: (docType: string) => Promise<void>;
 }
 
 const financialDocuments = [
@@ -33,19 +35,29 @@ const financialDocuments = [
   }
 ];
 
-export const FinancialStep: React.FC<FinancialStepProps> = ({ data, onChange }) => {
-  const handleFileUpload = (key: keyof FinancialData) => (file: UploadedFile) => {
-    onChange({
-      ...data,
-      [key]: file
-    });
+export const FinancialStep: React.FC<FinancialStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
+  const handleFileUpload = (key: keyof FinancialData) => (file: UploadedFile, rawFile?: File) => {
+    const backendDocType = key === 'bankStatement' ? 'bank_statement' : key === 'salarySlip' ? 'salary_slip' : 'tax_return';
+    if (onUploadDocument && rawFile) {
+      onUploadDocument(rawFile, backendDocType);
+    } else {
+      onChange({
+        ...data,
+        [key]: file
+      });
+    }
   };
 
   const handleFileRemove = (key: keyof FinancialData) => () => {
-    onChange({
-      ...data,
-      [key]: undefined
-    });
+    const backendDocType = key === 'bankStatement' ? 'bank_statement' : key === 'salarySlip' ? 'salary_slip' : 'tax_return';
+    if (onDeleteDocument) {
+      onDeleteDocument(backendDocType);
+    } else {
+      onChange({
+        ...data,
+        [key]: undefined
+      });
+    }
   };
 
   return (
