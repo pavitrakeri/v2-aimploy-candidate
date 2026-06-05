@@ -284,10 +284,17 @@ export const VerificationProvider: React.FC<VerificationProviderProps> = ({ chil
   const getVerificationStatus = async (candidateId: number) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'SET_ERROR', payload: null });
       const status = await verificationAPI.getCandidateVerificationStatus(candidateId);
       dispatch({ type: 'SET_VERIFICATION_STATUS', payload: status });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get verification status' });
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes("No verification found for candidate") || message.includes("404")) {
+        // Normal case: candidate has not initiated verification yet
+        dispatch({ type: 'RESET' });
+      } else {
+        dispatch({ type: 'SET_ERROR', payload: message || 'Failed to get verification status' });
+      }
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }

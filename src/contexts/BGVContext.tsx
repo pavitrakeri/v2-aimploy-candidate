@@ -247,7 +247,13 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const status = await bgvApi.getCandidateVerificationStatus(candidateId);
         dispatch({ type: 'SET_OVERALL_STATUS', payload: status });
       } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get candidate status' });
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes("No verification found for candidate") || message.includes("404")) {
+          // Normal case: candidate has not initiated verification yet
+          dispatch({ type: 'RESET_STATE' });
+        } else {
+          dispatch({ type: 'SET_ERROR', payload: message || 'Failed to get candidate status' });
+        }
       }
     },
 
