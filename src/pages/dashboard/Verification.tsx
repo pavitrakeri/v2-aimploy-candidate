@@ -126,57 +126,115 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       drivingLicence: mapDoc('driving_licence'),
     };
 
-    // Address proof
+    // Address proof and text values reconstruction
     const addressProof = mapDoc('address_proof');
+    let address = { ...initialState.address };
+    if (addressProof && addressProof.validation_details) {
+      const details = addressProof.validation_details;
+      address = {
+        currentAddress: details.currentAddress || address.currentAddress,
+        currentCity: details.currentCity || address.currentCity,
+        currentState: details.currentState || address.currentState,
+        currentPincode: details.currentPincode || address.currentPincode,
+        permanentAddress: details.permanentAddress || address.permanentAddress,
+        permanentCity: details.permanentCity || address.permanentCity,
+        permanentState: details.permanentState || address.permanentState,
+        permanentPincode: details.permanentPincode || address.permanentPincode,
+        sameAsCurrent: details.sameAsCurrent !== undefined ? details.sameAsCurrent : address.sameAsCurrent,
+        addressProof
+      };
+    }
 
     // Education entries mapping
-    const education = localState.education.map(entry => {
+    const education = initialState.education.map(entry => {
       const doc = mapDoc('education_certificate', entry.level);
-      return doc ? { ...entry, document: doc } : entry;
+      if (doc) {
+        const details = doc.validation_details || {};
+        return {
+          ...entry,
+          institution: details.institution || entry.institution,
+          board: details.board || entry.board,
+          year: details.year || entry.year,
+          percentage: details.percentage || entry.percentage,
+          document: doc
+        };
+      }
+      return entry;
     });
 
     // Employment entries mapping
-    const employment = localState.employment.map(entry => {
-      const companyKey = entry.company || '';
-      return {
-        ...entry,
-        offerLetter: mapDoc('offer_letter', companyKey) || entry.offerLetter,
-        experienceLetter: mapDoc('experience_letter', companyKey) || entry.experienceLetter,
-        payslip: mapDoc('payslip', companyKey) || mapDoc('salary_slip', companyKey) || entry.payslip,
+    const empDocs = docs.filter(d => 
+      ['offer_letter', 'experience_letter', 'relieving_letter', 'employment_certificate', 'payslip', 'salary_slip'].includes(d.document_type)
+    );
+
+    const companiesMap = new Map<string, {
+      company: string;
+      designation: string;
+      fromDate: string;
+      toDate: string;
+      offerLetter?: UploadedFile;
+      experienceLetter?: UploadedFile;
+      payslip?: UploadedFile;
+    }>();
+
+    empDocs.forEach(d => {
+      const details = d.validation_details || {};
+      const companyName = details.company_declared || (d.description && d.description.includes(' - ') ? d.description.split(' - ')[1] : '') || 'General';
+      const cleanName = companyName.trim();
+      if (!cleanName) return;
+
+      const docObj: UploadedFile = {
+        id: d.id.toString(),
+        name: d.file_name,
+        size: d.file_size,
+        type: 'application/octet-stream',
+        validation_score: d.validation_score,
+        validation_status: d.validation_status === 'processing'
+          ? 'pending'
+          : d.validation_status === 'approved'
+            ? 'verified'
+            : d.validation_status === 'rejected'
+              ? 'rejected'
+              : 'pending',
+        validation_details: d.validation_details,
+        analysis_method: 'openai_analysis'
       };
+
+      const existing = companiesMap.get(cleanName) || {
+        company: cleanName,
+        designation: details.designation_declared || '',
+        fromDate: details.joining_date_declared ? details.joining_date_declared.substring(0, 7) : '',
+        toDate: details.leaving_date_declared ? details.leaving_date_declared.substring(0, 7) : '',
+      };
+
+      if (d.document_type === 'offer_letter') {
+        existing.offerLetter = docObj;
+      } else if (d.document_type === 'experience_letter' || d.document_type === 'relieving_letter' || d.document_type === 'employment_certificate') {
+        existing.experienceLetter = docObj;
+      } else if (d.document_type === 'payslip' || d.document_type === 'salary_slip') {
+        existing.payslip = docObj;
+      }
+
+      if (details.designation_declared && !existing.designation) {
+        existing.designation = details.designation_declared;
+      }
+      if (details.joining_date_declared && !existing.fromDate) {
+        existing.fromDate = details.joining_date_declared.substring(0, 7);
+      }
+      if (details.leaving_date_declared && !existing.toDate) {
+        existing.toDate = details.leaving_date_declared.substring(0, 7);
+      }
+
+      companiesMap.set(cleanName, existing);
     });
 
-    // Fallback: If company name wasn't entered yet, map general uploads to the first slot
-    const firstEmp = employment[0];
-    if (firstEmp && !firstEmp.company) {
-      const generalOffer = docs.find(d => d.document_type === 'offer_letter');
-      if (generalOffer && !firstEmp.offerLetter) {
-        firstEmp.offerLetter = {
-          id: generalOffer.id.toString(),
-          name: generalOffer.file_name,
-          size: generalOffer.file_size,
-          type: 'application/octet-stream',
-          validation_score: generalOffer.validation_score,
-          validation_status: generalOffer.validation_status === 'approved' ? 'verified' : 'pending'
-        };
-        if (generalOffer.description && generalOffer.description.includes(' - ')) {
-          firstEmp.company = generalOffer.description.split(' - ')[1] || '';
-        }
-      }
-      const generalExp = docs.find(d => d.document_type === 'experience_letter');
-      if (generalExp && !firstEmp.experienceLetter) {
-        firstEmp.experienceLetter = {
-          id: generalExp.id.toString(),
-          name: generalExp.file_name,
-          size: generalExp.file_size,
-          type: 'application/octet-stream',
-          validation_score: generalExp.validation_score,
-          validation_status: generalExp.validation_status === 'approved' ? 'verified' : 'pending'
-        };
-        if (!firstEmp.company && generalExp.description && generalExp.description.includes(' - ')) {
-          firstEmp.company = generalExp.description.split(' - ')[1] || '';
-        }
-      }
+    let employment: EmploymentEntry[] = Array.from(companiesMap.values()).map((comp, idx) => ({
+      id: (idx + 1).toString(),
+      ...comp
+    }));
+
+    if (employment.length === 0) {
+      employment = [...initialState.employment];
     }
 
     // Financial mapping
@@ -203,7 +261,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
 
     // Additional Docs mapping
     // Map files whose description matches the doc labels
-    const additionalDocs = localState.additionalDocs.map(doc => {
+    const additionalDocs = initialState.additionalDocs.map(doc => {
       const mapped = mapDoc('other', doc.label);
       return mapped ? { ...doc, file: mapped } : doc;
     });
@@ -211,7 +269,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     setLocalState(prev => ({
       ...prev,
       identity,
-      address: { ...prev.address, addressProof },
+      address,
       education,
       employment,
       financial,
@@ -268,14 +326,37 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     } else {
       try {
         let description = `Uploaded ${docType}`;
+        let metadata: any = undefined;
         if (docType === 'education_certificate' && entryId) {
           const entry = localState.education.find(e => e.id === entryId);
-          if (entry) description = `${entry.level} - ${entry.institution}`;
+          if (entry) {
+            description = `${entry.level} - ${entry.institution}`;
+            metadata = {
+              level: entry.level,
+              institution: entry.institution,
+              board: entry.board,
+              year: entry.year,
+              percentage: entry.percentage,
+              entryId: entry.id
+            };
+          }
+        } else if (docType === 'address_proof') {
+          metadata = {
+            currentAddress: localState.address.currentAddress,
+            currentCity: localState.address.currentCity,
+            currentState: localState.address.currentState,
+            currentPincode: localState.address.currentPincode,
+            permanentAddress: localState.address.permanentAddress,
+            permanentCity: localState.address.permanentCity,
+            permanentState: localState.address.permanentState,
+            permanentPincode: localState.address.permanentPincode,
+            sameAsCurrent: localState.address.sameAsCurrent,
+          };
         } else if (docType === 'other' && entryId) {
           const entry = localState.additionalDocs.find(e => e.id === entryId);
           if (entry) description = entry.label;
         }
-        await actions.uploadDocument(bgvState.verification.id, file, docType, description);
+        await actions.uploadDocument(bgvState.verification.id, file, docType, description, false, metadata);
         await actions.getCandidateStatus(candidateId);
       } catch (err) {
         console.error("Document upload error:", err);
