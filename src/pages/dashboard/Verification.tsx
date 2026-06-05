@@ -37,6 +37,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
   // Local state mirroring the structure required by the step components
   const [localState, setLocalState] = useState<VerificationState>(initialState);
   const step = localState.currentStep;
+  const [isEditing, setIsEditing] = useState(false);
 
   // Employment metadata form state
   const [employmentForm, setEmploymentForm] = useState({
@@ -456,7 +457,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     }
   };
 
-  const isSubmitted = bgvState.verification && bgvState.verification.status !== 'pending';
+  const isSubmitted = bgvState.verification && bgvState.verification.status !== 'pending' && !isEditing;
 
   const renderStep = () => {
     switch (step) {
@@ -634,7 +635,15 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 </div>
               )}
 
-              <div className="flex gap-3 justify-center pt-4">
+              <div className="flex flex-wrap gap-3 justify-center pt-4">
+                {bgvState.verification && bgvState.verification.status !== 'completed' && (
+                  <Button 
+                    onClick={() => setIsEditing(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                  >
+                    Edit Details
+                  </Button>
+                )}
                 <Button 
                   onClick={async () => {
                     await actions.getCandidateStatus(candidateId);
@@ -652,6 +661,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 </Button>
                 <Button 
                   onClick={() => window.location.href = '/dashboard'}
+                  variant="secondary"
                 >
                   Back to Dashboard
                 </Button>
@@ -670,21 +680,40 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 sm:mt-0 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-amber-900 text-sm">Draft Mode - Uploads are immediate</h4>
+                  <h4 className="font-semibold text-amber-900 text-sm">
+                    {bgvState.verification.status === 'pending' ? 'Draft Mode - Uploads are immediate' : 'Editing Mode - Verification Submitted'}
+                  </h4>
                   <p className="text-xs text-amber-800 mt-0.5">
-                    Your files will upload and validate as you navigate steps. When complete, click **Submit Verification** on the last step to trigger HR validation emails.
+                    {bgvState.verification.status === 'pending' 
+                      ? 'Your files will upload and validate as you navigate steps. When complete, click Submit Verification on the last step to trigger HR validation emails.' 
+                      : 'You are editing an already submitted verification. Once you are done making changes, click Submit Verification again to finalize.'}
                   </p>
                 </div>
               </div>
-              {completedSteps.has(8) && (
-                <Button
-                  onClick={handleSubmitVerification}
-                  size="sm"
-                  className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs whitespace-nowrap self-stretch sm:self-center"
-                >
-                  Submit Now
-                </Button>
-              )}
+              <div className="flex items-center gap-2 self-stretch sm:self-center">
+                {bgvState.verification.status !== 'pending' && (
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-300 text-amber-950 hover:bg-amber-100"
+                  >
+                    View Status
+                  </Button>
+                )}
+                {completedSteps.has(8) && (
+                  <Button
+                    onClick={async () => {
+                      await handleSubmitVerification();
+                      setIsEditing(false);
+                    }}
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs whitespace-nowrap"
+                  >
+                    Submit Now
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
