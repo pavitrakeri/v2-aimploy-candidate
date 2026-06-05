@@ -244,8 +244,29 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
         
-        const status = await bgvApi.getCandidateVerificationStatus(candidateId);
-        dispatch({ type: 'SET_OVERALL_STATUS', payload: status });
+        const statusSummary = await bgvApi.getCandidateVerificationStatus(candidateId);
+        
+        const verificationId = statusSummary.verification_id;
+        if (verificationId) {
+          const [verificationDetail, documents, references] = await Promise.all([
+            bgvApi.getVerification(verificationId),
+            bgvApi.getDocuments(verificationId),
+            bgvApi.getReferences(verificationId)
+          ]);
+
+          dispatch({
+            type: 'SET_OVERALL_STATUS',
+            payload: {
+              ...statusSummary,
+              verification: verificationDetail,
+              documents,
+              references,
+              completion_percentage: statusSummary.completion_percentage || (statusSummary as any).progress_percentage || 0
+            } as any
+          });
+        } else {
+          dispatch({ type: 'RESET_STATE' });
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : '';
         if (message.includes("No verification found for candidate") || message.includes("404")) {

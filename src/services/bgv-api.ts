@@ -85,6 +85,7 @@ export interface BGVDocumentResponse {
 
 export interface BGVOverallStatus {
   candidate_id: number;
+  verification_id?: number;
   verification?: BGVVerificationResponse;
   documents: BGVDocumentResponse[];
   references: BGVReferenceResponse[];
