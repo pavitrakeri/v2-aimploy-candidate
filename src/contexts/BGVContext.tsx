@@ -311,6 +311,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           // Show warnings if any
           if (validation.warnings.length > 0) {
             console.warn('File validation warnings:', validation.warnings);
+            alert(`File Validation Warnings:\n\n${validation.warnings.map(w => '• ' + w).join('\n')}\n\nUploading anyway...`);
           }
         }
         

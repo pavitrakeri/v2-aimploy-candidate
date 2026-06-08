@@ -165,7 +165,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {uploadedFile.validation_score !== undefined && (
+                {uploadedFile.validation_score !== undefined && uploadedFile.validation_score !== null && uploadedFile.validation_status !== 'pending' && (
                   <Badge className={`${getValidationBgColor(uploadedFile.validation_score)} ${getValidationColor(uploadedFile.validation_score)}`}>
                     {uploadedFile.validation_score}/100
                   </Badge>
@@ -189,7 +189,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             </div>
 
             {/* Validation Score Progress Bar */}
-            {uploadedFile.validation_score !== undefined && (
+            {uploadedFile.validation_score !== undefined && uploadedFile.validation_score !== null && uploadedFile.validation_status !== 'pending' && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium">Validation Score</span>
