@@ -297,8 +297,9 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (!skipValidation) {
           const validation = await fileValidationService.validateFile(file, documentType);
           if (!validation.isValid) {
-            dispatch({ type: 'SET_ERROR', payload: `Validation failed: ${validation.errors.join(', ')}` });
-            return;
+            const errorMsg = `Validation failed: ${validation.errors.join(', ')}`;
+            dispatch({ type: 'SET_ERROR', payload: errorMsg });
+            throw new Error(errorMsg);
           }
           
           // Show warnings if any
@@ -331,6 +332,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           console.error('Fallback save failed:', fallbackError);
           dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to upload document' });
         }
+        throw error;
       }
     },
 
