@@ -317,8 +317,8 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
             joining_date_declared: entry.fromDate ? `${entry.fromDate}-01` : '',
             leaving_date_declared: entry.toDate ? `${entry.toDate}-01` : '',
             is_current_employer: !entry.toDate,
-            hr_email: '',
-            manager_name: '',
+            hr_email: entry.hrEmail || '',
+            manager_name: entry.managerName || '',
           });
         }
       }

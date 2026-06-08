@@ -28,36 +28,9 @@ export interface BGVVerificationResponse {
 
 export interface BGVVerificationDetail extends BGVVerificationResponse {
   documents: BGVDocument[];
-  references: BGVReference[];
 }
 
-export interface BGVReferenceCreate {
-  verification_id: number;
-  reference_name: string;
-  reference_email: string;
-  reference_phone?: string;
-  relationship: string;
-  company?: string;
-  position?: string;
-  is_current?: boolean;
-}
 
-export interface BGVReferenceResponse {
-  id: number;
-  verification_id: number;
-  reference_name: string;
-  reference_email: string;
-  reference_phone?: string;
-  relationship: string;
-  company?: string;
-  position?: string;
-  status: 'pending' | 'contacted' | 'responded' | 'verified';
-  is_current?: boolean;
-  response_date?: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export interface BGVDocumentCreate {
   verification_id: number;
@@ -88,7 +61,6 @@ export interface BGVOverallStatus {
   verification_id?: number;
   verification?: BGVVerificationResponse;
   documents: BGVDocumentResponse[];
-  references: BGVReferenceResponse[];
   overall_status: 'not_started' | 'pending' | 'in_progress' | 'completed' | 'failed';
   completion_percentage: number;
   last_updated: string;
@@ -156,34 +128,6 @@ export const bgvApi = {
     return bgvApiRequest<BGVOverallStatus>(`/verification/candidate/${candidateId}`);
   },
 
-  // Reference Management
-  addReference: async (data: BGVReferenceCreate): Promise<BGVReferenceResponse> => {
-    return bgvApiRequest<BGVReferenceResponse>("/verification/references", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  },
-
-  getReferences: async (verificationId: number): Promise<BGVReferenceResponse[]> => {
-    return bgvApiRequest<BGVReferenceResponse[]>(`/verification/references/${verificationId}`);
-  },
-
-  updateReference: async (
-    referenceId: number,
-    data: Partial<BGVReferenceCreate>
-  ): Promise<BGVReferenceResponse> => {
-    return bgvApiRequest<BGVReferenceResponse>(`/verification/references/${referenceId}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  },
-
-  deleteReference: async (referenceId: number): Promise<void> => {
-    return bgvApiRequest<void>(`/verification/references/${referenceId}`, {
-      method: "DELETE",
-    });
-  },
-
   // Document Management
   uploadDocument: async (data: BGVDocumentCreate): Promise<BGVDocumentResponse> => {
     const formData = new FormData();
@@ -209,35 +153,55 @@ export const bgvApi = {
     });
   },
 
-  // Bulk Operations
+  updateDocument: async (
+    documentId: number,
+    data: Partial<BGVDocumentCreate>
+  ): Promise<BGVDocumentResponse> => {
+    const formData = new FormData();
+    if (data.verification_id) formData.append("verification_id", data.verification_id.toString());
+    if (data.document_type) formData.append("document_type", data.document_type);
+    if (data.file) formData.append("file", data.file);
+    if (data.description) formData.append("description", data.description);
+    if (data.metadata) formData.append("metadata_json", JSON.stringify(data.metadata));
+
+    return bgvApiRequest<BGVDocumentResponse>(`/verification/documents/${documentId}`, {
+      method: "PUT",
+      body: formData,
+    });
+  },
+
+  analyzeDocument: async (file: File, documentType: string): Promise<any> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("document_type", documentType);
+
+    return bgvApiRequest<any>("/bgv/documents/analyze-only", {
+      method: "POST",
+      body: formData,
+    });
+  },
+
+  // Bulk Operations (Polyfill)
   bulkUploadDocuments: async (
     verificationId: number,
     documents: { file: File; document_type: string; description?: string }[]
   ): Promise<BGVDocumentResponse[]> => {
-    const formData = new FormData();
-    formData.append("verification_id", verificationId.toString());
-    
-    documents.forEach((doc) => {
-      formData.append(`documents`, doc.file);
-      formData.append(`document_types`, doc.document_type);
-      if (doc.description) formData.append(`descriptions`, doc.description);
-    });
-
-    const response = await bgvApiRequest<{ message: string; documents: BGVDocumentResponse[] }>("/verification/documents/bulk-upload", {
-      method: "POST",
-      body: formData,
-    });
-    return response.documents;
-  },
-
-  bulkAddReferences: async (
-    verificationId: number,
-    references: Omit<BGVReferenceCreate, 'verification_id'>[]
-  ): Promise<BGVReferenceResponse[]> => {
-    return bgvApiRequest<BGVReferenceResponse[]>(`/verification/${verificationId}/references/bulk`, {
-      method: "POST",
-      body: JSON.stringify({ references }),
-    });
+    // Sequentially upload since bulk is not supported in backend
+    const results: BGVDocumentResponse[] = [];
+    for (const doc of documents) {
+      try {
+        const result = await bgvApi.uploadDocument({
+          verification_id: verificationId,
+          document_type: doc.document_type,
+          file: doc.file,
+          description: doc.description
+        });
+        results.push(result);
+      } catch (e) {
+        console.error("Bulk upload partial failure:", e);
+      }
+    }
+    return results;
   },
 
   // BGV AI & Submission Flows

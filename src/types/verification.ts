@@ -49,6 +49,8 @@ export interface EmploymentEntry {
   designation: string;
   fromDate: string;
   toDate: string;
+  managerName?: string;
+  hrEmail?: string;
   offerLetter?: UploadedFile;
   experienceLetter?: UploadedFile;
   payslip?: UploadedFile;
@@ -123,7 +125,7 @@ export const initialState: VerificationState = {
     { id: 'degree', level: 'Degree', institution: '', board: '', year: '', percentage: '' },
     { id: 'pg', level: 'Post Graduation', institution: '', board: '', year: '', percentage: '' },
   ],
-  employment: [{ id: '1', company: '', designation: '', fromDate: '', toDate: '' }],
+  employment: [{ id: '1', company: '', designation: '', fromDate: '', toDate: '', managerName: '', hrEmail: '' }],
   financial: {},
   photo: {},
   backgroundCheck: { consentGiven: false, noCriminalRecord: false, references: [{ id: '1', name: '', email: '', phone: '', relationship: '', company: '' }] },

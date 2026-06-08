@@ -52,7 +52,9 @@ export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange, 
       company: '',
       designation: '',
       fromDate: '',
-      toDate: ''
+      toDate: '',
+      managerName: '',
+      hrEmail: ''
     };
     onChange([...data, newEntry]);
   };
@@ -142,6 +144,27 @@ export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange, 
                     value={entry.toDate}
                     onChange={(e) => handleEntryChange(entry.id, 'toDate', e.target.value)}
                     placeholder="Leave empty if currently working"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor={`managerName-${entry.id}`}>Manager Name (Reference)</Label>
+                  <Input
+                    id={`managerName-${entry.id}`}
+                    value={entry.managerName || ''}
+                    onChange={(e) => handleEntryChange(entry.id, 'managerName', e.target.value)}
+                    placeholder="Enter reporting manager's name"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor={`hrEmail-${entry.id}`}>HR Email (Reference)</Label>
+                  <Input
+                    id={`hrEmail-${entry.id}`}
+                    type="email"
+                    value={entry.hrEmail || ''}
+                    onChange={(e) => handleEntryChange(entry.id, 'hrEmail', e.target.value)}
+                    placeholder="Enter HR or manager's email"
                   />
                 </div>
               </div>
