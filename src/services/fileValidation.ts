@@ -314,16 +314,32 @@ class FileValidationService {
   async validateFile(file: File, documentType: string): Promise<ValidationResult> {
     console.log(`Validating file: ${file.name} for type: ${documentType}`);
     
-    const config = DOCUMENT_TYPE_CONFIGS[documentType];
+    // Map specific document types to our generic configurations
+    let mappedType = documentType;
+    if (['aadhaar', 'pan', 'passport', 'voter_id', 'driving_licence', 'photo'].includes(documentType)) {
+      mappedType = 'identity';
+    } else if (['bank_statement', 'tax_return'].includes(documentType)) {
+      mappedType = 'address_proof'; // Use address_proof config for financial docs as fallback
+    } else if (['offer_letter', 'relieving_letter', 'employment_certificate'].includes(documentType)) {
+      mappedType = 'experience_letter';
+    } else if (documentType === 'other') {
+      mappedType = 'identity'; // Most permissive config
+    }
+    
+    let config = DOCUMENT_TYPE_CONFIGS[mappedType];
+    
+    // If still no config found, create a permissive fallback instead of rejecting
     if (!config) {
-      console.log('Invalid document type:', documentType);
-      return {
-        isValid: false,
-        errors: ['Invalid document type'],
-        warnings: [],
-        fileType: file.type,
-        fileSize: file.size,
-        fileName: file.name
+      console.log('No specific config for:', documentType, 'using generic fallback');
+      config = {
+        id: documentType,
+        label: documentType.replace('_', ' '),
+        allowedTypes: ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'],
+        maxSize: 10 * 1024 * 1024, // 10MB fallback
+        required: false,
+        namePatterns: [],
+        expectedContent: [],
+        aiValidation: false
       };
     }
 
