@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileUploadZone } from '@/components/ui/FileUploadZone';
 import { IdentityData, UploadedFile } from '@/types/verification';
-import { CreditCard, Shield, Camera, FileText, Car } from 'lucide-react';
+import { CreditCard, Shield, Camera, FileText, Car, DownloadCloud, Loader2 } from 'lucide-react';
+import { useDigiLocker } from '@/contexts/DigiLockerContext';
+import { Button } from '@/components/ui/button';
 
 interface IdentityStepProps {
   data: IdentityData;
@@ -78,6 +80,38 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange, onUp
     }
   };
 
+  const { state: digiLockerState, actions: digiLockerActions } = useDigiLocker();
+  const [fetchingDoc, setFetchingDoc] = React.useState<string | null>(null);
+
+  const handleFetchFromDigiLocker = async (docKey: keyof IdentityData, backendDocType: string) => {
+    if (!digiLockerState.request?.id) {
+      alert("Please connect to DigiLocker first from the dashboard.");
+      return;
+    }
+    
+    try {
+      setFetchingDoc(docKey);
+      
+      // If it's Aadhaar, we have a specific endpoint that might be better, 
+      // but let's try the generic document fetch first if it's available in their issued documents
+      
+      if (backendDocType === 'aadhaar') {
+        const aadhaarData = await digiLockerActions.fetchAadhaarData(digiLockerState.request.id);
+        if (aadhaarData) {
+          alert("Successfully fetched Aadhaar data from DigiLocker!");
+          // Here we would ideally generate a PDF or trigger a backend sync. 
+          // For now we rely on the backend to have stored it or the context to hold it.
+        }
+      } else {
+        alert(`DigiLocker integration for ${backendDocType} requires specific document parameters (like Driving License number). This UI will be expanded in the next phase to accept these parameters.`);
+      }
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to fetch from DigiLocker");
+    } finally {
+      setFetchingDoc(null);
+    }
+  };
+
   const hasRequiredDocument = data.aadhaar || data.pan;
 
   return (
@@ -128,6 +162,24 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange, onUp
                   aiChecks={doc.aiChecks}
                   required={doc.required}
                 />
+                
+                {digiLockerState.isConnected && !uploadedFile && (
+                  <div className="mt-4 flex justify-center">
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                      onClick={() => handleFetchFromDigiLocker(doc.key, doc.key === 'voterId' ? 'voter_id' : doc.key === 'drivingLicence' ? 'driving_licence' : doc.key)}
+                      disabled={fetchingDoc === doc.key}
+                    >
+                      {fetchingDoc === doc.key ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <DownloadCloud className="w-4 h-4 mr-2" />
+                      )}
+                      Import {doc.title} from DigiLocker
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
