@@ -64,7 +64,12 @@ export const DOCUMENT_TYPE_CONFIGS: Record<string, DocumentTypeConfig> = {
       /lease/i,
       /electricity/i,
       /water/i,
-      /gas/i
+      /gas/i,
+      /aadhaar/i,
+      /aadhar/i,
+      /passport/i,
+      /voter/i,
+      /driving.*license/i
     ],
     expectedContent: [
       'address proof',
@@ -245,9 +250,9 @@ class FileValidationService {
         config.namePatterns.map(pattern => pattern.source).join(', '));
     }
     
-    // Check for special characters
-    if (!/^[a-zA-Z0-9._\-\s]+$/.test(fileName)) {
-      warnings.push('File name contains special characters. Consider using only letters, numbers, dots, hyphens, and underscores.');
+    // Check for special characters (allow parentheses for duplicate file downloads)
+    if (!/^[a-zA-Z0-9._\-\s()]+$/.test(fileName)) {
+      warnings.push('File name contains special characters. Consider using only letters, numbers, dots, hyphens, parentheses, and underscores.');
     }
     
     // Check file name length
