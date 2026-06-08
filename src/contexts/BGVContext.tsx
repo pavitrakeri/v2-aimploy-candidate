@@ -119,8 +119,6 @@ const BGVContext = createContext<{
     validateDocument: (file: File, documentType: string) => Promise<ValidationResult>;
     uploadDocument: (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean, metadata?: any) => Promise<void>;
     deleteDocument: (documentId: number) => Promise<void>;
-    addReference: (verificationId: number, referenceData: Omit<import('../services/bgv-api').BGVReferenceCreate, 'verification_id'>) => Promise<void>;
-    deleteReference: (referenceId: number) => Promise<void>;
     refreshData: () => Promise<void>;
     syncPendingUploads: () => Promise<{ successful: number; failed: number }>;
     submitVerification: (verificationId: number, candidateName: string) => Promise<any>;
@@ -236,7 +234,12 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         
         dispatch({ type: 'SET_VERIFICATION', payload: verification });
       } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to start verification' });
+        const errorMessage = error instanceof Error ? error.message : 'Failed to start verification';
+        if (errorMessage.includes('409') || errorMessage.includes('already active') || errorMessage.includes('Object')) {
+          await actions.getCandidateStatus(candidateId);
+        } else {
+          dispatch({ type: 'SET_ERROR', payload: errorMessage });
+        }
       }
     },
 
@@ -248,10 +251,9 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         
         const verificationId = statusSummary.verification_id;
         if (verificationId) {
-          const [verificationDetail, documents, references] = await Promise.all([
+          const [verificationDetail, documents] = await Promise.all([
             bgvApi.getVerification(verificationId),
-            bgvApi.getDocuments(verificationId),
-            bgvApi.getReferences(verificationId)
+            bgvApi.getDocuments(verificationId)
           ]);
 
           dispatch({
@@ -260,7 +262,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
               ...statusSummary,
               verification: verificationDetail,
               documents,
-              references,
+              references: [],
               completion_percentage: statusSummary.completion_percentage || (statusSummary as any).progress_percentage || 0
             } as any
           });
@@ -340,32 +342,6 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         dispatch({ type: 'REMOVE_DOCUMENT', payload: documentId });
       } catch (error) {
         dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete document' });
-      }
-    },
-
-    addReference: async (verificationId: number, referenceData: Omit<import('../services/bgv-api').BGVReferenceCreate, 'verification_id'>) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        
-        const reference = await bgvApi.addReference({
-          ...referenceData,
-          verification_id: verificationId,
-        });
-        
-        dispatch({ type: 'ADD_REFERENCE', payload: reference });
-      } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to add reference' });
-      }
-    },
-
-    deleteReference: async (referenceId: number) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        
-        await bgvApi.deleteReference(referenceId);
-        dispatch({ type: 'REMOVE_REFERENCE', payload: referenceId });
-      } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete reference' });
       }
     },
 
