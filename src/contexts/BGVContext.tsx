@@ -170,7 +170,12 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           });
           
           // Save to localStorage
-          localStorage.setItem(PENDING_UPLOADS_KEY, JSON.stringify(pendingUploads));
+          try {
+            localStorage.setItem(PENDING_UPLOADS_KEY, JSON.stringify(pendingUploads));
+          } catch (storageError) {
+            reject(new Error("Local storage quota exceeded. Please ensure you have a stable internet connection to upload directly."));
+            return;
+          }
           
           resolve(document);
         } catch (error) {
@@ -299,6 +304,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           if (!validation.isValid) {
             const errorMsg = `Validation failed: ${validation.errors.join(', ')}`;
             dispatch({ type: 'SET_ERROR', payload: errorMsg });
+            // Throwing here will be caught by the catch block below
             throw new Error(errorMsg);
           }
           
@@ -321,6 +327,11 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         
         dispatch({ type: 'ADD_DOCUMENT', payload: document });
       } catch (error) {
+        // Don't fallback if it was a validation error
+        if (error instanceof Error && error.message.includes('Validation failed')) {
+          throw error;
+        }
+
         // Fallback: Save file locally if API fails
         try {
           console.log('API failed, saving file locally...');

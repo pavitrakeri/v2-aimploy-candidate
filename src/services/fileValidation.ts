@@ -54,7 +54,7 @@ export const DOCUMENT_TYPE_CONFIGS: Record<string, DocumentTypeConfig> = {
     id: 'address_proof',
     label: 'Address Proof',
     allowedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
-    maxSize: 3 * 1024 * 1024, // 3MB
+    maxSize: 5 * 1024 * 1024, // 5MB
     required: false,
     namePatterns: [
       /address/i,
@@ -103,7 +103,7 @@ export const DOCUMENT_TYPE_CONFIGS: Record<string, DocumentTypeConfig> = {
     id: 'experience_letter',
     label: 'Experience Letter',
     allowedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
-    maxSize: 3 * 1024 * 1024, // 3MB
+    maxSize: 5 * 1024 * 1024, // 5MB
     required: false,
     namePatterns: [
       /experience/i,
@@ -127,7 +127,7 @@ export const DOCUMENT_TYPE_CONFIGS: Record<string, DocumentTypeConfig> = {
     id: 'salary_slip',
     label: 'Salary Slip',
     allowedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
-    maxSize: 2 * 1024 * 1024, // 2MB
+    maxSize: 5 * 1024 * 1024, // 5MB
     required: false,
     namePatterns: [
       /salary/i,
