@@ -340,7 +340,7 @@ class DigiLockerAPI {
   }
 
   // Helper method to open DigiLocker in popup
-  openDigiLockerPopup(digiLockerUrl: string): Promise<DigiLockerCallbackResponse> {
+  openDigiLockerPopup(digiLockerUrl: string, codeVerifier?: string): Promise<DigiLockerCallbackResponse> {
     return new Promise((resolve, reject) => {
       const popup = window.open(
         digiLockerUrl,
@@ -354,16 +354,32 @@ class DigiLockerAPI {
       }
 
       // Listen for messages from the popup
-      const messageHandler = (event: MessageEvent) => {
+      const messageHandler = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) {
           return;
         }
 
         if (event.data.type === 'DIGILOCKER_CALLBACK') {
+          clearInterval(checkClosed);
           popup.close();
           window.removeEventListener('message', messageHandler);
-          
-          if (event.data.success) {
+
+          if (event.data.success && event.data.errCode) {
+            // event.data.errCode = auth code from DigiLocker
+            // event.data.request_id = state from DigiLocker
+            try {
+              // Complete PKCE token exchange on the backend
+              const redirectUri = `${window.location.origin}/bgv/digilocker/callback`;
+              const tokenResponse = await this.completeTokenExchange(
+                event.data.errCode,
+                redirectUri,
+                codeVerifier
+              );
+              resolve({ ...event.data, ...tokenResponse });
+            } catch (err) {
+              resolve(event.data); // resolve even if token exchange fails — callback succeeded
+            }
+          } else if (event.data.success) {
             resolve(event.data);
           } else {
             reject(new Error(event.data.error || 'DigiLocker authentication failed'));
@@ -392,6 +408,20 @@ class DigiLockerAPI {
         reject(new Error('DigiLocker authentication timed out'));
       }, 10 * 60 * 1000);
     });
+  }
+
+  // Complete token exchange after OAuth callback (PKCE)
+  async completeTokenExchange(code: string, redirectUri: string, codeVerifier?: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/digilocker/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getToken()}`
+      },
+      body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier })
+    });
+    if (!response.ok) return {};
+    return response.json();
   }
 }
 
