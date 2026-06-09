@@ -6,7 +6,7 @@ export interface BGVVerificationCreate {
   consent_given: boolean;
   no_criminal_record: boolean;
   verification_types: string[];
-  initiated_by: number;
+  initiated_by?: number;
   notes?: string;
 }
 
@@ -25,9 +25,29 @@ export interface BGVVerificationResponse {
   created_at: string;
   updated_at: string;
 }
+export interface BGVReferenceResponse {
+  id: number;
+  verification_id: number;
+  name: string;
+  email: string;
+  phone: string;
+  relationship: string;
+  company: string;
+  designation?: string;
+  years_known?: number;
+  status: 'pending' | 'contacted' | 'responded' | 'verified' | 'unable_to_contact' | 'declined';
+  notes?: string;
+  response_notes?: string;
+  verification_notes?: string;
+  contacted_at?: string;
+  responded_at?: string;
+  verified_at?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface BGVVerificationDetail extends BGVVerificationResponse {
-  documents: BGVDocument[];
+  documents: BGVDocumentResponse[];
 }
 
 
@@ -47,11 +67,12 @@ export interface BGVDocumentResponse {
   file_name: string;
   file_url: string;
   file_size: number;
+  status: string;
   validation_score?: number;
-  validation_status?: 'pending' | 'processing' | 'approved' | 'rejected';
+  validation_status?: string;
   validation_details?: any;
   description?: string;
-  uploaded_at: string;
+  uploaded_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +82,7 @@ export interface BGVOverallStatus {
   verification_id?: number;
   verification?: BGVVerificationResponse;
   documents: BGVDocumentResponse[];
+  references: BGVReferenceResponse[];
   overall_status: 'not_started' | 'pending' | 'in_progress' | 'completed' | 'failed';
   completion_percentage: number;
   last_updated: string;
@@ -72,7 +94,7 @@ async function bgvApiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = localStorage.getItem("access_token");
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.aimploy.org/api/v1";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
   
   const headers: HeadersInit = {
     ...options.headers,
@@ -94,7 +116,17 @@ async function bgvApiRequest<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: "An error occurred" }));
-    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    let errorMessage = `HTTP error! status: ${response.status}`;
+    if (error && error.detail) {
+      if (typeof error.detail === 'string') {
+        errorMessage = error.detail;
+      } else if (error.detail.message) {
+        errorMessage = error.detail.message;
+      } else {
+        errorMessage = JSON.stringify(error.detail);
+      }
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -126,6 +158,19 @@ export const bgvApi = {
 
   getCandidateVerificationStatus: async (candidateId: number): Promise<BGVOverallStatus> => {
     return bgvApiRequest<BGVOverallStatus>(`/verification/candidate/${candidateId}`);
+  },
+
+  addReference: async (verificationId: number, data: any): Promise<BGVReferenceResponse> => {
+    return bgvApiRequest<BGVReferenceResponse>(`/verification/${verificationId}/references`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteReference: async (referenceId: number): Promise<void> => {
+    return bgvApiRequest<void>(`/verification/references/${referenceId}`, {
+      method: "DELETE",
+    });
   },
 
   // Document Management
@@ -184,7 +229,7 @@ export const bgvApi = {
   // Bulk Operations (Polyfill)
   bulkUploadDocuments: async (
     verificationId: number,
-    documents: { file: File; document_type: string; description?: string }[]
+    documents: { file: File; document_type: string; description?: string; metadata?: any }[]
   ): Promise<BGVDocumentResponse[]> => {
     // Sequentially upload since bulk is not supported in backend
     const results: BGVDocumentResponse[] = [];
@@ -194,7 +239,8 @@ export const bgvApi = {
           verification_id: verificationId,
           document_type: doc.document_type,
           file: doc.file,
-          description: doc.description
+          description: doc.description,
+          metadata: doc.metadata
         });
         results.push(result);
       } catch (e) {

@@ -10,6 +10,7 @@ import { ShieldCheck, Users, Plus, Trash2, Mail, Phone, Building } from 'lucide-
 interface BackgroundCheckStepProps {
   data: BackgroundCheckData;
   onChange: (data: BackgroundCheckData) => void;
+  onRemoveReference?: (id: string) => Promise<void>;
 }
 
 export const BackgroundCheckStep: React.FC<BackgroundCheckStepProps> = ({ data, onChange }) => {

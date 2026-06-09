@@ -8,6 +8,8 @@ export interface UploadedFile {
   validation_details?: Record<string, any>;
   analysis_method?: string;
   validation_status?: 'pending' | 'verified' | 'rejected' | 'needs_review';
+  rawFile?: File;
+  metadata?: any;
 }
 
 export interface IdentityData {
