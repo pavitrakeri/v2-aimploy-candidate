@@ -196,12 +196,12 @@ export const DigiLockerProvider: React.FC<{ children: ReactNode }> = ({ children
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
         
-        // Create request
+        // Create request — response includes PKCE code_verifier
         const request = await digiLockerApi.createRequest(verificationId, candidateId);
         dispatch({ type: 'SET_REQUEST', payload: request });
         
-        // Open DigiLocker in popup
-        const callback = await digiLockerApi.openDigiLockerPopup(request.url);
+        // Open DigiLocker in popup, passing code_verifier for token exchange
+        const callback = await digiLockerApi.openDigiLockerPopup(request.url, request.code_verifier);
         
         // Update state with callback data
         if (callback.user_details) {

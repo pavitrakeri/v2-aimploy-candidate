@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import GoogleCallback from "./pages/auth/GoogleCallback";
+import DigiLockerCallback from "./pages/auth/DigiLockerCallback";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import BrowseJobs from "./pages/dashboard/BrowseJobs";
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth/google/callback" element={<GoogleCallback />} />
+                <Route path="/bgv/digilocker/callback" element={<DigiLockerCallback />} />
                 <Route path="/programs" element={<Programs />} />
                 <Route path="/programs/:programId" element={<ProgramDetails />} />
                 <Route path="/programs/apply/:programId" element={<ProgramApply />} />
