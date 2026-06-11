@@ -7,7 +7,7 @@ const BGVVerificationWrapper: React.FC = () => {
   
   // Get candidate ID and name from user context
   const candidateId = user?.id || 0;
-  const candidateName = user?.name || user?.email || 'Candidate';
+  const candidateName = user?.full_name || user?.email || 'Candidate';
   
   return <Verification candidateId={candidateId} candidateName={candidateName} />;
 };
