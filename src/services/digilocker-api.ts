@@ -121,7 +121,7 @@ export interface DigiLockerDocumentLink {
 }
 
 // API Service
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.aimploy.org/api/v1';
 
 class DigiLockerAPI {
   private baseURL: string;
@@ -192,8 +192,8 @@ class DigiLockerAPI {
   }
 
   // Get available documents
-  async getAvailableDocuments(requestId: string): Promise<DigiLockerDocumentsList> {
-    return this.request<DigiLockerDocumentsList>(`/digilocker/documents?request_id=${requestId}`);
+  async getAvailableDocuments(): Promise<DigiLockerDocumentsList> {
+    return this.request<DigiLockerDocumentsList>('/digilocker/documents');
   }
 
   // Get documents for BGV type
@@ -212,11 +212,17 @@ class DigiLockerAPI {
   // Fetch document
   async fetchDocument(
     requestId: string,
-    uri: string
+    docType: string,
+    orgId: string,
+    format: string,
+    parameters: DigiLockerDocumentParameter[]
   ): Promise<DigiLockerDocumentResponse> {
     const formData = new FormData();
     formData.append('request_id', requestId);
-    formData.append('uri', uri);
+    formData.append('doc_type', docType);
+    formData.append('org_id', orgId);
+    formData.append('format', format);
+    formData.append('parameters', JSON.stringify(parameters));
 
     const token = localStorage.getItem('access_token');
     const url = `${this.baseURL}/digilocker/fetch-document`;
@@ -245,12 +251,17 @@ class DigiLockerAPI {
   // Download document
   async downloadDocument(
     requestId: string,
-    uri: string,
+    fileUrl: string,
     verificationId: number,
     documentType: string
-  ): Promise<{ message: string; document: DigiLockerDocumentLink; file_size: number }> {
+  ): Promise<{
+    message: string;
+    document: DigiLockerDocumentLink;
+    file_size: number;
+  }> {
     const formData = new FormData();
-    formData.append('uri', uri);
+    formData.append('request_id', requestId);
+    formData.append('file_url', fileUrl);
     formData.append('verification_id', verificationId.toString());
     formData.append('document_type', documentType);
 
@@ -360,10 +371,9 @@ class DigiLockerAPI {
               // Complete PKCE token exchange on the backend
               const redirectUri = `${window.location.origin}/bgv/digilocker/callback`;
               const tokenResponse = await this.completeTokenExchange(
-                event.data.errCode || event.data.code,
+                event.data.errCode,
                 redirectUri,
-                codeVerifier,
-                event.data.state
+                codeVerifier
               );
               resolve({ ...event.data, ...tokenResponse });
             } catch (err) {
@@ -401,14 +411,14 @@ class DigiLockerAPI {
   }
 
   // Complete token exchange after OAuth callback (PKCE)
-  async completeTokenExchange(code: string, redirectUri: string, codeVerifier?: string, state?: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/digilocker/token`, {
+  async completeTokenExchange(code: string, redirectUri: string, codeVerifier?: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/digilocker/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.getToken()}`
       },
-      body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier, state })
+      body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier })
     });
     if (!response.ok) return {};
     return response.json();
