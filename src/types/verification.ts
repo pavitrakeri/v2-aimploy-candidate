@@ -108,7 +108,6 @@ export const STEPS = [
   { label: 'Employment', icon: 'Briefcase' },
   { label: 'Financial', icon: 'Landmark' },
   { label: 'Photo', icon: 'Camera' },
-  { label: 'Background Check', icon: 'ShieldCheck' },
   { label: 'Additional Docs', icon: 'FolderPlus' },
   { label: 'Review & Submit', icon: 'ClipboardCheck' },
 ] as const;

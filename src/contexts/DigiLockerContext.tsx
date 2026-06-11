@@ -91,10 +91,10 @@ const DigiLockerContext = createContext<{
   actions: {
     createRequest: (verificationId: number, candidateId: number) => Promise<DigiLockerRequestResponse>;
     getRequestStatus: (requestId: string) => Promise<DigiLockerRequestResponse>;
-    getAvailableDocuments: () => Promise<void>;
-    fetchDocument: (requestId: string, docType: string, orgId: string, format: string, parameters: Array<{name: string; value: string}>) => Promise<DigiLockerDocumentResponse>;
+    getAvailableDocuments: (requestId: string) => Promise<void>;
+    fetchDocument: (requestId: string, uri: string) => Promise<DigiLockerDocumentResponse>;
     fetchAadhaarData: (requestId: string) => Promise<DigiLockerAadhaarResponse>;
-    downloadDocument: (requestId: string, fileUrl: string, verificationId: number, documentType: string) => Promise<DigiLockerDocumentLink>;
+    downloadDocument: (requestId: string, uri: string, verificationId: number, documentType: string) => Promise<DigiLockerDocumentLink>;
     connectWithDigiLocker: (verificationId: number, candidateId: number) => Promise<DigiLockerRequestResponse>;
     disconnect: () => void;
     clearError: () => void;
@@ -136,10 +136,10 @@ export const DigiLockerProvider: React.FC<{ children: ReactNode }> = ({ children
       }
     },
 
-    getAvailableDocuments: async () => {
+    getAvailableDocuments: async (requestId: string) => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        const documents = await digiLockerApi.getAvailableDocuments();
+        const documents = await digiLockerApi.getAvailableDocuments(requestId);
         dispatch({ type: 'SET_AVAILABLE_DOCUMENTS', payload: documents });
       } catch (error) {
         dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get available documents' });
@@ -148,14 +148,11 @@ export const DigiLockerProvider: React.FC<{ children: ReactNode }> = ({ children
 
     fetchDocument: async (
       requestId: string,
-      docType: string,
-      orgId: string,
-      format: string,
-      parameters: Array<{name: string; value: string}>
+      uri: string
     ) => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        const document = await digiLockerApi.fetchDocument(requestId, docType, orgId, format, parameters);
+        const document = await digiLockerApi.fetchDocument(requestId, uri);
         return document;
       } catch (error) {
         dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to fetch document' });
@@ -177,13 +174,13 @@ export const DigiLockerProvider: React.FC<{ children: ReactNode }> = ({ children
 
     downloadDocument: async (
       requestId: string,
-      fileUrl: string,
+      uri: string,
       verificationId: number,
       documentType: string
     ) => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        const result = await digiLockerApi.downloadDocument(requestId, fileUrl, verificationId, documentType);
+        const result = await digiLockerApi.downloadDocument(requestId, uri, verificationId, documentType);
         dispatch({ type: 'ADD_FETCHED_DOCUMENT', payload: result.document });
         return result.document;
       } catch (error) {

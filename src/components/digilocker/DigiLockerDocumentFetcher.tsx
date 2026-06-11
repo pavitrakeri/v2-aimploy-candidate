@@ -3,23 +3,14 @@ import { useDigiLocker } from '../../contexts/DigiLockerContext';
 import { useBGV } from '../../contexts/BGVContext';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Alert } from '../ui/alert';
-import { Badge } from '../ui/badge';
-import { Loader2, Download, FileText, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Loader2, Download, FileText, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface DigiLockerDocumentFetcherProps {
   verificationId: number;
   candidateId: number;
   documentType: string;
   onDocumentFetched?: (document: any) => void;
-}
-
-interface DocumentParameter {
-  name: string;
-  value: string;
 }
 
 export const DigiLockerDocumentFetcher: React.FC<DigiLockerDocumentFetcherProps> = ({
@@ -31,153 +22,39 @@ export const DigiLockerDocumentFetcher: React.FC<DigiLockerDocumentFetcherProps>
   const { state: digiLockerState, actions: digiLockerActions } = useDigiLocker();
   const { actions: bgvActions } = useBGV();
   
-  const [selectedDoc, setSelectedDoc] = useState<{
-    doc_type: string;
-    org_id: string;
-    description: string;
-  } | null>(null);
-  
-  const [parameters, setParameters] = useState<DocumentParameter[]>([]);
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetchingId, setIsFetchingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // BGV to DigiLocker document mapping
-  const bgvToDigiLockerMapping: Record<string, Array<{doc_type: string; org_id: string; description: string}>> = {
-    identity: [
-      { doc_type: "ADHAR", org_id: "UIDAI", description: "Aadhaar Card" },
-      { doc_type: "PANCR", org_id: "INCOMETAX", description: "PAN Card" },
-      { doc_type: "DRVLC", org_id: "RTO", description: "Driving License" },
-      { doc_type: "PASSP", org_id: "MEA", description: "Passport" },
-      { doc_type: "VOTERID", org_id: "ECI", description: "Voter ID" },
-    ],
-    address: [
-      { doc_type: "ADHAR", org_id: "UIDAI", description: "Aadhaar Card (Address)" },
-      { doc_type: "DRVLC", org_id: "RTO", description: "Driving License (Address)" },
-      { doc_type: "PASSP", org_id: "MEA", description: "Passport (Address)" },
-    ],
-    education: [
-      { doc_type: "MARKSHEET", org_id: "CBSE", description: "CBSE Mark Sheet" },
-      { doc_type: "MARKSHEET", org_id: "STATEBOARD", description: "State Board Mark Sheet" },
-      { doc_type: "DEGCR", org_id: "UNIVERSITY", description: "Degree Certificate" },
-    ],
-    employment: [
-      { doc_type: "OFFER", org_id: "COMPANY", description: "Offer Letter" },
-      { doc_type: "EXP", org_id: "COMPANY", description: "Experience Certificate" },
-    ],
-    financial: [
-      { doc_type: "BANKSTMT", org_id: "BANK", description: "Bank Statement" },
-      { doc_type: "ITR", org_id: "INCOMETAX", description: "Income Tax Return" },
-    ],
-  };
-
-  // Parameter requirements for different document types
-  const getParameterRequirements = (docType: string): Array<{name: string; label: string; placeholder: string; required?: boolean}> => {
-    const requirements: Record<string, Array<{name: string; label: string; placeholder: string; required?: boolean}>> = {
-      ADHAR: [], // Aadhaar doesn't require parameters
-      PANCR: [], // PAN doesn't require parameters
-      DRVLC: [
-        { name: "DL_NUMBER", label: "Driving License Number", placeholder: "DL-XXXXXXXXXXXX", required: true }
-      ],
-      MARKSHEET: [
-        { name: "ROLL_NUMBER", label: "Roll Number", placeholder: "Enter roll number", required: true },
-        { name: "YEAR", label: "Year", placeholder: "2023", required: true }
-      ],
-      DEGCR: [
-        { name: "CERTIFICATE_NUMBER", label: "Certificate Number", placeholder: "Enter certificate number", required: true },
-        { name: "YEAR", label: "Year of Passing", placeholder: "2023", required: true }
-      ],
-      BANKSTMT: [
-        { name: "ACCOUNT_NUMBER", label: "Account Number", placeholder: "Enter account number", required: true },
-        { name: "PERIOD", label: "Period", placeholder: "Jan-Mar 2023", required: true }
-      ],
-      ITR: [
-        { name: "PAN", label: "PAN Number", placeholder: "XXXXXXXXXX", required: true },
-        { name: "ASSESSMENT_YEAR", label: "Assessment Year", placeholder: "2023-24", required: true }
-      ],
-    };
-    
-    return requirements[docType] || [];
-  };
-
-  const availableDocuments = bgvToDigiLockerMapping[documentType] || [];
-
+  // Fetch available documents when connected
   useEffect(() => {
-    if (selectedDoc) {
-      const requirements = getParameterRequirements(selectedDoc.doc_type);
-      setParameters(
-        requirements.map(req => ({
-          name: req.name,
-          value: ''
-        }))
-      );
+    if (digiLockerState.isConnected && digiLockerState.request?.id && !digiLockerState.availableDocuments) {
+      digiLockerActions.getAvailableDocuments(digiLockerState.request.id).catch(err => {
+        console.error("Failed to fetch available documents", err);
+      });
     }
-  }, [selectedDoc]);
+  }, [digiLockerState.isConnected, digiLockerState.request?.id, digiLockerState.availableDocuments]);
 
-  const handleParameterChange = (paramName: string, value: string) => {
-    setParameters(prev => 
-      prev.map(param => 
-        param.name === paramName ? { ...param, value } : param
-      )
-    );
-  };
-
-  const validateParameters = (): boolean => {
-    if (!selectedDoc) return false;
-    
-    const requirements = getParameterRequirements(selectedDoc.doc_type);
-    for (const req of requirements) {
-      if (req.required) {
-        const param = parameters.find(p => p.name === req.name);
-        if (!param || !param.value.trim()) {
-          setError(`${req.label} is required`);
-          return false;
-        }
-      }
-    }
-    
-    setError(null);
-    return true;
-  };
-
-  const handleFetchDocument = async () => {
-    if (!digiLockerState.request || !selectedDoc) {
-      setError('Please connect to DigiLocker and select a document type');
-      return;
-    }
-
-    if (!validateParameters()) {
+  const handleFetchDocument = async (uri: string, name: string) => {
+    if (!digiLockerState.request) {
+      setError('Please connect to DigiLocker first');
       return;
     }
 
     try {
-      setIsFetching(true);
+      setIsFetchingId(uri);
       setError(null);
-
-      // Fetch document from DigiLocker
-      const documentResponse = await digiLockerActions.fetchDocument(
-        digiLockerState.request.id,
-        selectedDoc.doc_type,
-        selectedDoc.org_id,
-        'pdf', // Default to PDF format
-        parameters
-      );
 
       // Download and store the document
       const storedDocument = await digiLockerActions.downloadDocument(
         digiLockerState.request.id,
-        documentResponse.file_url,
+        uri,
         verificationId,
         documentType
       );
 
-      // Add to BGV verification
-      await bgvActions.uploadDocument(
-        verificationId,
-        new File([new Blob()], storedDocument.file_name, { type: 'application/pdf' }),
-        documentType,
-        `Fetched from DigiLocker: ${selectedDoc.description}`,
-        true // Skip validation since DigiLocker docs are pre-verified
-      );
+      // We do not need to call uploadDocument with a dummy file anymore since the backend handles it.
+      // We just need to refresh BGV status.
+      await bgvActions.getCandidateStatus(candidateId);
 
       onDocumentFetched?.(storedDocument);
       
@@ -185,174 +62,94 @@ export const DigiLockerDocumentFetcher: React.FC<DigiLockerDocumentFetcherProps>
       console.error('Failed to fetch document:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch document');
     } finally {
-      setIsFetching(false);
+      setIsFetchingId(null);
     }
   };
 
-  const handleFetchAadhaar = async () => {
-    if (!digiLockerState.request) {
-      setError('Please connect to DigiLocker first');
-      return;
-    }
-
-    try {
-      setIsFetching(true);
-      setError(null);
-
-      const aadhaarData = await digiLockerActions.fetchAadhaarData(digiLockerState.request.id);
-      
-      // You can process Aadhaar data here (e.g., extract address, auto-fill forms)
-      console.log('Aadhaar data fetched:', aadhaarData);
-      
-    } catch (error) {
-      console.error('Failed to fetch Aadhaar data:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch Aadhaar data');
-    } finally {
-      setIsFetching(false);
+  const refreshDocuments = () => {
+    if (digiLockerState.request?.id) {
+      digiLockerActions.getAvailableDocuments(digiLockerState.request.id);
     }
   };
 
-  const parameterRequirements = selectedDoc ? getParameterRequirements(selectedDoc.doc_type) : [];
+  if (!digiLockerState.isConnected) {
+    return null;
+  }
+
+  const documents = digiLockerState.availableDocuments?.documents || [];
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Download className="w-5 h-5" />
-          <span>Fetch from DigiLocker</span>
+    <Card className="mt-6 border-indigo-100 dark:border-indigo-900/30 w-full shadow-sm">
+      <CardHeader className="pb-3 border-b border-indigo-50 dark:border-indigo-900/20 bg-indigo-50/50 dark:bg-indigo-900/10 flex flex-row items-center justify-between">
+        <CardTitle className="text-lg flex items-center text-indigo-900 dark:text-indigo-300">
+          <FileText className="h-5 w-5 mr-2 text-indigo-500" />
+          Fetch Document from DigiLocker
         </CardTitle>
+        <Button variant="ghost" size="sm" onClick={refreshDocuments} className="text-indigo-600 hover:text-indigo-800" disabled={digiLockerState.loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${digiLockerState.loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {!digiLockerState.isConnected ? (
-          <Alert>
+      <CardContent className="pt-6">
+        {error && (
+          <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <div>
-              <div className="font-medium">Not Connected to DigiLocker</div>
-              <div className="text-sm text-gray-600">
-                Please connect to your DigiLocker account first to fetch documents.
-              </div>
-            </div>
+            <div className="ml-2 font-medium">{error}</div>
           </Alert>
-        ) : (
-          <div className="space-y-4">
-            {/* Document Type Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="document-type">Select Document Type</Label>
-              <Select onValueChange={(value) => {
-                const doc = availableDocuments.find(d => d.doc_type === value);
-                setSelectedDoc(doc || null);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a document type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableDocuments.map((doc) => (
-                    <SelectItem key={doc.doc_type} value={doc.doc_type}>
-                      {doc.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Parameter Input */}
-            {selectedDoc && parameterRequirements.length > 0 && (
-              <div className="space-y-3">
-                <Label>Required Information</Label>
-                {parameterRequirements.map((req) => (
-                  <div key={req.name} className="space-y-1">
-                    <Label htmlFor={req.name}>
-                      {req.label}
-                      {req.required && <span className="text-red-500 ml-1">*</span>}
-                    </Label>
-                    <Input
-                      id={req.name}
-                      placeholder={req.placeholder}
-                      value={parameters.find(p => p.name === req.name)?.value || ''}
-                      onChange={(e) => handleParameterChange(req.name, e.target.value)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Aadhaar Quick Fetch */}
-            {documentType === 'identity' && (
-              <div className="border rounded-lg p-3 bg-blue-50">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Info className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">Quick Aadhaar Fetch</span>
-                </div>
-                <p className="text-xs text-blue-700 mb-3">
-                  Fetch your Aadhaar data directly without requiring any parameters.
-                  This can help auto-fill your profile information.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleFetchAadhaar}
-                  disabled={isFetching}
-                  className="w-full"
-                >
-                  {isFetching ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Fetching Aadhaar...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Fetch Aadhaar Data
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {/* Fetch Button */}
-            <Button
-              onClick={handleFetchDocument}
-              disabled={!selectedDoc || isFetching || !digiLockerState.isConnected}
-              className="w-full"
-            >
-              {isFetching ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Fetching Document...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Fetch Document
-                </>
-              )}
-            </Button>
-
-            {/* Error Display */}
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <div>
-                  <div className="font-medium">Error</div>
-                  <div className="text-sm">{error}</div>
-                </div>
-              </Alert>
-            )}
-
-            {/* Success Message */}
-            {digiLockerState.fetchedDocuments.length > 0 && (
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <div className="text-green-800">
-                  <div className="font-medium">Documents Fetched Successfully</div>
-                  <div className="text-sm text-green-700">
-                    {digiLockerState.fetchedDocuments.length} document(s) fetched from DigiLocker
-                  </div>
-                </div>
-              </Alert>
-            )}
-          </div>
         )}
+
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Your Issued Documents</h3>
+          
+          {digiLockerState.loading && !digiLockerState.availableDocuments ? (
+            <div className="flex flex-col items-center justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-4" />
+              <p className="text-sm text-gray-500">Loading documents from your DigiLocker...</p>
+            </div>
+          ) : documents.length === 0 ? (
+            <div className="text-center py-8 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+              <FileText className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-600 mb-1">No issued documents found</p>
+              <p className="text-xs text-gray-500">
+                You haven't issued any documents to your DigiLocker account yet. 
+                Please add them to your DigiLocker first.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {documents.map((doc, idx) => (
+                <div key={idx} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-750 transition-colors shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mt-1">
+                      <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white leading-tight mb-1">{doc.name}</p>
+                      <div className="flex flex-col text-xs text-gray-500 gap-1">
+                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full w-fit">
+                          {doc.description || doc.doctype || doc.type}
+                        </span>
+                        {doc.date && <span className="text-gray-400 mt-0.5">Issued: {doc.date}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => handleFetchDocument(doc.uri, doc.name)}
+                    disabled={isFetchingId === doc.uri}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white min-w-[110px] ml-4 transition-all"
+                  >
+                    {isFetchingId === doc.uri ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Fetching...</>
+                    ) : (
+                      <><Download className="h-4 w-4 mr-2" /> Download</>
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

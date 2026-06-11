@@ -9,7 +9,6 @@ import { EducationStep } from '@/components/verification/steps/EducationStep';
 import { EmploymentStep } from '@/components/verification/steps/EmploymentStep';
 import { FinancialStep } from '@/components/verification/steps/FinancialStep';
 import { PhotoStep } from '@/components/verification/steps/PhotoStep';
-import { BackgroundCheckStep } from '@/components/verification/steps/BackgroundCheckStep';
 import { AdditionalDocsStep } from '@/components/verification/steps/AdditionalDocsStep';
 import { ReviewStep } from '@/components/verification/steps/ReviewStep';
 import { STEPS, initialState, type VerificationState, type UploadedFile, type EducationEntry, type EmploymentEntry, type AdditionalDoc } from '@/types/verification';
@@ -703,55 +702,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
     }
   };
 
-  const handleRemoveReference = async (id: string) => {
-    if (!isNaN(Number(id))) {
-      try {
-        await actions.deleteReference(Number(id));
-        await actions.getCandidateStatus(candidateId);
-      } catch (err) {
-        console.error("Remove reference error:", err);
-      }
-    } else {
-      // Clean local unsynced item
-      const updated = localState.backgroundCheck.references.filter(r => r.id !== id);
-      updateState({
-        backgroundCheck: {
-          ...localState.backgroundCheck,
-          references: updated.length > 0 ? updated : [{ id: Date.now().toString(), name: '', email: '', phone: '', relationship: '', company: '' }]
-        }
-      });
-    }
-  };
 
-  const syncReferencesOnNavigate = async () => {
-    if (!bgvState.verification) return;
-    
-    const localRefs = localState.backgroundCheck.references.filter(
-      r => r.name && r.email && r.phone && isNaN(Number(r.id))
-    );
-
-    if (localRefs.length > 0) {
-      for (const ref of localRefs) {
-        try {
-          await actions.addReference(bgvState.verification.id, {
-            name: ref.name,
-            email: ref.email,
-            phone: ref.phone,
-            relationship: ref.relationship,
-            company: ref.company,
-          });
-        } catch (err) {
-          console.error("Failed to sync reference:", err);
-        }
-      }
-      await actions.getCandidateStatus(candidateId);
-    }
-  };
 
   const goTo = async (s: number) => {
-    if (step === 6) {
-      await syncReferencesOnNavigate();
-    }
     updateState({ currentStep: s });
   };
 
@@ -790,9 +743,8 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
     if (localState.employment.some((e) => e.company && (e.offerLetter || e.experienceLetter))) set.add(3);
     if (localState.financial.bankStatement || localState.financial.salarySlip) set.add(4);
     if (localState.photo.photo) set.add(5);
-    if (localState.backgroundCheck.references.some((r) => r.name && r.email)) set.add(6);
-    if (localState.additionalDocs.some((doc) => doc.file)) set.add(7);
-    if (set.size >= 8) set.add(8);
+    if (localState.additionalDocs.some((doc) => doc.file)) set.add(6);
+    if (set.size >= 7) set.add(7);
     return set;
   }, [localState]);
 
@@ -816,9 +768,8 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
       case 3: return <EmploymentStep data={localState.employment} onChange={(d) => update('employment', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 4: return <FinancialStep data={localState.financial} onChange={(d) => update('financial', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 5: return <PhotoStep data={localState.photo} onChange={(d) => update('photo', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 6: return <BackgroundCheckStep data={localState.backgroundCheck} onChange={(d) => update('backgroundCheck', d)} onRemoveReference={handleRemoveReference} />;
-      case 7: return <AdditionalDocsStep data={localState.additionalDocs} onChange={(d) => update('additionalDocs', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 8: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
+      case 6: return <AdditionalDocsStep data={localState.additionalDocs} onChange={(d) => update('additionalDocs', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
+      case 7: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
       default: return null;
     }
   };
