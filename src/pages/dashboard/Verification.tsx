@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi, WifiOff, Info, FileText, Download, Landmark, Briefcase, Camera, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi, WifiOff, Info, FileText, Download, Landmark, Briefcase, Camera, Trash2, Loader2 } from 'lucide-react';
 import { VerificationHeader } from '@/components/verification/VerificationHeader';
 import { StepSidebar } from '@/components/verification/StepSidebar';
 import { IdentityStep } from '@/components/verification/steps/IdentityStep';
@@ -19,8 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useDigiLocker, DigiLockerProvider } from '../../contexts/DigiLockerContext';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { DigiLockerConnect } from '../../components/digilocker/DigiLockerConnect';
-import { DigiLockerDocumentFetcher } from '../../components/digilocker/DigiLockerDocumentFetcher';
+import { bgvApi } from '../../services/bgv-api';
 
 interface VerificationProps {
   candidateId: number;
@@ -29,7 +28,7 @@ interface VerificationProps {
 
 const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidateName }) => {
   const { state: bgvState, actions } = useBGV();
-  const { state: digiLockerState } = useDigiLocker();
+  const { state: digiLockerState, actions: digiLockerActions } = useDigiLocker();
   const { setCollapsed } = useSidebar();
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -292,11 +291,27 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     setLocalState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const handleStartVerification = async (types: string[] = ['identity', 'address', 'education', 'employment', 'financial', 'criminal', 'reference']) => {
+  const handleStartVerification = async (
+    types: string[] = ['identity', 'address', 'education', 'employment', 'financial', 'criminal', 'reference'],
+    connectDigiLocker = false
+  ) => {
     try {
       await actions.startVerification(candidateId, types, "Initiated via candidate portal wizard");
       await actions.getCandidateStatus(candidateId);
       setCollapsed(true);
+
+      if (connectDigiLocker) {
+        setTimeout(async () => {
+          try {
+            const statusSummary = await bgvApi.getCandidateVerificationStatus(candidateId);
+            if (statusSummary && statusSummary.verification_id) {
+              await digiLockerActions.connectWithDigiLocker(statusSummary.verification_id, candidateId);
+            }
+          } catch (err) {
+            console.error("Auto-connecting DigiLocker failed:", err);
+          }
+        }, 800);
+      }
     } catch (error) {
       console.error('Failed to start verification:', error);
     }
@@ -542,8 +557,26 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
 
   const renderStep = () => {
     switch (step) {
-      case 0: return <IdentityStep data={localState.identity} onChange={(d) => update('identity', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 1: return <AddressStep data={localState.address} onChange={(d) => update('address', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
+      case 0: return (
+        <IdentityStep 
+          data={localState.identity} 
+          onChange={(d) => update('identity', d)} 
+          onUploadDocument={handleUploadDocument} 
+          onDeleteDocument={handleDeleteDocument} 
+          verificationId={bgvState.verification?.id || 0}
+          candidateId={candidateId}
+        />
+      );
+      case 1: return (
+        <AddressStep 
+          data={localState.address} 
+          onChange={(d) => update('address', d)} 
+          onUploadDocument={handleUploadDocument} 
+          onDeleteDocument={handleDeleteDocument} 
+          verificationId={bgvState.verification?.id || 0}
+          candidateId={candidateId}
+        />
+      );
       case 2: return <EducationStep data={localState.education} onChange={(d) => update('education', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 3: return <EmploymentStep data={localState.employment} onChange={(d) => update('employment', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 4: return <FinancialStep data={localState.financial} onChange={(d) => update('financial', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
@@ -553,6 +586,104 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       case 8: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
       default: return null;
     }
+  };
+
+  const DigiLockerStatusBanner = () => {
+    const [connecting, setConnecting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleConnect = async () => {
+      if (!bgvState.verification) return;
+      try {
+        setConnecting(true);
+        setError(null);
+        await digiLockerActions.connectWithDigiLocker(bgvState.verification.id, candidateId);
+      } catch (err) {
+        console.error('Failed to link DigiLocker:', err);
+        setError(err instanceof Error ? err.message : 'Connection failed');
+      } finally {
+        setConnecting(false);
+      }
+    };
+
+    if (digiLockerState.isConnected && digiLockerState.userDetails) {
+      return (
+        <Card className="mb-6 border-emerald-100 bg-emerald-50/20 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-emerald-950 text-sm flex items-center gap-2">
+                  DigiLocker Account Linked
+                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-[10px] py-0 border-emerald-200">Verified</Badge>
+                </h4>
+                <p className="text-xs text-emerald-800 mt-0.5">
+                  Import verified credentials (Aadhaar, PAN, DL) directly within step upload cards.
+                  Linked ID: <span className="font-mono font-semibold text-emerald-950">{digiLockerState.userDetails.digilockerId}</span>
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => digiLockerActions.disconnect()}
+              variant="outline"
+              size="sm"
+              className="text-emerald-900 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-950 text-xs shrink-0"
+            >
+              Disconnect
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <Card className="mb-6 border-blue-100 bg-blue-50/10 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 flex">
+          <div className="flex-1 bg-[#F97316]" />
+          <div className="flex-1 bg-white" />
+          <div className="flex-1 bg-[#22C55E]" />
+        </div>
+        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
+          <div className="flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
+              <Wifi className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="font-semibold text-blue-900 text-sm flex items-center gap-2">
+                Link DigiLocker to Skip Manual Uploads
+              </h4>
+              <p className="text-xs text-blue-700">
+                Instantly fetch authenticated, government-signed documents directly from your DigiLocker.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0 w-full sm:w-auto">
+            <Button
+              onClick={handleConnect}
+              disabled={connecting}
+              size="sm"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 h-8.5"
+            >
+              {connecting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Shield className="h-3.5 w-3.5 mr-1" />
+                  Link DigiLocker Account
+                </>
+              )}
+            </Button>
+            {error && <p className="text-[10px] text-red-500">{error}</p>}
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -617,7 +748,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 
                 <div className="mt-4 flex space-x-3">
                   <Button
-                    onClick={() => handleStartVerification()}
+                    onClick={() => handleStartVerification(undefined, true)}
                     disabled={bgvState.loading}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                   >
@@ -806,36 +937,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
             </Alert>
           )}
 
-          {/* DigiLocker Section on Step 0 or 1 */}
-          {(step === 0 || step === 1) && (
-            <Card className="mb-6 border-blue-200 bg-blue-50/30">
-              <CardContent className="p-4 space-y-4">
-                <div className="flex items-center gap-3">
-                  <Wifi className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-semibold text-blue-900 text-sm">DigiLocker Verification</h4>
-                    <p className="text-xs text-blue-700">Connect to fetch secure government-issued identity and address credentials.</p>
-                  </div>
-                </div>
-                <DigiLockerConnect
-                  verificationId={bgvState.verification.id}
-                  candidateId={candidateId}
-                  onConnected={(details) => console.log('DigiLocker connected', details)}
-                  onDocumentFetched={() => actions.getCandidateStatus(candidateId)}
-                />
-                {digiLockerState.isConnected && (
-                  <DigiLockerDocumentFetcher
-                    verificationId={bgvState.verification.id}
-                    candidateId={candidateId}
-                    documentType={step === 0 ? 'identity' : 'address'}
-                    onDocumentFetched={() => actions.getCandidateStatus(candidateId)}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           <VerificationHeader completedSteps={completedSteps} />
+
+          <DigiLockerStatusBanner />
 
           <div className="flex gap-6 mt-6">
             <div className="hidden lg:block w-80 flex-shrink-0">

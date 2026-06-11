@@ -6,10 +6,15 @@ import { IdentityData, UploadedFile } from '@/types/verification';
 import { CreditCard, Shield, Camera, FileText, Car, DownloadCloud, Loader2 } from 'lucide-react';
 import { useDigiLocker } from '@/contexts/DigiLockerContext';
 import { Button } from '@/components/ui/button';
+import { InlineDigiLockerFetcher } from '../../digilocker/InlineDigiLockerFetcher';
 
 interface IdentityStepProps {
   data: IdentityData;
   onChange: (data: IdentityData) => void;
+  onUploadDocument?: (file: File, docType: string, entryId?: string) => Promise<void>;
+  onDeleteDocument?: (docType: string, entryId?: string) => Promise<void>;
+  verificationId?: number;
+  candidateId?: number;
 }
 
 const identityDocuments = [
@@ -55,7 +60,17 @@ const identityDocuments = [
   }
 ];
 
-export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
+export const IdentityStep: React.FC<IdentityStepProps> = ({ 
+  data, 
+  onChange, 
+  onUploadDocument, 
+  onDeleteDocument,
+  verificationId,
+  candidateId
+}) => {
+  const [activeTabs, setActiveTabs] = React.useState<Record<string, 'upload' | 'digilocker'>>({});
+  const { state: digiLockerState } = useDigiLocker();
+
   const handleFileUpload = (key: keyof IdentityData) => (file: UploadedFile, rawFile?: File) => {
     const backendDocType = key === 'voterId' ? 'voter_id' : key === 'drivingLicence' ? 'driving_licence' : key;
     if (onUploadDocument && rawFile) {
@@ -80,46 +95,14 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange, onUp
     }
   };
 
-  const { state: digiLockerState, actions: digiLockerActions } = useDigiLocker();
-  const [fetchingDoc, setFetchingDoc] = React.useState<string | null>(null);
-
-  const handleFetchFromDigiLocker = async (docKey: keyof IdentityData, backendDocType: string) => {
-    if (!digiLockerState.request?.id) {
-      alert("Please connect to DigiLocker first from the dashboard.");
-      return;
-    }
-    
-    try {
-      setFetchingDoc(docKey);
-      
-      // If it's Aadhaar, we have a specific endpoint that might be better, 
-      // but let's try the generic document fetch first if it's available in their issued documents
-      
-      if (backendDocType === 'aadhaar') {
-        const aadhaarData = await digiLockerActions.fetchAadhaarData(digiLockerState.request.id);
-        if (aadhaarData) {
-          alert("Successfully fetched Aadhaar data from DigiLocker!");
-          // Here we would ideally generate a PDF or trigger a backend sync. 
-          // For now we rely on the backend to have stored it or the context to hold it.
-        }
-      } else {
-        alert(`DigiLocker integration for ${backendDocType} requires specific document parameters (like Driving License number). This UI will be expanded in the next phase to accept these parameters.`);
-      }
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to fetch from DigiLocker");
-    } finally {
-      setFetchingDoc(null);
-    }
-  };
-
   const hasRequiredDocument = data.aadhaar || data.pan;
 
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       <div>
         <h2 className="text-2xl font-bold mb-2 text-foreground">Identity Verification</h2>
-        <p className="text-muted-foreground">
-          Upload your government-issued identity documents. At least one document is required.
+        <p className="text-muted-foreground text-sm">
+          Select manual upload or instant DigiLocker import. At least one document (Aadhaar or PAN) is required to proceed.
         </p>
       </div>
 
@@ -128,59 +111,99 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({ data, onChange, onUp
           const Icon = doc.icon;
           const uploadedFile = data[doc.key];
           
+          const currentTab = activeTabs[doc.key] || (digiLockerState.isConnected ? 'digilocker' : 'upload');
+          
+          const setTab = (tab: 'upload' | 'digilocker') => {
+            setActiveTabs(prev => ({ ...prev, [doc.key]: tab }));
+          };
+
           return (
-            <Card key={doc.key} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
+            <Card key={doc.key} className="hover:shadow-lg transition-all duration-300 border border-slate-100 flex flex-col justify-between">
+              <div>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base font-semibold text-card-foreground">{doc.title}</CardTitle>
+                        <p className="text-xs text-muted-foreground mt-0.5">{doc.description}</p>
+                      </div>
+                    </div>
+                    {doc.required ? (
+                      <Badge variant="destructive" className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
+                        Required
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide text-slate-500 bg-slate-50">
+                        Optional
+                      </Badge>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg text-card-foreground">{doc.title}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-sm text-muted-foreground">{doc.description}</p>
-                      {doc.required && (
-                        <Badge variant="destructive" className="text-xs">
-                          Required
-                        </Badge>
-                      )}
-                      {!doc.required && (
-                        <Badge variant="secondary" className="text-xs">
-                          Optional
-                        </Badge>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  {uploadedFile ? (
+                    <FileUploadZone
+                      onFileUpload={handleFileUpload(doc.key)}
+                      onFileRemove={handleFileRemove(doc.key)}
+                      uploadedFile={uploadedFile}
+                      title={`Upload ${doc.title}`}
+                      aiChecks={doc.aiChecks}
+                      required={doc.required}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Tabs Header Toggle */}
+                      <div className="flex p-1 bg-slate-100/70 rounded-lg border border-slate-200/50">
+                        <button
+                          type="button"
+                          onClick={() => setTab('upload')}
+                          className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                            currentTab === 'upload'
+                              ? 'bg-white text-slate-900 shadow-sm'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          📤 Manual File
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTab('digilocker')}
+                          className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1 ${
+                            currentTab === 'digilocker'
+                              ? 'bg-white text-blue-600 shadow-sm'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          🔐 DigiLocker
+                        </button>
+                      </div>
+
+                      {currentTab === 'upload' ? (
+                        <FileUploadZone
+                          onFileUpload={handleFileUpload(doc.key)}
+                          onFileRemove={handleFileRemove(doc.key)}
+                          uploadedFile={uploadedFile}
+                          title={`Upload ${doc.title}`}
+                          aiChecks={doc.aiChecks}
+                          required={doc.required}
+                        />
+                      ) : (
+                        <InlineDigiLockerFetcher
+                          verificationId={verificationId || 0}
+                          candidateId={candidateId || 0}
+                          documentType={doc.key as any}
+                          onDocumentFetched={() => {
+                            // Empty call simply triggers data updates
+                            onChange({ ...data });
+                          }}
+                        />
                       )}
                     </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <FileUploadZone
-                  onFileUpload={handleFileUpload(doc.key)}
-                  onFileRemove={handleFileRemove(doc.key)}
-                  uploadedFile={uploadedFile}
-                  title={`Upload ${doc.title}`}
-                  aiChecks={doc.aiChecks}
-                  required={doc.required}
-                />
-                
-                {digiLockerState.isConnected && !uploadedFile && (
-                  <div className="mt-4 flex justify-center">
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
-                      onClick={() => handleFetchFromDigiLocker(doc.key, doc.key === 'voterId' ? 'voter_id' : doc.key === 'drivingLicence' ? 'driving_licence' : doc.key)}
-                      disabled={fetchingDoc === doc.key}
-                    >
-                      {fetchingDoc === doc.key ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <DownloadCloud className="w-4 h-4 mr-2" />
-                      )}
-                      Import {doc.title} from DigiLocker
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
+                  )}
+                </CardContent>
+              </div>
             </Card>
           );
         })}

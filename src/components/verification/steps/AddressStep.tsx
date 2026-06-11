@@ -6,15 +6,29 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FileUploadZone } from '@/components/ui/FileUploadZone';
 import { AddressData, UploadedFile } from '@/types/verification';
 import { MapPin, Home } from 'lucide-react';
+import { InlineDigiLockerFetcher } from '../../digilocker/InlineDigiLockerFetcher';
+import { useDigiLocker } from '@/contexts/DigiLockerContext';
 
 interface AddressStepProps {
   data: AddressData;
   onChange: (data: AddressData) => void;
   onUploadDocument?: (file: File, docType: string) => Promise<void>;
   onDeleteDocument?: (docType: string) => Promise<void>;
+  verificationId?: number;
+  candidateId?: number;
 }
 
-export const AddressStep: React.FC<AddressStepProps> = ({ data, onChange, onUploadDocument, onDeleteDocument }) => {
+export const AddressStep: React.FC<AddressStepProps> = ({ 
+  data, 
+  onChange, 
+  onUploadDocument, 
+  onDeleteDocument,
+  verificationId,
+  candidateId
+}) => {
+  const { state: digiLockerState } = useDigiLocker();
+  const [activeTab, setActiveTab] = React.useState<'upload' | 'digilocker'>(digiLockerState.isConnected ? 'digilocker' : 'upload');
+
   const handleInputChange = (field: keyof AddressData, value: string | boolean) => {
     onChange({
       ...data,
@@ -199,32 +213,84 @@ export const AddressStep: React.FC<AddressStepProps> = ({ data, onChange, onUplo
       </div>
 
       {/* Address Proof */}
-      <Card>
+      <Card className="hover:shadow-lg transition-all duration-300 border border-slate-100">
         <CardHeader>
-          <CardTitle>Address Proof Document</CardTitle>
+          <CardTitle className="text-lg font-semibold text-card-foreground">Address Proof Document</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium">Accepted Documents:</Label>
+              <Label className="text-sm font-medium text-slate-700">Accepted Documents:</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {addressProofTypes.map((type, index) => (
-                  <span key={index} className="px-2 py-1 bg-muted text-xs rounded-md">
+                  <span key={index} className="px-2 py-1 bg-slate-50 border border-slate-100 text-[10px] font-medium text-slate-600 rounded-md">
                     {type}
                   </span>
                 ))}
               </div>
             </div>
-            
-            <FileUploadZone
-              onFileUpload={handleFileUpload}
-              onFileRemove={handleFileRemove}
-              uploadedFile={data.addressProof}
-              title="Upload Address Proof"
-              description="Upload any one of the accepted documents mentioned above"
-              aiChecks={['Address verification', 'Document authenticity', 'Date validation']}
-              required={true}
-            />
+
+            {data.addressProof ? (
+              <FileUploadZone
+                onFileUpload={handleFileUpload}
+                onFileRemove={handleFileRemove}
+                uploadedFile={data.addressProof}
+                title="Upload Address Proof"
+                description="Upload any one of the accepted documents mentioned above"
+                aiChecks={['Address verification', 'Document authenticity', 'Date validation']}
+                required={true}
+              />
+            ) : (
+              <div className="space-y-4">
+                {/* Tabs Header Toggle */}
+                <div className="flex p-1 bg-slate-100/70 rounded-lg border border-slate-200/50">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('upload')}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                      activeTab === 'upload'
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    📤 Manual File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('digilocker')}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1 ${
+                      activeTab === 'digilocker'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    🔐 DigiLocker
+                  </button>
+                </div>
+
+                {activeTab === 'upload' ? (
+                  <FileUploadZone
+                    onFileUpload={handleFileUpload}
+                    onFileRemove={handleFileRemove}
+                    uploadedFile={data.addressProof}
+                    title="Upload Address Proof"
+                    description="Upload any one of the accepted documents mentioned above"
+                    aiChecks={['Address verification', 'Document authenticity', 'Date validation']}
+                    required={true}
+                  />
+                ) : (
+                  <InlineDigiLockerFetcher
+                    verificationId={verificationId || 0}
+                    candidateId={candidateId || 0}
+                    documentType="addressProof"
+                    onDocumentFetched={() => {
+                      // Trigger state refresh
+                      onChange({ ...data });
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

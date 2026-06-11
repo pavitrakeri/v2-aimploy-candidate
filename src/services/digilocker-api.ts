@@ -412,11 +412,12 @@ class DigiLockerAPI {
 
   // Complete token exchange after OAuth callback (PKCE)
   async completeTokenExchange(code: string, redirectUri: string, codeVerifier?: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/digilocker/token`, {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${this.baseURL}/digilocker/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier })
     });
