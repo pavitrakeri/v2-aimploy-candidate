@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/button';
 interface IdentityStepProps {
   data: IdentityData;
   onChange: (data: IdentityData) => void;
-  onUploadDocument?: (file: File, documentType: string) => void;
-  onDeleteDocument?: (documentType: string) => void;
 }
 
 const identityDocuments = [

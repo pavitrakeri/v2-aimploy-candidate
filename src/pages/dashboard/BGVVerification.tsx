@@ -24,10 +24,10 @@ interface CombinedDocument {
   file_url: string;
   file_size: number;
   validation_score?: number;
-  validation_status?: 'pending' | 'processing' | 'approved' | 'rejected' | string;
+  validation_status?: 'pending' | 'processing' | 'approved' | 'rejected';
   validation_details?: any;
   description?: string;
-  uploaded_at?: string;
+  uploaded_at: string;
   created_at: string;
   updated_at: string;
   is_pending?: boolean;
@@ -1177,15 +1177,15 @@ const BGVVerificationInner: React.FC<BGVVerificationProps> = ({ candidateId, can
                     <div key={reference.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-medium text-gray-900">{reference.name}</h4>
+                          <h4 className="font-medium text-gray-900">{reference.reference_name}</h4>
                           <div className="text-sm text-gray-600 space-y-1">
-                            <div>Email: {reference.email}</div>
-                            {reference.phone && (
-                              <div>Phone: {reference.phone}</div>
+                            <div>Email: {reference.reference_email}</div>
+                            {reference.reference_phone && (
+                              <div>Phone: {reference.reference_phone}</div>
                             )}
                             <div>Relationship: {reference.relationship}</div>
                             {reference.company && <div>Company: {reference.company}</div>}
-                            {reference.designation && <div>Position: {reference.designation}</div>}
+                            {reference.position && <div>Position: {reference.position}</div>}
                           </div>
                         </div>
                         <div className="flex flex-col items-end space-y-2">
