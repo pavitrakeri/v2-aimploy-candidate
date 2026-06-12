@@ -342,6 +342,8 @@ class DigiLockerAPI {
         return;
       }
 
+      let settled = false; // prevent double resolve/reject
+
       // Listen for messages from the popup
       const messageHandler = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) {
@@ -355,7 +357,7 @@ class DigiLockerAPI {
 
           if (event.data.success && event.data.errCode) {
             // event.data.errCode = auth code from DigiLocker
-            // event.data.request_id = state from DigiLocker
+            // event.data.request_id = state (base64-encoded JSON with id/v_id/c_id)
             try {
               // Complete PKCE token exchange on the backend
               const redirectUri = `${window.location.origin}/bgv/digilocker/callback`;
@@ -363,28 +365,31 @@ class DigiLockerAPI {
                 event.data.errCode || event.data.code,
                 redirectUri,
                 codeVerifier,
-                event.data.state
+                event.data.request_id  // ✅ Fixed: use request_id (the state value)
               );
-              resolve({ ...event.data, ...tokenResponse });
+              if (!settled) { settled = true; resolve({ ...event.data, ...tokenResponse }); }
             } catch (err) {
-              resolve(event.data); // resolve even if token exchange fails — callback succeeded
+              if (!settled) { settled = true; resolve(event.data); }
             }
           } else if (event.data.success) {
-            resolve(event.data);
+            if (!settled) { settled = true; resolve(event.data); }
           } else {
-            reject(new Error(event.data.error || 'DigiLocker authentication failed'));
+            if (!settled) { settled = true; reject(new Error(event.data.error || 'DigiLocker authentication failed')); }
           }
         }
       };
 
       window.addEventListener('message', messageHandler);
 
-      // Check if popup was closed manually
+      // Check if popup was closed manually — only reject if no message was received
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed);
           window.removeEventListener('message', messageHandler);
-          reject(new Error('DigiLocker authentication was cancelled'));
+          // Give a brief delay so any pending postMessage can still arrive
+          setTimeout(() => {
+            if (!settled) { settled = true; reject(new Error('DigiLocker authentication was cancelled')); }
+          }, 500);
         }
       }, 1000);
 
@@ -395,7 +400,7 @@ class DigiLockerAPI {
         if (!popup.closed) {
           popup.close();
         }
-        reject(new Error('DigiLocker authentication timed out'));
+        if (!settled) { settled = true; reject(new Error('DigiLocker authentication timed out')); }
       }, 10 * 60 * 1000);
     });
   }
