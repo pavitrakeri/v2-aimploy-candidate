@@ -192,8 +192,8 @@ class DigiLockerAPI {
   }
 
   // Get available documents
-  async getAvailableDocuments(): Promise<DigiLockerDocumentsList> {
-    return this.request<DigiLockerDocumentsList>('/digilocker/documents');
+  async getAvailableDocuments(requestId: string): Promise<DigiLockerDocumentsList> {
+    return this.request<DigiLockerDocumentsList>(`/digilocker/documents?request_id=${requestId}`);
   }
 
   // Get documents for BGV type
@@ -212,17 +212,11 @@ class DigiLockerAPI {
   // Fetch document
   async fetchDocument(
     requestId: string,
-    docType: string,
-    orgId: string,
-    format: string,
-    parameters: DigiLockerDocumentParameter[]
+    uri: string
   ): Promise<DigiLockerDocumentResponse> {
     const formData = new FormData();
     formData.append('request_id', requestId);
-    formData.append('doc_type', docType);
-    formData.append('org_id', orgId);
-    formData.append('format', format);
-    formData.append('parameters', JSON.stringify(parameters));
+    formData.append('uri', uri);
 
     const token = localStorage.getItem('access_token');
     const url = `${this.baseURL}/digilocker/fetch-document`;
@@ -251,17 +245,12 @@ class DigiLockerAPI {
   // Download document
   async downloadDocument(
     requestId: string,
-    fileUrl: string,
+    uri: string,
     verificationId: number,
     documentType: string
-  ): Promise<{
-    message: string;
-    document: DigiLockerDocumentLink;
-    file_size: number;
-  }> {
+  ): Promise<{ message: string; document: DigiLockerDocumentLink; file_size: number }> {
     const formData = new FormData();
-    formData.append('request_id', requestId);
-    formData.append('file_url', fileUrl);
+    formData.append('uri', uri);
     formData.append('verification_id', verificationId.toString());
     formData.append('document_type', documentType);
 
@@ -353,6 +342,8 @@ class DigiLockerAPI {
         return;
       }
 
+      let settled = false; // prevent double resolve/reject
+
       // Listen for messages from the popup
       const messageHandler = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) {
@@ -366,35 +357,39 @@ class DigiLockerAPI {
 
           if (event.data.success && event.data.errCode) {
             // event.data.errCode = auth code from DigiLocker
-            // event.data.request_id = state from DigiLocker
+            // event.data.request_id = state (base64-encoded JSON with id/v_id/c_id)
             try {
               // Complete PKCE token exchange on the backend
               const redirectUri = `${window.location.origin}/bgv/digilocker/callback`;
               const tokenResponse = await this.completeTokenExchange(
-                event.data.errCode,
+                event.data.errCode || event.data.code,
                 redirectUri,
-                codeVerifier
+                codeVerifier,
+                event.data.request_id  // ✅ Fixed: use request_id (the state value)
               );
-              resolve({ ...event.data, ...tokenResponse });
+              if (!settled) { settled = true; resolve({ ...event.data, ...tokenResponse }); }
             } catch (err) {
-              resolve(event.data); // resolve even if token exchange fails — callback succeeded
+              if (!settled) { settled = true; resolve(event.data); }
             }
           } else if (event.data.success) {
-            resolve(event.data);
+            if (!settled) { settled = true; resolve(event.data); }
           } else {
-            reject(new Error(event.data.error || 'DigiLocker authentication failed'));
+            if (!settled) { settled = true; reject(new Error(event.data.error || 'DigiLocker authentication failed')); }
           }
         }
       };
 
       window.addEventListener('message', messageHandler);
 
-      // Check if popup was closed manually
+      // Check if popup was closed manually — only reject if no message was received
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed);
           window.removeEventListener('message', messageHandler);
-          reject(new Error('DigiLocker authentication was cancelled'));
+          // Give a brief delay so any pending postMessage can still arrive
+          setTimeout(() => {
+            if (!settled) { settled = true; reject(new Error('DigiLocker authentication was cancelled')); }
+          }, 500);
         }
       }, 1000);
 
@@ -405,21 +400,20 @@ class DigiLockerAPI {
         if (!popup.closed) {
           popup.close();
         }
-        reject(new Error('DigiLocker authentication timed out'));
+        if (!settled) { settled = true; reject(new Error('DigiLocker authentication timed out')); }
       }, 10 * 60 * 1000);
     });
   }
 
   // Complete token exchange after OAuth callback (PKCE)
-  async completeTokenExchange(code: string, redirectUri: string, codeVerifier?: string): Promise<any> {
-    const token = localStorage.getItem('access_token');
+  async completeTokenExchange(code: string, redirectUri: string, codeVerifier?: string, state?: string): Promise<any> {
     const response = await fetch(`${this.baseURL}/digilocker/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        'Authorization': `Bearer ${this.getToken()}`
       },
-      body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier })
+      body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier, state })
     });
     if (!response.ok) return {};
     return response.json();
