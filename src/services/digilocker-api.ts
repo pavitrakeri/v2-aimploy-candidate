@@ -411,7 +411,7 @@ class DigiLockerAPI {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
       },
       body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: codeVerifier, state })
     });
