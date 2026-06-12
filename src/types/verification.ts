@@ -8,8 +8,6 @@ export interface UploadedFile {
   validation_details?: Record<string, any>;
   analysis_method?: string;
   validation_status?: 'pending' | 'verified' | 'rejected' | 'needs_review';
-  rawFile?: File;
-  metadata?: any;
 }
 
 export interface IdentityData {
@@ -108,6 +106,7 @@ export const STEPS = [
   { label: 'Employment', icon: 'Briefcase' },
   { label: 'Financial', icon: 'Landmark' },
   { label: 'Photo', icon: 'Camera' },
+  { label: 'Background Check', icon: 'ShieldCheck' },
   { label: 'Additional Docs', icon: 'FolderPlus' },
   { label: 'Review & Submit', icon: 'ClipboardCheck' },
 ] as const;

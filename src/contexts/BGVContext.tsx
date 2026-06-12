@@ -55,9 +55,9 @@ function bgvReducer(state: BGVState, action: BGVAction): BGVState {
       return { 
         ...state, 
         overallStatus: action.payload,
-        verification: action.payload.verification || state.verification,
-        documents: action.payload.documents || state.documents,
-        references: action.payload.references || state.references,
+        verification: action.payload.verification,
+        documents: action.payload.documents,
+        references: action.payload.references,
         loading: false, 
         error: null 
       };
@@ -123,10 +123,6 @@ const BGVContext = createContext<{
     syncPendingUploads: () => Promise<{ successful: number; failed: number }>;
     submitVerification: (verificationId: number, candidateName: string) => Promise<any>;
     getHRVerificationStatus: (verificationId: number) => Promise<any>;
-    addReference: (verificationId: number, data: any) => Promise<BGVReferenceResponse>;
-    deleteReference: (referenceId: number) => Promise<void>;
-    analyzeDocument: (file: File, documentType: string) => Promise<any>;
-    bulkUploadDocuments: (verificationId: number, documents: { file: File; document_type: string; description?: string; metadata?: any }[]) => Promise<any>;
   };
 } | null>(null);
 
@@ -157,7 +153,6 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             file_name: file.name,
             file_url: (event.target?.result as string) || '', // Data URL
             file_size: file.size,
-            status: 'pending',
             validation_score: undefined,
             validation_status: 'pending',
             validation_details: null,
@@ -238,13 +233,14 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           consent_given: true,
           no_criminal_record: true,
           verification_types: verificationTypes,
+          initiated_by: candidateId, // Assuming candidate initiates their own verification
           notes,
         });
         
         dispatch({ type: 'SET_VERIFICATION', payload: verification });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to start verification';
-        if (errorMessage.includes('409') || errorMessage.includes('already have an active') || errorMessage.includes('VERIFICATION_ALREADY_EXISTS') || errorMessage.includes('active background verification')) {
+        if (errorMessage.includes('409') || errorMessage.includes('already active') || errorMessage.includes('Object')) {
           await actions.getCandidateStatus(candidateId);
         } else {
           dispatch({ type: 'SET_ERROR', payload: errorMessage });
@@ -446,53 +442,6 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return hrStatus;
       } catch (error) {
         dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to get HR verification status' });
-        throw error;
-      }
-    },
-
-    addReference: async (verificationId: number, data: any) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        const newRef = await bgvApi.addReference(verificationId, data);
-        dispatch({ type: 'ADD_REFERENCE', payload: newRef });
-        return newRef;
-      } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to add reference' });
-        throw error;
-      }
-    },
-
-    deleteReference: async (referenceId: number) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        await bgvApi.deleteReference(referenceId);
-        dispatch({ type: 'REMOVE_REFERENCE', payload: referenceId });
-      } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete reference' });
-        throw error;
-      }
-    },
-
-    analyzeDocument: async (file: File, documentType: string) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        const result = await bgvApi.analyzeDocument(file, documentType);
-        dispatch({ type: 'SET_LOADING', payload: false });
-        return result;
-      } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to analyze document' });
-        throw error;
-      }
-    },
-
-    bulkUploadDocuments: async (verificationId: number, documents: { file: File; document_type: string; description?: string; metadata?: any }[]) => {
-      try {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        const result = await bgvApi.bulkUploadDocuments(verificationId, documents);
-        dispatch({ type: 'SET_LOADING', payload: false });
-        return result;
-      } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to bulk upload documents' });
         throw error;
       }
     },

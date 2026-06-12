@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi, WifiOff, Info, FileText, Download, Landmark, Briefcase, Camera, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi, WifiOff, Info, FileText, Download, Landmark, Briefcase, Camera, Trash2, Loader2 } from 'lucide-react';
 import { VerificationHeader } from '@/components/verification/VerificationHeader';
 import { StepSidebar } from '@/components/verification/StepSidebar';
 import { IdentityStep } from '@/components/verification/steps/IdentityStep';
@@ -9,6 +9,7 @@ import { EducationStep } from '@/components/verification/steps/EducationStep';
 import { EmploymentStep } from '@/components/verification/steps/EmploymentStep';
 import { FinancialStep } from '@/components/verification/steps/FinancialStep';
 import { PhotoStep } from '@/components/verification/steps/PhotoStep';
+import { BackgroundCheckStep } from '@/components/verification/steps/BackgroundCheckStep';
 import { AdditionalDocsStep } from '@/components/verification/steps/AdditionalDocsStep';
 import { ReviewStep } from '@/components/verification/steps/ReviewStep';
 import { STEPS, initialState, type VerificationState, type UploadedFile, type EducationEntry, type EmploymentEntry, type AdditionalDoc } from '@/types/verification';
@@ -18,23 +19,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useDigiLocker, DigiLockerProvider } from '../../contexts/DigiLockerContext';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { DigiLockerConnect } from '../../components/digilocker/DigiLockerConnect';
-import { DigiLockerDocumentFetcher } from '../../components/digilocker/DigiLockerDocumentFetcher';
-
-import { useAuth } from '@/contexts/AuthContext';
+import { bgvApi } from '../../services/bgv-api';
 
 interface VerificationProps {
-  candidateId?: number;
+  candidateId: number;
   candidateName?: string;
 }
 
-const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandidateId, candidateName: propCandidateName }) => {
-  const { user } = useAuth();
-  const candidateId = propCandidateId || user?.id || 0;
-  const candidateName = propCandidateName || user?.full_name || user?.email || 'Candidate';
-
+const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidateName }) => {
   const { state: bgvState, actions } = useBGV();
-  const { state: digiLockerState } = useDigiLocker();
+  const { state: digiLockerState, actions: digiLockerActions } = useDigiLocker();
   const { setCollapsed } = useSidebar();
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -59,9 +53,6 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
 
   // Live HR email verification status from backend
   const [hrStatus, setHrStatus] = useState<any>(null);
-
-  // Local files waiting to be uploaded on final submit
-  const [pendingUploads, setPendingUploads] = useState<{ file: File; documentType: string; description?: string; metadata?: any; localId: string; entryId?: string }[]>([]);
 
   // Sync candidate verification details from BGVContext on mount and state changes
   useEffect(() => {
@@ -94,8 +85,8 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
   useEffect(() => {
     if (!bgvState.verification) return;
 
-    const docs = bgvState.documents || [];
-    const refs = bgvState.references || [];
+    const docs = bgvState.documents;
+    const refs = bgvState.references;
 
     const mapDoc = (type: string, descriptionMatch?: string): UploadedFile | undefined => {
       const doc = docs.find(d => {
@@ -113,15 +104,13 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
         size: doc.file_size,
         type: 'application/octet-stream',
         validation_score: doc.validation_score,
-        validation_status: doc.status === 'uploaded'
+        validation_status: doc.validation_status === 'processing'
           ? 'pending'
-          : doc.status === 'pending_verification'
-            ? 'needs_review'
-            : doc.status === 'verified'
-              ? 'verified'
-              : doc.status === 'rejected'
-                ? 'rejected'
-                : 'pending',
+          : doc.validation_status === 'approved'
+            ? 'verified'
+            : doc.validation_status === 'rejected'
+              ? 'rejected'
+              : 'pending',
         validation_details: doc.validation_details,
         analysis_method: 'openai_analysis'
       };
@@ -199,15 +188,13 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
         size: d.file_size,
         type: 'application/octet-stream',
         validation_score: d.validation_score,
-        validation_status: d.status === 'uploaded'
+        validation_status: d.validation_status === 'processing'
           ? 'pending'
-          : d.status === 'pending_verification'
-            ? 'needs_review'
-            : d.status === 'verified'
-              ? 'verified'
-              : d.status === 'rejected'
-                ? 'rejected'
-                : 'pending',
+          : d.validation_status === 'approved'
+            ? 'verified'
+            : d.validation_status === 'rejected'
+              ? 'rejected'
+              : 'pending',
         validation_details: d.validation_details,
         analysis_method: 'openai_analysis'
       };
@@ -217,9 +204,6 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
         designation: details.designation_declared || '',
         fromDate: details.joining_date_declared ? details.joining_date_declared.substring(0, 7) : '',
         toDate: details.leaving_date_declared ? details.leaving_date_declared.substring(0, 7) : '',
-        offerLetter: undefined as UploadedFile | undefined,
-        experienceLetter: undefined as UploadedFile | undefined,
-        payslip: undefined as UploadedFile | undefined,
       };
 
       if (d.document_type === 'offer_letter') {
@@ -267,45 +251,19 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
     // References list mapping
     const references = refs.map(r => ({
       id: r.id.toString(),
-      name: r.name,
-      email: r.email,
-      phone: r.phone || '',
+      name: r.reference_name,
+      email: r.reference_email,
+      phone: r.reference_phone || '',
       relationship: r.relationship,
       company: r.company || '',
     }));
 
     // Additional Docs mapping
-    // Load all dynamically uploaded 'other' documents
-    const otherDocs = docs.filter(d => d.document_type === 'other');
-    let additionalDocs: any[] = otherDocs.map((d, index) => {
-      const docObj: UploadedFile = {
-        id: d.id.toString(),
-        name: d.file_name,
-        size: d.file_size,
-        type: 'application/octet-stream',
-        validation_score: d.validation_score,
-        validation_status: d.status === 'uploaded'
-          ? 'pending'
-          : d.status === 'pending_verification'
-            ? 'needs_review'
-            : d.status === 'verified'
-              ? 'verified'
-              : d.status === 'rejected'
-                ? 'rejected'
-                : 'pending',
-        validation_details: d.validation_details,
-        analysis_method: 'openai_analysis'
-      };
-      return {
-        id: (index + 1).toString(),
-        label: d.description || `Additional Document ${index + 1}`,
-        file: docObj
-      };
+    // Map files whose description matches the doc labels
+    const additionalDocs = initialState.additionalDocs.map(doc => {
+      const mapped = mapDoc('other', doc.label);
+      return mapped ? { ...doc, file: mapped } : doc;
     });
-
-    if (additionalDocs.length === 0) {
-      additionalDocs = [...initialState.additionalDocs];
-    }
 
     setLocalState(prev => ({
       ...prev,
@@ -333,11 +291,27 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
     setLocalState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const handleStartVerification = async (types: string[] = ['identity', 'address', 'education', 'employment', 'financial', 'criminal', 'reference']) => {
+  const handleStartVerification = async (
+    types: string[] = ['identity', 'address', 'education', 'employment', 'financial', 'criminal', 'reference'],
+    connectDigiLocker = false
+  ) => {
     try {
       await actions.startVerification(candidateId, types, "Initiated via candidate portal wizard");
       await actions.getCandidateStatus(candidateId);
       setCollapsed(true);
+
+      if (connectDigiLocker) {
+        setTimeout(async () => {
+          try {
+            const statusSummary = await bgvApi.getCandidateVerificationStatus(candidateId);
+            if (statusSummary && statusSummary.verification_id) {
+              await digiLockerActions.connectWithDigiLocker(statusSummary.verification_id, candidateId);
+            }
+          } catch (err) {
+            console.error("Auto-connecting DigiLocker failed:", err);
+          }
+        }, 800);
+      }
     } catch (error) {
       console.error('Failed to start verification:', error);
     }
@@ -397,79 +371,10 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
           const entry = localState.additionalDocs.find(e => e.id === entryId);
           if (entry) description = entry.label;
         }
-
-        const tempLocalId = `temp_${Date.now()}`;
-        const tempDoc: UploadedFile = {
-          id: tempLocalId,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          validation_status: 'pending',
-          rawFile: file,
-          metadata: metadata
-        };
-
-        // Update local state directly so it shows up in UI immediately as "Analyzing..."
-        if (['aadhaar', 'pan', 'passport', 'voter_id', 'driving_licence'].includes(docType)) {
-          const key = docType === 'voter_id' ? 'voterId' : docType === 'driving_licence' ? 'drivingLicence' : docType;
-          updateState({ identity: { ...localState.identity, [key]: tempDoc } });
-        } else if (docType === 'address_proof') {
-          updateState({ address: { ...localState.address, addressProof: tempDoc } });
-        } else if (docType === 'education_certificate' && entryId) {
-          const newEdu = localState.education.map(e => e.id === entryId ? { ...e, document: tempDoc } : e);
-          updateState({ education: newEdu });
-        } else if (docType === 'bank_statement') {
-          updateState({ financial: { ...localState.financial, bankStatement: tempDoc } });
-        } else if (docType === 'tax_return') {
-          updateState({ financial: { ...localState.financial, taxReturn: tempDoc } });
-        } else if (docType === 'photo') {
-          updateState({ photo: { photo: tempDoc } });
-        } else if (docType === 'other' && entryId) {
-          const newOther = localState.additionalDocs.map(e => e.id === entryId ? { ...e, file: tempDoc } : e);
-          updateState({ additionalDocs: newOther });
-        }
-
-        // Call analyze-only endpoint instead of uploading
-        const res = await actions.analyzeDocument(file, docType);
-        
-        const localId = res.local_id || `local_${Date.now()}`;
-        const newDoc: UploadedFile = {
-          id: localId,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          validation_score: res.ai_analysis?.score,
-          validation_status: res.status === 'rejected' ? 'rejected' : res.status === 'needs_review' ? 'needs_review' : 'verified',
-          validation_details: res.ai_analysis?.validation_details,
-          analysis_method: res.ai_analysis?.analysis_method,
-          rawFile: file,
-          metadata: metadata
-        };
-
-        // Add to pending uploads
-        setPendingUploads(prev => [...prev, { file, documentType: docType, description, metadata, localId, entryId }]);
-
-        // Update local state directly so it shows up in UI immediately
-        if (['aadhaar', 'pan', 'passport', 'voter_id', 'driving_licence'].includes(docType)) {
-          const key = docType === 'voter_id' ? 'voterId' : docType === 'driving_licence' ? 'drivingLicence' : docType;
-          updateState({ identity: { ...localState.identity, [key]: newDoc } });
-        } else if (docType === 'address_proof') {
-          updateState({ address: { ...localState.address, addressProof: newDoc } });
-        } else if (docType === 'education_certificate' && entryId) {
-          const newEdu = localState.education.map(e => e.id === entryId ? { ...e, document: newDoc } : e);
-          updateState({ education: newEdu });
-        } else if (docType === 'bank_statement') {
-          updateState({ financial: { ...localState.financial, bankStatement: newDoc } });
-        } else if (docType === 'tax_return') {
-          updateState({ financial: { ...localState.financial, taxReturn: newDoc } });
-        } else if (docType === 'photo') {
-          updateState({ photo: { photo: newDoc } });
-        } else if (docType === 'other' && entryId) {
-          const newOther = localState.additionalDocs.map(e => e.id === entryId ? { ...e, file: newDoc } : e);
-          updateState({ additionalDocs: newOther });
-        }
+        await actions.uploadDocument(bgvState.verification.id, file, docType, description, false, metadata);
+        await actions.getCandidateStatus(candidateId);
       } catch (err) {
-        console.error("Document analysis error:", err);
+        console.error("Document upload error:", err);
       }
     }
   };
@@ -502,232 +407,121 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
         manager_name: employmentForm.manager_name || null,
       };
 
-      const docType = activeUploadFile.documentType;
-      const file = activeUploadFile.file;
-      const description = `Uploaded ${docType} - ${employmentForm.company_declared}`;
-
-      const tempLocalId = `temp_${Date.now()}`;
-      const tempDoc: UploadedFile = {
-        id: tempLocalId,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        validation_status: 'pending',
-        rawFile: file,
-        metadata: metadata
-      };
-
-      // Update local text fields and set temporary document if mapped to an entry
+      await actions.uploadDocument(
+        bgvState.verification.id,
+        activeUploadFile.file,
+        activeUploadFile.documentType,
+        `Uploaded ${activeUploadFile.documentType} - ${employmentForm.company_declared}`,
+        true, // skip validation
+        metadata
+      );
+      
+      // Update local text fields if mapped to an entry
       if (activeUploadFile.entryId) {
-        const updatedEmployment = localState.employment.map(e => {
-          if (e.id === activeUploadFile.entryId) {
-            const updatedEntry = { 
-              ...e, 
-              company: employmentForm.company_declared, 
-              designation: employmentForm.designation_declared,
-              hrEmail: employmentForm.hr_email,
-              managerName: employmentForm.manager_name,
-              fromDate: employmentForm.joining_date_declared ? employmentForm.joining_date_declared.substring(0, 7) : '',
-              toDate: employmentForm.leaving_date_declared ? employmentForm.leaving_date_declared.substring(0, 7) : '',
-            };
-            if (docType === 'offer_letter') updatedEntry.offerLetter = tempDoc;
-            else if (['experience_letter', 'relieving_letter', 'employment_certificate'].includes(docType)) updatedEntry.experienceLetter = tempDoc;
-            else if (docType === 'salary_slip' || docType === 'payslip') updatedEntry.payslip = tempDoc;
-            return updatedEntry;
-          }
-          return e;
-        });
+        const updatedEmployment = localState.employment.map(e => 
+          e.id === activeUploadFile.entryId 
+            ? { 
+                ...e, 
+                company: employmentForm.company_declared, 
+                designation: employmentForm.designation_declared,
+                fromDate: employmentForm.joining_date_declared.substring(0, 7),
+                toDate: employmentForm.leaving_date_declared.substring(0, 7),
+              }
+            : e
+        );
         updateState({ employment: updatedEmployment });
       }
 
-      // Call analyze-only endpoint instead of uploading
-      const res = await actions.analyzeDocument(file, docType);
-      
-      const localId = res.local_id || `local_${Date.now()}`;
-      const newDoc: UploadedFile = {
-        id: localId,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        validation_score: res.ai_analysis?.score,
-        validation_status: res.status === 'rejected' ? 'rejected' : res.status === 'needs_review' ? 'needs_review' : 'verified',
-        validation_details: res.ai_analysis?.validation_details,
-        analysis_method: res.ai_analysis?.analysis_method,
-        rawFile: file,
-        metadata: metadata
-      };
-
-      // Add to pending uploads
-      setPendingUploads(prev => [...prev, { file, documentType: docType, description, metadata, localId, entryId: activeUploadFile.entryId }]);
-      
-      // Update local text fields and document if mapped to an entry
-      if (activeUploadFile.entryId) {
-        const updatedEmployment = localState.employment.map(e => {
-          if (e.id === activeUploadFile.entryId) {
-            const updatedEntry = { 
-              ...e, 
-              company: employmentForm.company_declared, 
-              designation: employmentForm.designation_declared,
-              hrEmail: employmentForm.hr_email,
-              managerName: employmentForm.manager_name,
-              fromDate: employmentForm.joining_date_declared ? employmentForm.joining_date_declared.substring(0, 7) : '',
-              toDate: employmentForm.leaving_date_declared ? employmentForm.leaving_date_declared.substring(0, 7) : '',
-            };
-            if (docType === 'offer_letter') updatedEntry.offerLetter = newDoc;
-            else if (['experience_letter', 'relieving_letter', 'employment_certificate'].includes(docType)) updatedEntry.experienceLetter = newDoc;
-            else if (docType === 'salary_slip' || docType === 'payslip') updatedEntry.payslip = newDoc;
-            return updatedEntry;
-          }
-          return e;
-        });
-        updateState({ employment: updatedEmployment });
-      }
-
+      await actions.getCandidateStatus(candidateId);
       setActiveUploadFile(null);
     } catch (error) {
-      console.error('Employment analysis error:', error);
+      console.error('Employment upload error:', error);
     }
   };
 
   const handleDeleteDocument = async (docType: string, entryId?: string) => {
-    // Determine the localId if it's a pending upload
-    let localIdToRemove: string | null = null;
-    let docToRemoveId: number | null = null;
-
+    let doc = null;
     if (docType === 'education_certificate' && entryId) {
       const entry = localState.education.find(e => e.id === entryId);
-      if (entry?.document?.id.startsWith('local_')) localIdToRemove = entry.document.id;
-      else docToRemoveId = Number(entry?.document?.id);
-    } else if (['offer_letter', 'experience_letter', 'payslip', 'salary_slip'].includes(docType) && entryId) {
+      const level = entry?.level || '';
+      doc = bgvState.documents.find(d => d.document_type === docType && (d.description || '').includes(level));
+    } else if (['offer_letter', 'experience_letter', 'payslip'].includes(docType) && entryId) {
       const entry = localState.employment.find(e => e.id === entryId);
-      if (docType === 'offer_letter' && entry?.offerLetter) {
-        if (entry.offerLetter.id.startsWith('local_')) localIdToRemove = entry.offerLetter.id;
-        else docToRemoveId = Number(entry.offerLetter.id);
-      } else if (['experience_letter', 'relieving_letter', 'employment_certificate'].includes(docType) && entry?.experienceLetter) {
-        if (entry.experienceLetter.id.startsWith('local_')) localIdToRemove = entry.experienceLetter.id;
-        else docToRemoveId = Number(entry.experienceLetter.id);
-      } else if (['payslip', 'salary_slip'].includes(docType) && entry?.payslip) {
-        if (entry.payslip.id.startsWith('local_')) localIdToRemove = entry.payslip.id;
-        else docToRemoveId = Number(entry.payslip.id);
-      }
+      const company = entry?.company || '';
+      doc = bgvState.documents.find(d => d.document_type === docType && (d.description || '').toLowerCase().includes(company.toLowerCase()));
     } else if (docType === 'other' && entryId) {
       const entry = localState.additionalDocs.find(e => e.id === entryId);
-      if (entry?.file?.id.startsWith('local_')) localIdToRemove = entry.file.id;
-      else docToRemoveId = Number(entry?.file?.id);
+      const label = entry?.label || '';
+      doc = bgvState.documents.find(d => d.document_type === docType && (d.description || '') === label);
     } else {
-      // Find in identity, address, financial, photo
-      const file = 
-        Object.values(localState.identity).find(f => f && (f.type === docType || f.name.includes(docType))) ||
-        (docType === 'address_proof' ? localState.address.addressProof : null) ||
-        (docType === 'bank_statement' ? localState.financial.bankStatement : null) ||
-        (docType === 'tax_return' ? localState.financial.taxReturn : null) ||
-        (docType === 'photo' ? localState.photo.photo : null);
-
-      if (file?.id.startsWith('local_')) localIdToRemove = file.id;
-      else if (file) docToRemoveId = Number(file.id);
+      doc = bgvState.documents.find(d => d.document_type === docType);
     }
 
-    if (localIdToRemove) {
-      // Remove from pending uploads
-      setPendingUploads(prev => prev.filter(p => p.localId !== localIdToRemove));
-    }
-
-    // Optimistically update local state to clear it from UI immediately
-    if (['aadhaar', 'pan', 'passport', 'voter_id', 'driving_licence'].includes(docType)) {
-      const key = docType === 'voter_id' ? 'voterId' : docType === 'driving_licence' ? 'drivingLicence' : docType;
-      updateState({ identity: { ...localState.identity, [key]: undefined } });
-    } else if (docType === 'address_proof') {
-      updateState({ address: { ...localState.address, addressProof: undefined } });
-    } else if (docType === 'education_certificate' && entryId) {
-      const newEdu = localState.education.map(e => e.id === entryId ? { ...e, document: undefined } : e);
-      updateState({ education: newEdu });
-    } else if (['offer_letter', 'experience_letter', 'payslip', 'salary_slip'].includes(docType) && entryId) {
-      const updatedEmployment = localState.employment.map(e => {
-        if (e.id === entryId) {
-          const updatedEntry = { ...e };
-          if (docType === 'offer_letter') updatedEntry.offerLetter = undefined;
-          else if (['experience_letter', 'relieving_letter', 'employment_certificate'].includes(docType)) updatedEntry.experienceLetter = undefined;
-          else if (docType === 'salary_slip' || docType === 'payslip') updatedEntry.payslip = undefined;
-          return updatedEntry;
-        }
-        return e;
-      });
-      updateState({ employment: updatedEmployment });
-    } else if (docType === 'bank_statement') {
-      updateState({ financial: { ...localState.financial, bankStatement: undefined } });
-    } else if (docType === 'tax_return') {
-      updateState({ financial: { ...localState.financial, taxReturn: undefined } });
-    } else if (docType === 'photo') {
-      updateState({ photo: { photo: undefined } });
-    } else if (docType === 'other' && entryId) {
-      const newOther = localState.additionalDocs.map(e => e.id === entryId ? { ...e, file: undefined } : e);
-      updateState({ additionalDocs: newOther });
-    }
-
-    if (docToRemoveId && !isNaN(docToRemoveId)) {
-      // It's a persisted document, delete from backend
+    if (doc) {
       try {
-        await actions.deleteDocument(docToRemoveId);
+        await actions.deleteDocument(doc.id);
         await actions.getCandidateStatus(candidateId);
       } catch (err) {
         console.error("Delete document error:", err);
       }
-    } else if (!localIdToRemove) {
-      // Fallback to original delete mechanism if we couldn't find it locally or in docToRemoveId
-      let doc = null;
-      if (docType === 'education_certificate' && entryId) {
-        const entry = localState.education.find(e => e.id === entryId);
-        const level = entry?.level || '';
-        doc = bgvState.documents.find(d => d.document_type === docType && (d.description || '').includes(level));
-      } else if (['offer_letter', 'experience_letter', 'payslip'].includes(docType) && entryId) {
-        const entry = localState.employment.find(e => e.id === entryId);
-        const company = entry?.company || '';
-        doc = bgvState.documents.find(d => d.document_type === docType && (d.description || '').toLowerCase().includes(company.toLowerCase()));
-      } else if (docType === 'other' && entryId) {
-        const entry = localState.additionalDocs.find(e => e.id === entryId);
-        const label = entry?.label || '';
-        doc = bgvState.documents.find(d => d.document_type === docType && (d.description || '') === label);
-      } else {
-        doc = bgvState.documents.find(d => d.document_type === docType);
-      }
-
-      if (doc) {
-        try {
-          await actions.deleteDocument(doc.id);
-          await actions.getCandidateStatus(candidateId);
-        } catch (err) {
-          console.error("Delete document error:", err);
-        }
-      }
     }
   };
 
+  const handleRemoveReference = async (id: string) => {
+    if (!isNaN(Number(id))) {
+      try {
+        await actions.deleteReference(Number(id));
+        await actions.getCandidateStatus(candidateId);
+      } catch (err) {
+        console.error("Remove reference error:", err);
+      }
+    } else {
+      // Clean local unsynced item
+      const updated = localState.backgroundCheck.references.filter(r => r.id !== id);
+      updateState({
+        backgroundCheck: {
+          ...localState.backgroundCheck,
+          references: updated.length > 0 ? updated : [{ id: Date.now().toString(), name: '', email: '', phone: '', relationship: '', company: '' }]
+        }
+      });
+    }
+  };
 
+  const syncReferencesOnNavigate = async () => {
+    if (!bgvState.verification) return;
+    
+    const localRefs = localState.backgroundCheck.references.filter(
+      r => r.name && r.email && r.phone && isNaN(Number(r.id))
+    );
+
+    if (localRefs.length > 0) {
+      for (const ref of localRefs) {
+        try {
+          await actions.addReference(bgvState.verification.id, {
+            reference_name: ref.name,
+            reference_email: ref.email,
+            reference_phone: ref.phone,
+            relationship: ref.relationship,
+            company: ref.company,
+          });
+        } catch (err) {
+          console.error("Failed to sync reference:", err);
+        }
+      }
+      await actions.getCandidateStatus(candidateId);
+    }
+  };
 
   const goTo = async (s: number) => {
+    if (step === 6) {
+      await syncReferencesOnNavigate();
+    }
     updateState({ currentStep: s });
   };
 
   const handleSubmitVerification = async () => {
     if (!bgvState.verification) return;
     try {
-      // 1. Bulk upload all pending files sequentially
-      if (pendingUploads.length > 0) {
-        // Upload files using the metadata added during staging
-        await actions.bulkUploadDocuments(
-          bgvState.verification.id,
-          pendingUploads.map(p => ({
-            file: p.file,
-            document_type: p.documentType,
-            description: p.description,
-            metadata: p.metadata
-          }))
-        );
-        // Clear pending uploads
-        setPendingUploads([]);
-      }
-
-      // 2. Submit the verification
       await actions.submitVerification(bgvState.verification.id, candidateName || 'Candidate');
       await actions.getCandidateStatus(candidateId);
     } catch (error) {
@@ -738,13 +532,14 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
   const completedSteps = useMemo(() => {
     const set = new Set<number>();
     if (localState.identity.aadhaar || localState.identity.pan) set.add(0);
-    if (localState.address.addressProof) set.add(1);
-    if (localState.education.some((e) => e.document)) set.add(2);
+    if (localState.address.currentAddress && localState.address.addressProof) set.add(1);
+    if (localState.education.some((e) => e.institution && e.document)) set.add(2);
     if (localState.employment.some((e) => e.company && (e.offerLetter || e.experienceLetter))) set.add(3);
     if (localState.financial.bankStatement || localState.financial.salarySlip) set.add(4);
     if (localState.photo.photo) set.add(5);
-    if (localState.additionalDocs.some((doc) => doc.file)) set.add(6);
-    if (set.size >= 7) set.add(7);
+    if (localState.backgroundCheck.references.some((r) => r.name && r.email)) set.add(6);
+    if (localState.additionalDocs.some((doc) => doc.file && doc.label)) set.add(7);
+    if (set.size >= 8) set.add(8);
     return set;
   }, [localState]);
 
@@ -762,16 +557,133 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
 
   const renderStep = () => {
     switch (step) {
-      case 0: return <IdentityStep data={localState.identity} onChange={(d) => update('identity', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 1: return <AddressStep data={localState.address} onChange={(d) => update('address', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
+      case 0: return (
+        <IdentityStep 
+          data={localState.identity} 
+          onChange={(d) => update('identity', d)} 
+          onUploadDocument={handleUploadDocument} 
+          onDeleteDocument={handleDeleteDocument} 
+          verificationId={bgvState.verification?.id || 0}
+          candidateId={candidateId}
+        />
+      );
+      case 1: return (
+        <AddressStep 
+          data={localState.address} 
+          onChange={(d) => update('address', d)} 
+          onUploadDocument={handleUploadDocument} 
+          onDeleteDocument={handleDeleteDocument} 
+          verificationId={bgvState.verification?.id || 0}
+          candidateId={candidateId}
+        />
+      );
       case 2: return <EducationStep data={localState.education} onChange={(d) => update('education', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 3: return <EmploymentStep data={localState.employment} onChange={(d) => update('employment', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 4: return <FinancialStep data={localState.financial} onChange={(d) => update('financial', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 5: return <PhotoStep data={localState.photo} onChange={(d) => update('photo', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 6: return <AdditionalDocsStep data={localState.additionalDocs} onChange={(d) => update('additionalDocs', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 7: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
+      case 6: return <BackgroundCheckStep data={localState.backgroundCheck} onChange={(d) => update('backgroundCheck', d)} onRemoveReference={handleRemoveReference} />;
+      case 7: return <AdditionalDocsStep data={localState.additionalDocs} onChange={(d) => update('additionalDocs', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
+      case 8: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
       default: return null;
     }
+  };
+
+  const DigiLockerStatusBanner = () => {
+    const [connecting, setConnecting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleConnect = async () => {
+      if (!bgvState.verification) return;
+      try {
+        setConnecting(true);
+        setError(null);
+        await digiLockerActions.connectWithDigiLocker(bgvState.verification.id, candidateId);
+      } catch (err) {
+        console.error('Failed to link DigiLocker:', err);
+        setError(err instanceof Error ? err.message : 'Connection failed');
+      } finally {
+        setConnecting(false);
+      }
+    };
+
+    if (digiLockerState.isConnected && digiLockerState.userDetails) {
+      return (
+        <Card className="mb-6 border-emerald-100 bg-emerald-50/20 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-emerald-950 text-sm flex items-center gap-2">
+                  DigiLocker Account Linked
+                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-[10px] py-0 border-emerald-200">Verified</Badge>
+                </h4>
+                <p className="text-xs text-emerald-800 mt-0.5">
+                  Import verified credentials (Aadhaar, PAN, DL) directly within step upload cards.
+                  Linked ID: <span className="font-mono font-semibold text-emerald-950">{digiLockerState.userDetails.digilockerId}</span>
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => digiLockerActions.disconnect()}
+              variant="outline"
+              size="sm"
+              className="text-emerald-900 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-950 text-xs shrink-0"
+            >
+              Disconnect
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <Card className="mb-6 border-blue-100 bg-blue-50/10 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 flex">
+          <div className="flex-1 bg-[#F97316]" />
+          <div className="flex-1 bg-white" />
+          <div className="flex-1 bg-[#22C55E]" />
+        </div>
+        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
+          <div className="flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
+              <Wifi className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="font-semibold text-blue-900 text-sm flex items-center gap-2">
+                Link DigiLocker to Skip Manual Uploads
+              </h4>
+              <p className="text-xs text-blue-700">
+                Instantly fetch authenticated, government-signed documents directly from your DigiLocker.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0 w-full sm:w-auto">
+            <Button
+              onClick={handleConnect}
+              disabled={connecting}
+              size="sm"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 h-8.5"
+            >
+              {connecting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Shield className="h-3.5 w-3.5 mr-1" />
+                  Link DigiLocker Account
+                </>
+              )}
+            </Button>
+            {error && <p className="text-[10px] text-red-500">{error}</p>}
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -780,12 +692,6 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
       {!bgvState.verification && !isSubmitted && (
         <div className="flex items-center justify-center min-h-screen">
           <Card className="w-full max-w-2xl mx-auto">
-            {bgvState.error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{bgvState.error}</AlertDescription>
-              </Alert>
-            )}
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                 <Shield className="h-8 w-8 text-blue-600" />
@@ -842,7 +748,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
                 
                 <div className="mt-4 flex space-x-3">
                   <Button
-                    onClick={() => handleStartVerification()}
+                    onClick={() => handleStartVerification(undefined, true)}
                     disabled={bgvState.loading}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                   >
@@ -987,11 +893,11 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
                 <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 sm:mt-0 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold text-amber-900 text-sm">
-                    {bgvState.verification.status === 'pending' ? 'Draft Mode - Uploads are saved locally' : 'Editing Mode - Verification Submitted'}
+                    {bgvState.verification.status === 'pending' ? 'Draft Mode - Uploads are immediate' : 'Editing Mode - Verification Submitted'}
                   </h4>
                   <p className="text-xs text-amber-800 mt-0.5">
                     {bgvState.verification.status === 'pending' 
-                      ? 'Your files are analyzed immediately but kept in your browser. When complete, click Submit Verification on the last step to upload them and trigger HR validation emails.' 
+                      ? 'Your files will upload and validate as you navigate steps. When complete, click Submit Verification on the last step to trigger HR validation emails.' 
                       : 'You are editing an already submitted verification. Once you are done making changes, click Submit Verification again to finalize.'}
                   </p>
                 </div>
@@ -1031,36 +937,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId: propCandi
             </Alert>
           )}
 
-          {/* DigiLocker Section on Step 0 or 1 */}
-          {(step === 0 || step === 1) && (
-            <Card className="mb-6 border-blue-200 bg-blue-50/30">
-              <CardContent className="p-4 space-y-4">
-                <div className="flex items-center gap-3">
-                  <Wifi className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-semibold text-blue-900 text-sm">DigiLocker Verification</h4>
-                    <p className="text-xs text-blue-700">Connect to fetch secure government-issued identity and address credentials.</p>
-                  </div>
-                </div>
-                <DigiLockerConnect
-                  verificationId={bgvState.verification.id}
-                  candidateId={candidateId}
-                  onConnected={(details) => console.log('DigiLocker connected', details)}
-                  onDocumentFetched={() => actions.getCandidateStatus(candidateId)}
-                />
-                {digiLockerState.isConnected && (
-                  <DigiLockerDocumentFetcher
-                    verificationId={bgvState.verification.id}
-                    candidateId={candidateId}
-                    documentType={step === 0 ? 'identity' : 'address'}
-                    onDocumentFetched={() => actions.getCandidateStatus(candidateId)}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           <VerificationHeader completedSteps={completedSteps} />
+
+          <DigiLockerStatusBanner />
 
           <div className="flex gap-6 mt-6">
             <div className="hidden lg:block w-80 flex-shrink-0">
