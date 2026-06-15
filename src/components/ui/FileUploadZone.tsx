@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, FileText, CheckCircle, AlertCircle, Clock, Brain } from 'lucide-react';
+import { Upload, X, FileText, CheckCircle, AlertCircle, Clock, Brain, Loader2 } from 'lucide-react';
 import { Button } from './button';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
@@ -8,7 +8,7 @@ import { Progress } from './progress';
 import { UploadedFile } from '@/types/verification';
 
 interface FileUploadZoneProps {
-  onFileUpload: (file: UploadedFile, rawFile: File) => void;
+  onFileUpload: (file: UploadedFile, rawFile: File) => Promise<boolean | void> | void;
   onFileRemove?: () => void;
   uploadedFile?: UploadedFile;
   accept?: string;
@@ -31,6 +31,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
   aiChecks = []
 }) => {
   const [error, setError] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setError('');
@@ -51,7 +52,18 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
       type: file.type
     };
 
-    onFileUpload(uploadedFile, file);
+    const doUpload = async () => {
+      setIsUploading(true);
+      try {
+        await onFileUpload(uploadedFile, file);
+      } catch (err) {
+        setError('Upload failed. Please try again.');
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    
+    doUpload();
   }, [onFileUpload, maxSize]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -222,17 +234,40 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
 
             {/* Validation Details */}
             {uploadedFile.validation_details && Object.keys(uploadedFile.validation_details).length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Validation Details:</p>
-                <div className="bg-gray-50 rounded p-2 text-xs space-y-1">
-                  {Object.entries(uploadedFile.validation_details).slice(0, 3).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="capitalize">{key.replace('_', ' ')}:</span>
-                      <span className="text-muted-foreground truncate ml-2">
-                        {typeof value === 'string' ? value : JSON.stringify(value)}
-                      </span>
-                    </div>
-                  ))}
+              <div className="space-y-2 mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs font-semibold text-gray-700">Extracted Information:</p>
+                <div className="bg-white rounded-lg p-3 text-xs space-y-2 border border-gray-200 shadow-sm">
+                  {Object.entries(uploadedFile.validation_details)
+                    .filter(([key]) => key !== 'score' && key !== 'clarity_score' && key !== 'improvement_suggestions' && key !== 'summary')
+                    .slice(0, 5).map(([key, value]) => {
+                      // Formatting the key
+                      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      
+                      // Formatting the value
+                      let formattedValue = '';
+                      if (typeof value === 'boolean') {
+                        formattedValue = value ? '✅ Yes' : '❌ No';
+                      } else if (typeof value === 'object' && value !== null) {
+                        if (Array.isArray(value)) {
+                          formattedValue = value.length > 0 ? value.join(', ') : 'None';
+                        } else {
+                          // For nested objects like required_fields_detected
+                          const truthyKeys = Object.entries(value as Record<string, any>).filter(([_, v]) => v).map(([k]) => k.replace(/_/g, ' '));
+                          formattedValue = truthyKeys.length > 0 ? truthyKeys.join(', ') : 'None';
+                        }
+                      } else {
+                        formattedValue = String(value);
+                      }
+
+                      return (
+                        <div key={key} className="flex justify-between items-start border-b border-gray-50 pb-1.5 last:border-0 last:pb-0">
+                          <span className="font-medium text-gray-500">{formattedKey}</span>
+                          <span className="text-gray-900 text-right ml-4 max-w-[60%] truncate font-medium" title={String(value)}>
+                            {formattedValue}
+                          </span>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -246,21 +281,37 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
                 : 'border-border hover:border-primary/50 hover:bg-muted/25'
             }`}
           >
-            <input {...getInputProps()} />
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <div className="space-y-2">
-              <p className="text-sm font-medium">
-                {isDragActive ? 'Drop your file here' : title || 'Click to upload or drag and drop'}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {description || `PDF, JPG, PNG up to ${formatFileSize(maxSize)}`}
-              </p>
-              {required && (
-                <Badge variant="destructive" className="text-xs">
-                  Required
-                </Badge>
-              )}
-            </div>
+            <input {...getInputProps()} disabled={isUploading} />
+            {isUploading ? (
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="relative flex items-center justify-center w-12 h-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+                  <Loader2 className="w-4 h-4 text-primary animate-spin absolute" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-900">Uploading & Analysing...</p>
+                  <p className="text-xs text-primary/70 mt-1">Running AI validation</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">
+                    {isDragActive ? 'Drop your file here' : title || 'Click to upload or drag and drop'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {description || `PDF, JPG, PNG up to ${formatFileSize(maxSize)}`}
+                  </p>
+                  {required && (
+                    <Badge variant="destructive" className="text-xs">
+                      Required
+                    </Badge>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         )}
         

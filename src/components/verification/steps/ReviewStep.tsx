@@ -31,8 +31,7 @@ const stepIcons = {
   3: Briefcase,
   4: Landmark,
   5: Camera,
-  6: ShieldCheck,
-  7: FolderPlus,
+  6: FolderPlus,
 };
 
 const stepTitles = [
@@ -42,7 +41,6 @@ const stepTitles = [
   'Employment Verification',
   'Financial Verification',
   'Photo Verification',
-  'Background Check',
   'Additional Documents'
 ];
 
@@ -89,7 +87,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
     return count;
   };
 
-  const isReadyToSubmit = completedSteps.size >= 8; // At least 8 steps completed
+  const isReadyToSubmit = completedSteps.size >= 7; // At least 7 steps completed
 
   const getStepSummary = (stepIndex: number) => {
     switch (stepIndex) {
@@ -121,12 +119,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
       case 5: // Photo
         return state.photo.photo ? 'Photo uploaded' : 'No photo';
       
-      case 6: // Background Check
-        const hasConsent = state.backgroundCheck.consentGiven;
-        const hasReferences = state.backgroundCheck.references.some(ref => ref.name && ref.email);
-        return hasConsent && hasReferences ? 'Consent and references provided' : 'Incomplete';
-      
-      case 7: // Additional Docs
+      case 6: // Additional Docs
         const addDocs = state.additionalDocs.filter(doc => doc.file).length;
         return `${addDocs} additional document${addDocs !== 1 ? 's' : ''}`;
       
@@ -275,7 +268,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <h4 className="font-medium text-amber-900 mb-2">Almost There!</h4>
                 <p className="text-sm text-amber-800">
-                  Complete {9 - completedSteps.size} more step{(9 - completedSteps.size) !== 1 ? 's' : ''} to submit your verification.
+                  Complete {8 - completedSteps.size} more step{(8 - completedSteps.size) !== 1 ? 's' : ''} to submit your verification.
                 </p>
               </div>
               

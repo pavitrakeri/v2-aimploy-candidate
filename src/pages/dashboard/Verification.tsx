@@ -21,6 +21,15 @@ import { useDigiLocker, DigiLockerProvider } from '../../contexts/DigiLockerCont
 import { useSidebar } from '@/contexts/SidebarContext';
 import { bgvApi } from '../../services/bgv-api';
 
+interface PendingDocument {
+  id: string;
+  file: File;
+  documentType: string;
+  description: string;
+  metadata?: any;
+  analysisResult?: any;
+}
+
 interface VerificationProps {
   candidateId: number;
   candidateName?: string;
@@ -48,11 +57,26 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     hr_email: '',
     manager_name: '',
   });
+  const handleCloseEmploymentModal = () => {
+    setShowEmploymentModal(false);
+    if (employmentUploadPromise) {
+      employmentUploadPromise.resolve(false);
+      setEmploymentUploadPromise(null);
+    }
+  };
   const [showEmploymentModal, setShowEmploymentModal] = useState(false);
+  const [employmentUploadPromise, setEmploymentUploadPromise] = useState<{resolve: (val: boolean) => void} | null>(null);
   const [activeUploadFile, setActiveUploadFile] = useState<{ file: File; documentType: string; entryId?: string } | null>(null);
 
   // Live HR email verification status from backend
   const [hrStatus, setHrStatus] = useState<any>(null);
+
+  // Upload progress tracking
+  const [uploadingFile, setUploadingFile] = useState<{ name: string; docType: string } | null>(null);
+  const [isSubmittingDocs, setIsSubmittingDocs] = useState<{ name: string; docType: string } | null>(null);
+
+  // Pending documents kept in memory until Final Submit
+  const [pendingDocuments, setPendingDocuments] = useState<PendingDocument[]>([]);
 
   // Sync candidate verification details from BGVContext on mount and state changes
   useEffect(() => {
@@ -74,7 +98,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       }
     };
     fetchHRStatus();
-  }, [bgvState.verification?.id, bgvState.verification?.status]);
+  }, [bgvState.verification]);
 
   // Scroll to top on step change
   useEffect(() => {
@@ -85,7 +109,27 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
   useEffect(() => {
     if (!bgvState.verification) return;
 
-    const docs = bgvState.documents;
+    // Merge pending local documents with backend documents for UI display
+    const pseudoDocs = pendingDocuments.map(p => {
+      console.log('Mapping pseudoDoc:', p);
+      return {
+        id: p.id,
+        document_type: p.documentType,
+        description: p.description,
+        file_name: p.file.name,
+        file_size: p.file.size,
+        validation_score: p.analysisResult?.ai_analysis?.score ?? p.analysisResult?.score,
+        validation_status: p.analysisResult?.status || 'uploaded',
+        validation_details: {
+          ...(p.metadata || {}),
+          ...(p.analysisResult?.ai_analysis?.validation_details || {}),
+          ...(p.analysisResult?.ai_analysis?.required_fields_detected || {}),
+          ...(p.analysisResult?.validation_details || {})
+        },
+      };
+    });
+
+    const docs = [...pseudoDocs, ...bgvState.documents];
     const refs = bgvState.references;
 
     const mapDoc = (type: string, descriptionMatch?: string): UploadedFile | undefined => {
@@ -98,190 +142,290 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       });
 
       if (!doc) return undefined;
+      // Map backend validation_status to frontend status
+      // 'uploaded' / 'pending' / 'processing' = still pending
+      // 'approved' / 'verified' = verified
+      // 'needs_review' = needs_review
+      // 'rejected' = rejected
+      // If there's a validation_score but no meaningful status, treat as verified
+      const backendStatus = doc.validation_status;
+      let frontendStatus: 'pending' | 'verified' | 'rejected' | 'needs_review' = 'pending';
+      if (backendStatus === 'approved') frontendStatus = 'verified';
+      else if (backendStatus === 'needs_review') frontendStatus = 'needs_review';
+      else if (backendStatus === 'rejected') frontendStatus = 'rejected';
+      else if (backendStatus === 'processing') frontendStatus = 'pending';
+      else if (doc.validation_score !== undefined && doc.validation_score !== null) {
+        // Has a score but status is 'uploaded' or similar — show it
+        frontendStatus = doc.validation_score >= 80 ? 'verified' : doc.validation_score >= 50 ? 'needs_review' : 'rejected';
+      }
       return {
         id: doc.id.toString(),
         name: doc.file_name,
         size: doc.file_size,
         type: 'application/octet-stream',
         validation_score: doc.validation_score,
-        validation_status: doc.validation_status === 'processing'
-          ? 'pending'
-          : doc.validation_status === 'approved'
-            ? 'verified'
-            : doc.validation_status === 'rejected'
-              ? 'rejected'
-              : 'pending',
+        validation_status: frontendStatus,
         validation_details: doc.validation_details,
         analysis_method: 'openai_analysis'
       };
     };
 
-    // Identity docs mapping
-    const identity = {
-      aadhaar: mapDoc('aadhaar'),
-      pan: mapDoc('pan'),
-      passport: mapDoc('passport'),
-      voterId: mapDoc('voter_id'),
-      drivingLicence: mapDoc('driving_licence'),
-    };
+    setLocalState(prev => {
+      // Identity docs mapping
+      const identity = {
+        aadhaar: mapDoc('aadhaar'),
+        pan: mapDoc('pan'),
+        passport: mapDoc('passport'),
+        voterId: mapDoc('voter_id'),
+        drivingLicence: mapDoc('driving_licence'),
+      };
 
-    // Address proof and text values reconstruction
+      // Address proof and text values reconstruction
     const addressProof = mapDoc('address_proof');
-    let address = { ...initialState.address };
-    if (addressProof && addressProof.validation_details) {
-      const details = addressProof.validation_details;
-      address = {
-        currentAddress: details.currentAddress || address.currentAddress,
-        currentCity: details.currentCity || address.currentCity,
-        currentState: details.currentState || address.currentState,
-        currentPincode: details.currentPincode || address.currentPincode,
-        permanentAddress: details.permanentAddress || address.permanentAddress,
-        permanentCity: details.permanentCity || address.permanentCity,
-        permanentState: details.permanentState || address.permanentState,
-        permanentPincode: details.permanentPincode || address.permanentPincode,
-        sameAsCurrent: details.sameAsCurrent !== undefined ? details.sameAsCurrent : address.sameAsCurrent,
-        addressProof
-      };
-    }
-
-    // Education entries mapping
-    const education = initialState.education.map(entry => {
-      const doc = mapDoc('education_certificate', entry.level);
-      if (doc) {
-        const details = doc.validation_details || {};
-        return {
-          ...entry,
-          institution: details.institution || entry.institution,
-          board: details.board || entry.board,
-          year: details.year || entry.year,
-          percentage: details.percentage || entry.percentage,
-          document: doc
+      let address = { ...prev.address };
+      if (addressProof && addressProof.validation_details) {
+        const details = addressProof.validation_details;
+        address = {
+          currentAddress: prev.address.currentAddress || details.currentAddress || '',
+          currentCity: prev.address.currentCity || details.currentCity || '',
+          currentState: prev.address.currentState || details.currentState || '',
+          currentPincode: prev.address.currentPincode || details.currentPincode || '',
+          permanentAddress: prev.address.permanentAddress || details.permanentAddress || '',
+          permanentCity: prev.address.permanentCity || details.permanentCity || '',
+          permanentState: prev.address.permanentState || details.permanentState || '',
+          permanentPincode: prev.address.permanentPincode || details.permanentPincode || '',
+          sameAsCurrent: details.sameAsCurrent !== undefined ? details.sameAsCurrent : prev.address.sameAsCurrent,
+          addressProof
         };
+      } else if (addressProof) {
+        address.addressProof = addressProof;
+      } else {
+        address.addressProof = undefined;
       }
-      return entry;
-    });
 
-    // Employment entries mapping
-    const empDocs = docs.filter(d => 
-      ['offer_letter', 'experience_letter', 'relieving_letter', 'employment_certificate', 'payslip', 'salary_slip'].includes(d.document_type)
-    );
+      // Education entries mapping
+      const education = prev.education.map(entry => {
+        const doc = mapDoc('education_certificate', entry.level);
+        if (doc) {
+          const details = doc.validation_details || {};
+          return {
+            ...entry,
+            institution: entry.institution || details.institution || '',
+            board: entry.board || details.board || '',
+            year: entry.year || details.year || '',
+            percentage: entry.percentage || details.percentage || '',
+            document: doc
+          };
+        }
+        return { ...entry, document: undefined };
+      });
 
-    const companiesMap = new Map<string, {
-      company: string;
-      designation: string;
-      fromDate: string;
-      toDate: string;
-      offerLetter?: UploadedFile;
-      experienceLetter?: UploadedFile;
-      payslip?: UploadedFile;
-    }>();
+      // Employment entries mapping
+      const empDocs = docs.filter(d => 
+        ['offer_letter', 'experience_letter', 'relieving_letter', 'employment_certificate', 'payslip', 'salary_slip'].includes(d.document_type)
+      );
 
-    empDocs.forEach(d => {
-      const details = d.validation_details || {};
-      const companyName = details.company_declared || (d.description && d.description.includes(' - ') ? d.description.split(' - ')[1] : '') || 'General';
-      const cleanName = companyName.trim();
-      if (!cleanName) return;
+      let baseEmployment = prev.employment;
+      // If the UI just loaded with the default empty entry, but we have employment docs from the server, reconstruct the entries
+      if (baseEmployment.length === 1 && !baseEmployment[0].company && empDocs.length > 0) {
+        const companies = new Set<string>();
+        empDocs.forEach(d => {
+          const details = d.validation_details || {};
+          const cName = details.company_declared || (d.description && d.description.includes(' - ') ? d.description.split(' - ')[1] : '') || '';
+          if (cName) companies.add(cName.trim());
+        });
+        
+        if (companies.size > 0) {
+          baseEmployment = Array.from(companies).map((cName, idx) => ({
+            id: (idx + 1).toString(),
+            company: cName,
+            designation: '',
+            fromDate: '',
+            toDate: '',
+            managerName: '',
+            hrEmail: ''
+          }));
+        }
+      }
 
-      const docObj: UploadedFile = {
-        id: d.id.toString(),
-        name: d.file_name,
-        size: d.file_size,
-        type: 'application/octet-stream',
-        validation_score: d.validation_score,
-        validation_status: d.validation_status === 'processing'
-          ? 'pending'
-          : d.validation_status === 'approved'
-            ? 'verified'
-            : d.validation_status === 'rejected'
-              ? 'rejected'
-              : 'pending',
-        validation_details: d.validation_details,
-        analysis_method: 'openai_analysis'
+      const employment = baseEmployment.map(entry => {
+        const newEntry = { ...entry };
+        
+        const matchDoc = (typeList: string[]) => {
+          const d = empDocs.find(doc => {
+            if (!typeList.includes(doc.document_type)) return false;
+            const details = doc.validation_details || {};
+            
+            console.log('matchDoc considering:', { docId: doc.id, docType: doc.document_type, docEntryId: details.entryId, targetEntryId: entry.id });
+            
+            // First try matching by entryId (most reliable for local uploads)
+            if (details.entryId && String(details.entryId) === String(entry.id)) {
+              console.log('matchDoc matched by entryId!');
+              return true;
+            }
+            
+            // Fallback to matching by company name
+            const companyName = details.company_declared || (doc.description && doc.description.includes(' - ') ? doc.description.split(' - ')[1] : '') || '';
+            if (!entry.company) return false;
+            
+            const match = companyName.toLowerCase().trim() === entry.company.toLowerCase().trim();
+            if (match) console.log('matchDoc matched by company name!');
+            return match;
+          });
+          
+          if (d) {
+            const bStatus = d.validation_status;
+            let frontendStatus: UploadedFile['validation_status'] = 'pending';
+            if (bStatus === 'approved') frontendStatus = 'verified';
+            else if (bStatus === 'needs_review') frontendStatus = 'needs_review';
+            else if (bStatus === 'rejected') frontendStatus = 'rejected';
+            else if (bStatus === 'processing') frontendStatus = 'pending';
+            else if (d.validation_score !== undefined && d.validation_score !== null) {
+              frontendStatus = d.validation_score >= 80 ? 'verified' : d.validation_score >= 50 ? 'needs_review' : 'rejected';
+            }
+
+            return {
+              id: d.id.toString(),
+              name: d.file_name,
+              size: d.file_size,
+              type: 'application/octet-stream',
+              validation_score: d.validation_score,
+              validation_status: frontendStatus,
+              validation_details: d.validation_details,
+              analysis_method: 'openai_analysis'
+            } as UploadedFile;
+          }
+          return undefined;
+        };
+
+        newEntry.offerLetter = matchDoc(['offer_letter']);
+        newEntry.experienceLetter = matchDoc(['experience_letter', 'relieving_letter', 'employment_certificate']);
+        newEntry.payslip = matchDoc(['payslip', 'salary_slip']);
+
+        // Auto-fill details if empty
+        const entryDocs = empDocs.filter(d => {
+            const details = d.validation_details || {};
+            if (details.entryId && String(details.entryId) === String(entry.id)) return true;
+            
+            const companyName = details.company_declared || (d.description && d.description.includes(' - ') ? d.description.split(' - ')[1] : '') || '';
+            if (!entry.company) return false;
+            return companyName.toLowerCase().trim() === entry.company.toLowerCase().trim();
+        });
+        
+        entryDocs.forEach(d => {
+          const details = d.validation_details || {};
+          if (!newEntry.company && details.company_declared) newEntry.company = details.company_declared;
+          if (!newEntry.designation && details.designation_declared) newEntry.designation = details.designation_declared;
+          if (!newEntry.fromDate && details.joining_date_declared) newEntry.fromDate = details.joining_date_declared.substring(0, 7);
+          if (!newEntry.toDate && details.leaving_date_declared) newEntry.toDate = details.leaving_date_declared.substring(0, 7);
+        });
+
+        return newEntry;
+      });
+
+      // Financial mapping
+      const financial = {
+        bankStatement: mapDoc('bank_statement'),
+        salarySlip: mapDoc('salary_slip'),
+        taxReturn: mapDoc('tax_return'),
       };
 
-      const existing = companiesMap.get(cleanName) || {
-        company: cleanName,
-        designation: details.designation_declared || '',
-        fromDate: details.joining_date_declared ? details.joining_date_declared.substring(0, 7) : '',
-        toDate: details.leaving_date_declared ? details.leaving_date_declared.substring(0, 7) : '',
+      // Photo mapping
+      const photo = {
+        photo: mapDoc('photo'),
       };
 
-      if (d.document_type === 'offer_letter') {
-        existing.offerLetter = docObj;
-      } else if (d.document_type === 'experience_letter' || d.document_type === 'relieving_letter' || d.document_type === 'employment_certificate') {
-        existing.experienceLetter = docObj;
-      } else if (d.document_type === 'payslip' || d.document_type === 'salary_slip') {
-        existing.payslip = docObj;
-      }
+      // References list mapping
+      const references = refs.map(r => ({
+        id: r.id.toString(),
+        name: r.reference_name,
+        email: r.reference_email,
+        phone: r.reference_phone || '',
+        relationship: r.relationship,
+        company: r.company || '',
+      }));
 
-      if (details.designation_declared && !existing.designation) {
-        existing.designation = details.designation_declared;
-      }
-      if (details.joining_date_declared && !existing.fromDate) {
-        existing.fromDate = details.joining_date_declared.substring(0, 7);
-      }
-      if (details.leaving_date_declared && !existing.toDate) {
-        existing.toDate = details.leaving_date_declared.substring(0, 7);
-      }
+      // Additional Docs mapping — match by entryId in metadata, then by label
+      const otherDocs = docs.filter(d => d.document_type === 'other');
+      const mappedEntryIds = new Set<string>();
 
-      companiesMap.set(cleanName, existing);
+      const additionalDocs = prev.additionalDocs.map(doc => {
+        // Try match by entryId stored in metadata first
+        let backendDoc = otherDocs.find(d => (d.validation_details as any)?.entryId === doc.id);
+        // Fallback: match by label/description
+        if (!backendDoc && doc.label) {
+          backendDoc = otherDocs.find(d => (d.description || '') === doc.label || (d.description || '').startsWith(`doc_`));
+        }
+        if (backendDoc) {
+          mappedEntryIds.add(backendDoc.id.toString());
+          const bStatus = backendDoc.validation_status;
+          const score = backendDoc.validation_score;
+          const frontendStatus: UploadedFile['validation_status'] =
+            bStatus === 'approved' ? 'verified' :
+            bStatus === 'needs_review' ? 'needs_review' :
+            bStatus === 'rejected' ? 'rejected' :
+            (score !== undefined && score !== null) ? (score >= 80 ? 'verified' : score >= 50 ? 'needs_review' : 'rejected') : 'pending';
+          return {
+            ...doc,
+            file: {
+              id: backendDoc.id.toString(),
+              name: backendDoc.file_name,
+              size: backendDoc.file_size,
+              type: 'application/octet-stream',
+              validation_score: score,
+              validation_status: frontendStatus,
+              validation_details: backendDoc.validation_details,
+              analysis_method: 'openai_analysis'
+            }
+          };
+        }
+        return { ...doc, file: undefined };
+      });
+
+      // Add any backend 'other' docs that aren't matched to existing cards
+      const unmatchedOtherDocs = otherDocs.filter(d => !mappedEntryIds.has(d.id.toString()));
+      unmatchedOtherDocs.forEach(d => {
+        const score = d.validation_score;
+        const bStatus = d.validation_status;
+        const frontendStatus: UploadedFile['validation_status'] =
+          bStatus === 'approved' ? 'verified' :
+          bStatus === 'needs_review' ? 'needs_review' :
+          bStatus === 'rejected' ? 'rejected' :
+          (score !== undefined && score !== null) ? (score >= 80 ? 'verified' : score >= 50 ? 'needs_review' : 'rejected') : 'pending';
+        additionalDocs.push({
+          id: d.id.toString(),
+          label: d.description || 'Additional Document',
+          file: {
+            id: d.id.toString(),
+            name: d.file_name,
+            size: d.file_size,
+            type: 'application/octet-stream',
+            validation_score: score,
+            validation_status: frontendStatus,
+            validation_details: d.validation_details,
+            analysis_method: 'openai_analysis'
+          }
+        });
+      });
+
+      return {
+        ...prev,
+        identity,
+        address,
+        education,
+        employment,
+        financial,
+        photo,
+        backgroundCheck: {
+          ...prev.backgroundCheck,
+          references: references.length > 0 ? references : prev.backgroundCheck.references,
+          consentGiven: bgvState.verification?.consent_given ?? prev.backgroundCheck.consentGiven,
+          noCriminalRecord: bgvState.verification?.no_criminal_record ?? prev.backgroundCheck.noCriminalRecord,
+        },
+        additionalDocs,
+      };
     });
-
-    let employment: EmploymentEntry[] = Array.from(companiesMap.values()).map((comp, idx) => ({
-      id: (idx + 1).toString(),
-      ...comp
-    }));
-
-    if (employment.length === 0) {
-      employment = [...initialState.employment];
-    }
-
-    // Financial mapping
-    const financial = {
-      bankStatement: mapDoc('bank_statement'),
-      salarySlip: mapDoc('salary_slip'),
-      taxReturn: mapDoc('tax_return'),
-    };
-
-    // Photo mapping
-    const photo = {
-      photo: mapDoc('photo'),
-    };
-
-    // References list mapping
-    const references = refs.map(r => ({
-      id: r.id.toString(),
-      name: r.reference_name,
-      email: r.reference_email,
-      phone: r.reference_phone || '',
-      relationship: r.relationship,
-      company: r.company || '',
-    }));
-
-    // Additional Docs mapping
-    // Map files whose description matches the doc labels
-    const additionalDocs = initialState.additionalDocs.map(doc => {
-      const mapped = mapDoc('other', doc.label);
-      return mapped ? { ...doc, file: mapped } : doc;
-    });
-
-    setLocalState(prev => ({
-      ...prev,
-      identity,
-      address,
-      education,
-      employment,
-      financial,
-      photo,
-      backgroundCheck: {
-        ...prev.backgroundCheck,
-        references: references.length > 0 ? references : prev.backgroundCheck.references,
-        consentGiven: bgvState.verification?.consent_given ?? prev.backgroundCheck.consentGiven,
-        noCriminalRecord: bgvState.verification?.no_criminal_record ?? prev.backgroundCheck.noCriminalRecord,
-      },
-      additionalDocs,
-    }));
-  }, [bgvState.documents, bgvState.references, bgvState.verification]);
+  }, [bgvState.documents, bgvState.references, bgvState.verification, pendingDocuments]);
 
   const update = useCallback(<K extends keyof VerificationState>(key: K, value: VerificationState[K]) => {
     updateState({ [key]: value });
@@ -292,7 +436,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
   }, []);
 
   const handleStartVerification = async (
-    types: string[] = ['identity', 'address', 'education', 'employment', 'financial', 'criminal', 'reference'],
+    types: string[] = ['identity', 'address', 'education', 'employment', 'financial'],
     connectDigiLocker = false
   ) => {
     try {
@@ -338,6 +482,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
         }
       }
       setShowEmploymentModal(true);
+      return new Promise<boolean>((resolve) => {
+        setEmploymentUploadPromise({ resolve });
+      });
     } else {
       try {
         let description = `Uploaded ${docType}`;
@@ -369,12 +516,39 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
           };
         } else if (docType === 'other' && entryId) {
           const entry = localState.additionalDocs.find(e => e.id === entryId);
-          if (entry) description = entry.label;
+          // Use label as description, fall back to entryId so we can always match back
+          if (entry) description = entry.label || `doc_${entryId}`;
+          else description = `doc_${entryId}`;
+          metadata = { entryId };
         }
-        await actions.uploadDocument(bgvState.verification.id, file, docType, description, false, metadata);
-        await actions.getCandidateStatus(candidateId);
-      } catch (err) {
+        setUploadingFile({ name: file.name, docType });
+        const analysisResult = await actions.analyzeDocument(file, docType);
+        console.log("Analyze result for", docType, ":", analysisResult);
+        
+        setPendingDocuments(prev => {
+          // Replace any existing pending document for the same docType & entryId
+          const filtered = prev.filter(p => {
+            if (p.documentType !== docType) return true;
+            if (entryId) return p.metadata?.entryId !== entryId;
+            return false; // If same docType and no entryId, replace it
+          });
+          
+          return [...filtered, {
+            id: Date.now().toString(),
+            file,
+            documentType: docType,
+            description,
+            metadata,
+            analysisResult
+          }];
+        });
+        return true;
+      } catch (err: any) {
         console.error("Document upload error:", err);
+        alert(`Upload failed: ${err.message || 'Unknown error'}`);
+        return false;
+      } finally {
+        setUploadingFile(null);
       }
     }
   };
@@ -407,14 +581,27 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
         manager_name: employmentForm.manager_name || null,
       };
 
-      await actions.uploadDocument(
-        bgvState.verification.id,
-        activeUploadFile.file,
-        activeUploadFile.documentType,
-        `Uploaded ${activeUploadFile.documentType} - ${employmentForm.company_declared}`,
-        true, // skip validation
-        metadata
-      );
+      setUploadingFile({ name: activeUploadFile.file.name, docType: activeUploadFile.documentType });
+      const analysisResult = await actions.analyzeDocument(activeUploadFile.file, activeUploadFile.documentType);
+      
+      setPendingDocuments(prev => {
+        // Replace any existing pending document for the same docType & entryId
+        const filtered = prev.filter(p => {
+          if (p.documentType !== activeUploadFile.documentType) return true;
+          if (activeUploadFile.entryId) return p.metadata?.entryId !== activeUploadFile.entryId;
+          return false; // If same docType and no entryId, replace it
+        });
+        
+        return [...filtered, {
+          id: Date.now().toString(),
+          file: activeUploadFile.file,
+          documentType: activeUploadFile.documentType,
+          description: `Uploaded ${activeUploadFile.documentType} - ${employmentForm.company_declared}`,
+          metadata,
+          analysisResult
+        }];
+      });
+      console.log('handleEmploymentSubmit finished. metadata:', metadata, 'analysisResult:', analysisResult);
       
       // Update local text fields if mapped to an entry
       if (activeUploadFile.entryId) {
@@ -432,14 +619,33 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
         updateState({ employment: updatedEmployment });
       }
 
-      await actions.getCandidateStatus(candidateId);
+      if (employmentUploadPromise) {
+        employmentUploadPromise.resolve(true);
+        setEmploymentUploadPromise(null);
+      }
       setActiveUploadFile(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Employment upload error:', error);
+      alert(`Upload failed: ${error.message || 'Unknown error'}`);
+    } finally {
+      setUploadingFile(null);
     }
   };
 
   const handleDeleteDocument = async (docType: string, entryId?: string) => {
+    // 1. Check if it's a pending document (local only)
+    const pendingIndex = pendingDocuments.findIndex(p => {
+      if (p.documentType !== docType) return false;
+      if (entryId) return p.metadata?.entryId === entryId;
+      return true;
+    });
+
+    if (pendingIndex >= 0) {
+      setPendingDocuments(prev => prev.filter((_, i) => i !== pendingIndex));
+      return; // It was local, successfully removed
+    }
+
+    // 2. Fallback to deleting from backend
     let doc = null;
     if (docType === 'education_certificate' && entryId) {
       const entry = localState.education.find(e => e.id === entryId);
@@ -513,33 +719,58 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
   };
 
   const goTo = async (s: number) => {
-    if (step === 6) {
-      await syncReferencesOnNavigate();
-    }
     updateState({ currentStep: s });
   };
 
   const handleSubmitVerification = async () => {
     if (!bgvState.verification) return;
     try {
+      // 1. Upload all pending documents first
+      if (pendingDocuments.length > 0) {
+        for (const pd of pendingDocuments) {
+          setIsSubmittingDocs({ name: pd.file.name, docType: pd.documentType });
+          await actions.uploadDocument(
+            bgvState.verification.id,
+            pd.file,
+            pd.documentType,
+            pd.description,
+            true, // skip validation since we did it with analyzeDocument, or just false
+            pd.metadata
+          );
+        }
+        setPendingDocuments([]);
+      }
+
+      // 2. Finally submit the verification
+      setIsSubmittingDocs({ name: "Finalizing", docType: "Submitting Verification" });
       await actions.submitVerification(bgvState.verification.id, candidateName || 'Candidate');
       await actions.getCandidateStatus(candidateId);
     } catch (error) {
       console.error('Failed to submit verification:', error);
+    } finally {
+      setIsSubmittingDocs(null);
     }
   };
 
   const completedSteps = useMemo(() => {
     const set = new Set<number>();
-    if (localState.identity.aadhaar || localState.identity.pan) set.add(0);
-    if (localState.address.currentAddress && localState.address.addressProof) set.add(1);
-    if (localState.education.some((e) => e.institution && e.document)) set.add(2);
-    if (localState.employment.some((e) => e.company && (e.offerLetter || e.experienceLetter))) set.add(3);
-    if (localState.financial.bankStatement || localState.financial.salarySlip) set.add(4);
+    // Step 0: Identity - need at least one identity doc
+    if (localState.identity.aadhaar || localState.identity.pan || localState.identity.passport || localState.identity.voterId || localState.identity.drivingLicence) set.add(0);
+    // Step 1: Address - need address proof (text fields optional)
+    if (localState.address.addressProof) set.add(1);
+    // Step 2: Education - need at least one education doc OR institution filled
+    if (localState.education.some((e) => e.document || e.institution)) set.add(2);
+    // Step 3: Employment - need at least one employment doc OR company name filled
+    if (localState.employment.some((e) => e.company && (e.offerLetter || e.experienceLetter || e.payslip))) set.add(3);
+    // Step 4: Financial - at least one financial doc
+    if (localState.financial.bankStatement || localState.financial.salarySlip || localState.financial.taxReturn) set.add(4);
+    // Step 5: Photo
     if (localState.photo.photo) set.add(5);
-    if (localState.backgroundCheck.references.some((r) => r.name && r.email)) set.add(6);
-    if (localState.additionalDocs.some((doc) => doc.file && doc.label)) set.add(7);
-    if (set.size >= 8) set.add(8);
+    // Step 6: Additional Docs - optional, mark done if has any OR if no docs added (skippable)
+    if (localState.additionalDocs.length === 0 || localState.additionalDocs.some((doc) => doc.file)) set.add(6);
+    // Step 7: Review - unlocked when all mandatory steps done (0,1,2,3,4,5)
+    const mandatoryStepsDone = set.has(0) && set.has(1) && set.has(2) && set.has(3) && set.has(4) && set.has(5);
+    if (mandatoryStepsDone) set.add(7);
     return set;
   }, [localState]);
 
@@ -581,9 +812,8 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       case 3: return <EmploymentStep data={localState.employment} onChange={(d) => update('employment', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 4: return <FinancialStep data={localState.financial} onChange={(d) => update('financial', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
       case 5: return <PhotoStep data={localState.photo} onChange={(d) => update('photo', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 6: return <BackgroundCheckStep data={localState.backgroundCheck} onChange={(d) => update('backgroundCheck', d)} onRemoveReference={handleRemoveReference} />;
-      case 7: return <AdditionalDocsStep data={localState.additionalDocs} onChange={(d) => update('additionalDocs', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
-      case 8: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
+      case 6: return <AdditionalDocsStep data={localState.additionalDocs} onChange={(d) => update('additionalDocs', d)} onUploadDocument={handleUploadDocument} onDeleteDocument={handleDeleteDocument} />;
+      case 7: return <ReviewStep state={localState} completedSteps={completedSteps} onGoToStep={goTo} />;
       default: return null;
     }
   };
@@ -893,12 +1123,12 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 sm:mt-0 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold text-amber-900 text-sm">
-                    {bgvState.verification.status === 'pending' ? 'Draft Mode - Uploads are immediate' : 'Editing Mode - Verification Submitted'}
+                    {bgvState.verification.status === 'pending' ? 'Draft Mode - Uploads are immediate' : 'Editing Mode — Documents updated'}
                   </h4>
                   <p className="text-xs text-amber-800 mt-0.5">
                     {bgvState.verification.status === 'pending' 
                       ? 'Your files will upload and validate as you navigate steps. When complete, click Submit Verification on the last step to trigger HR validation emails.' 
-                      : 'You are editing an already submitted verification. Once you are done making changes, click Submit Verification again to finalize.'}
+                      : 'You are editing a submitted verification. Your document changes are saved automatically. Click "Done Editing" when finished — no new HR emails will be sent.'}
                   </p>
                 </div>
               </div>
@@ -910,19 +1140,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                     size="sm"
                     className="border-amber-300 text-amber-950 hover:bg-amber-100"
                   >
-                    View Status
-                  </Button>
-                )}
-                {completedSteps.has(8) && (
-                  <Button
-                    onClick={async () => {
-                      await handleSubmitVerification();
-                      setIsEditing(false);
-                    }}
-                    size="sm"
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs whitespace-nowrap"
-                  >
-                    Submit Now
+                    Done Editing
                   </Button>
                 )}
               </div>
@@ -963,19 +1181,31 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 <span className="text-xs text-muted-foreground">Step {step + 1} of {STEPS.length}</span>
 
                 {step === STEPS.length - 1 ? (
-                  <Button 
-                    size="sm" 
-                    onClick={handleSubmitVerification}
-                    disabled={bgvState.loading || completedSteps.size < STEPS.length}
-                    className="bg-green-600 hover:bg-green-700 text-white gap-1 font-semibold"
-                  >
-                    {bgvState.loading ? 'Submitting...' : 'Submit Verification'}
-                    {bgvState.loading ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    ) : (
+                  isEditing && bgvState.verification?.status !== 'pending' ? (
+                    // In edit mode on an already-submitted verification — just exit editing, no re-submit
+                    <Button
+                      size="sm"
+                      onClick={() => setIsEditing(false)}
+                      className="bg-green-600 hover:bg-green-700 text-white gap-1 font-semibold"
+                    >
+                      Done Editing
                       <CheckCircle className="h-4 w-4" />
-                    )}
-                  </Button>
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      onClick={handleSubmitVerification}
+                      disabled={bgvState.loading || completedSteps.size < STEPS.length}
+                      className="bg-green-600 hover:bg-green-700 text-white gap-1 font-semibold"
+                    >
+                      {bgvState.loading ? 'Submitting...' : 'Submit Verification'}
+                      {bgvState.loading ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      ) : (
+                        <CheckCircle className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )
                 ) : (
                   <Button 
                     size="sm" 
@@ -1103,6 +1333,23 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 Cancel
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Uploading Overlay for Final Submit */}
+      {isSubmittingDocs && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+          <div className="bg-white p-8 rounded-2xl shadow-xl border flex flex-col items-center space-y-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {isSubmittingDocs.name === "Finalizing" ? "Finalizing Verification..." : "Uploading Documents..."}
+            </h3>
+            <p className="text-sm text-gray-500 max-w-xs text-center">
+              {isSubmittingDocs.name === "Finalizing" 
+                ? "Please wait while we submit your application." 
+                : `Please wait while we securely upload your ${isSubmittingDocs.docType.replace('_', ' ')}...`}
+            </p>
           </div>
         </div>
       )}

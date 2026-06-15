@@ -118,7 +118,16 @@ const BGVContext = createContext<{
     getCandidateStatus: (candidateId: number) => Promise<void>;
     validateDocument: (file: File, documentType: string) => Promise<ValidationResult>;
     uploadDocument: (verificationId: number, file: File, documentType: string, description?: string, skipValidation?: boolean, metadata?: any) => Promise<void>;
+    analyzeDocument: (file: File, documentType: string) => Promise<any>;
     deleteDocument: (documentId: number) => Promise<void>;
+    addReference: (verificationId: number, data: {
+      reference_name: string;
+      reference_email: string;
+      reference_phone?: string;
+      relationship: string;
+      company?: string;
+    }) => Promise<BGVReferenceResponse>;
+    deleteReference: (referenceId: number) => Promise<void>;
     refreshData: () => Promise<void>;
     syncPendingUploads: () => Promise<{ successful: number; failed: number }>;
     submitVerification: (verificationId: number, candidateName: string) => Promise<any>;
@@ -233,7 +242,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           consent_given: true,
           no_criminal_record: true,
           verification_types: verificationTypes,
-          initiated_by: candidateId, // Assuming candidate initiates their own verification
+          initiated_by: candidateId,
           notes,
         });
         
@@ -311,7 +320,7 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           // Show warnings if any
           if (validation.warnings.length > 0) {
             console.warn('File validation warnings:', validation.warnings);
-            alert(`File Validation Warnings:\n\n${validation.warnings.map(w => '• ' + w).join('\n')}\n\nUploading anyway...`);
+            // alert(`File Validation Warnings:\n\n${validation.warnings.map(w => '• ' + w).join('\n')}\n\nUploading anyway...`);
           }
         }
         
@@ -347,6 +356,17 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         throw error;
       }
     },
+
+    analyzeDocument: async (file: File, documentType: string) => {
+      try {
+        const response = await bgvApi.analyzeDocument(file, documentType);
+        return response;
+      } catch (error) {
+        console.error('Analysis failed:', error);
+        throw error;
+      }
+    },
+
 
     deleteDocument: async (documentId: number) => {
       try {
@@ -430,6 +450,35 @@ export const BGVProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return response;
       } catch (error) {
         dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to submit verification' });
+        throw error;
+      }
+    },
+
+    addReference: async (verificationId: number, data: {
+      reference_name: string;
+      reference_email: string;
+      reference_phone?: string;
+      relationship: string;
+      company?: string;
+    }) => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        const response = await bgvApi.addReference(verificationId, data);
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return response;
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to add reference' });
+        throw error;
+      }
+    },
+
+    deleteReference: async (referenceId: number) => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        await bgvApi.deleteReference(referenceId);
+        dispatch({ type: 'SET_LOADING', payload: false });
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete reference' });
         throw error;
       }
     },

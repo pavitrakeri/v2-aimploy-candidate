@@ -10,7 +10,7 @@ import { Briefcase, Plus, Trash2, Calendar } from 'lucide-react';
 interface EmploymentStepProps {
   data: EmploymentEntry[];
   onChange: (data: EmploymentEntry[]) => void;
-  onUploadDocument?: (file: File, docType: string, id: string) => Promise<void>;
+  onUploadDocument?: (file: File, docType: string, id: string) => Promise<boolean | void>;
   onDeleteDocument?: (docType: string, id: string) => Promise<void>;
 }
 
@@ -22,17 +22,18 @@ export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange, 
     onChange(updatedData);
   };
 
-  const handleFileUpload = (id: string, documentType: 'offerLetter' | 'experienceLetter' | 'payslip') => (file: UploadedFile, rawFile?: File) => {
-    const backendDocType = documentType === 'offerLetter' ? 'offer_letter' : documentType === 'experienceLetter' ? 'experience_letter' : 'payslip';
-    if (onUploadDocument && rawFile) {
-      onUploadDocument(rawFile, backendDocType, id);
-    } else {
+  const handleFileUpload = (id: string, documentType: 'offerLetter' | 'experienceLetter' | 'payslip') => 
+    async (file: UploadedFile, rawFile?: File): Promise<void> => {
+      const backendDocType = documentType === 'offerLetter' ? 'offer_letter' : documentType === 'experienceLetter' ? 'experience_letter' : 'payslip';
+      if (onUploadDocument && rawFile) {
+        const result = await onUploadDocument(rawFile, backendDocType, id);
+        if (result === false) return; // Upload was cancelled
+      }
       const updatedData = data.map(entry => 
         entry.id === id ? { ...entry, [documentType]: file } : entry
       );
       onChange(updatedData);
-    }
-  };
+    };
 
   const handleFileRemove = (id: string, documentType: 'offerLetter' | 'experienceLetter' | 'payslip') => () => {
     const backendDocType = documentType === 'offerLetter' ? 'offer_letter' : documentType === 'experienceLetter' ? 'experience_letter' : 'payslip';
