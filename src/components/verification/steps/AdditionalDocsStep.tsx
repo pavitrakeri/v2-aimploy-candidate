@@ -10,7 +10,7 @@ import { FolderPlus, Plus, Trash2, FileText } from 'lucide-react';
 interface AdditionalDocsStepProps {
   data: AdditionalDoc[];
   onChange: (data: AdditionalDoc[]) => void;
-  onUploadDocument?: (file: File, docType: string, id: string) => Promise<void>;
+  onUploadDocument?: (file: File, docType: string, id: string) => Promise<boolean | void>;
   onDeleteDocument?: (docType: string, id: string) => Promise<void>;
 }
 
@@ -35,9 +35,9 @@ export const AdditionalDocsStep: React.FC<AdditionalDocsStepProps> = ({ data, on
     onChange(updatedDocs);
   };
 
-  const handleFileUpload = (id: string) => (file: UploadedFile, rawFile?: File) => {
+  const handleFileUpload = (id: string) => (file: UploadedFile, rawFile?: File): Promise<boolean | void> | void => {
     if (onUploadDocument && rawFile) {
-      onUploadDocument(rawFile, 'other', id);
+      return onUploadDocument(rawFile, 'other', id);
     } else {
       const updatedDocs = data.map(doc =>
         doc.id === id ? { ...doc, file } : doc

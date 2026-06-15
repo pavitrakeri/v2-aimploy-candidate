@@ -11,7 +11,7 @@ import { InlineDigiLockerFetcher } from '../../digilocker/InlineDigiLockerFetche
 interface IdentityStepProps {
   data: IdentityData;
   onChange: (data: IdentityData) => void;
-  onUploadDocument?: (file: File, docType: string, entryId?: string) => Promise<void>;
+  onUploadDocument?: (file: File, docType: string, entryId?: string) => Promise<boolean | void>;
   onDeleteDocument?: (docType: string, entryId?: string) => Promise<void>;
   verificationId?: number;
   candidateId?: number;
@@ -71,10 +71,10 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
   const [activeTabs, setActiveTabs] = React.useState<Record<string, 'upload' | 'digilocker'>>({});
   const { state: digiLockerState } = useDigiLocker();
 
-  const handleFileUpload = (key: keyof IdentityData) => (file: UploadedFile, rawFile?: File) => {
+  const handleFileUpload = (key: keyof IdentityData) => (file: UploadedFile, rawFile?: File): Promise<boolean | void> | void => {
     const backendDocType = key === 'voterId' ? 'voter_id' : key === 'drivingLicence' ? 'driving_licence' : key;
     if (onUploadDocument && rawFile) {
-      onUploadDocument(rawFile, backendDocType);
+      return onUploadDocument(rawFile, backendDocType);
     } else {
       onChange({
         ...data,

@@ -27,7 +27,7 @@ export interface BGVVerificationResponse {
 }
 
 export interface BGVVerificationDetail extends BGVVerificationResponse {
-  documents: BGVDocument[];
+  documents: BGVDocumentResponse[];
 }
 
 
@@ -48,7 +48,7 @@ export interface BGVDocumentResponse {
   file_url: string;
   file_size: number;
   validation_score?: number;
-  validation_status?: 'pending' | 'processing' | 'approved' | 'rejected';
+  validation_status?: 'pending' | 'processing' | 'approved' | 'rejected' | 'needs_review';
   validation_details?: any;
   description?: string;
   uploaded_at: string;
@@ -56,11 +56,25 @@ export interface BGVDocumentResponse {
   updated_at: string;
 }
 
+export interface BGVReferenceResponse {
+  id: number;
+  verification_id: number;
+  reference_name: string;
+  reference_email: string;
+  reference_phone?: string;
+  relationship: string;
+  company?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface BGVOverallStatus {
   candidate_id: number;
   verification_id?: number;
   verification?: BGVVerificationResponse;
   documents: BGVDocumentResponse[];
+  references: BGVReferenceResponse[];
   overall_status: 'not_started' | 'pending' | 'in_progress' | 'completed' | 'failed';
   completion_percentage: number;
   last_updated: string;
@@ -178,6 +192,28 @@ export const bgvApi = {
     return bgvApiRequest<any>("/bgv/documents/analyze-only", {
       method: "POST",
       body: formData,
+    });
+  },
+
+  addReference: async (verificationId: number, data: {
+    reference_name: string;
+    reference_email: string;
+    reference_phone?: string;
+    relationship: string;
+    company?: string;
+  }): Promise<BGVReferenceResponse> => {
+    return bgvApiRequest<BGVReferenceResponse>("/bgv/references", {
+      method: "POST",
+      body: JSON.stringify({
+        verification_id: verificationId,
+        ...data,
+      }),
+    });
+  },
+
+  deleteReference: async (referenceId: number): Promise<void> => {
+    return bgvApiRequest<void>(`/bgv/references/${referenceId}`, {
+      method: "DELETE",
     });
   },
 

@@ -9,7 +9,7 @@ import { GraduationCap, Award } from 'lucide-react';
 interface EducationStepProps {
   data: EducationEntry[];
   onChange: (data: EducationEntry[]) => void;
-  onUploadDocument?: (file: File, docType: string, id: string) => Promise<void>;
+  onUploadDocument?: (file: File, docType: string, id: string) => Promise<boolean | void>;
   onDeleteDocument?: (docType: string, id: string) => Promise<void>;
 }
 
@@ -52,9 +52,9 @@ export const EducationStep: React.FC<EducationStepProps> = ({ data, onChange, on
     onChange(updatedData);
   };
 
-  const handleFileUpload = (id: string) => (file: UploadedFile, rawFile?: File) => {
+  const handleFileUpload = (id: string) => (file: UploadedFile, rawFile?: File): Promise<boolean | void> | void => {
     if (onUploadDocument && rawFile) {
-      onUploadDocument(rawFile, 'education_certificate', id);
+      return onUploadDocument(rawFile, 'education_certificate', id);
     } else {
       handleEntryChange(id, 'document', file);
     }

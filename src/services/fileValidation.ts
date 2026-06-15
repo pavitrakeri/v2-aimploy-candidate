@@ -164,25 +164,6 @@ class FileValidationService {
     return hashHex;
   }
 
-  // Check for duplicate files
-  private async isDuplicateFile(file: File, documentType: string): Promise<boolean> {
-    const fileHash = await this.generateFileHash(file);
-    const key = `${documentType}_${fileHash}`;
-    
-    if (this.uploadedFiles.has(key)) {
-      return true;
-    }
-    
-    // Check if same file was uploaded for different document type
-    for (const [existingKey] of this.uploadedFiles) {
-      if (existingKey.endsWith(`_${fileHash}`)) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
   // Validate file type
   private validateFileType(file: File, config: DocumentTypeConfig): string[] {
     const errors: string[] = [];
@@ -358,14 +339,6 @@ class FileValidationService {
     console.log('File size errors:', fileSizeErrors);
     errors.push(...fileSizeErrors);
 
-    // 3. Duplicate file detection
-    console.log('Step 3: Checking for duplicates...');
-    const isDuplicate = await this.isDuplicateFile(file, documentType);
-    console.log('Is duplicate:', isDuplicate);
-    if (isDuplicate) {
-      errors.push('This file has already been uploaded. Please choose a different file.');
-    }
-
     // 4. File name validation
     console.log('Step 4: Validating file name...');
     const nameValidation = this.validateFileName(file, config);
@@ -395,11 +368,9 @@ class FileValidationService {
     };
   }
 
-  // Register uploaded file for duplicate detection
+  // Register uploaded file (kept for API compatibility but no longer used for blocking)
   async registerUploadedFile(file: File, documentType: string): Promise<void> {
-    const fileHash = await this.generateFileHash(file);
-    const key = `${documentType}_${fileHash}`;
-    this.uploadedFiles.set(key, file);
+    // No-op: duplicate detection removed to allow re-uploads of the same file
   }
 
   // Remove file from registry

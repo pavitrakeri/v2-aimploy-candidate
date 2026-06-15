@@ -12,7 +12,7 @@ import { useDigiLocker } from '@/contexts/DigiLockerContext';
 interface AddressStepProps {
   data: AddressData;
   onChange: (data: AddressData) => void;
-  onUploadDocument?: (file: File, docType: string) => Promise<void>;
+  onUploadDocument?: (file: File, docType: string) => Promise<boolean | void>;
   onDeleteDocument?: (docType: string) => Promise<void>;
   verificationId?: number;
   candidateId?: number;
@@ -48,9 +48,9 @@ export const AddressStep: React.FC<AddressStepProps> = ({
     onChange(updatedData);
   };
 
-  const handleFileUpload = (file: UploadedFile, rawFile?: File) => {
+  const handleFileUpload = (file: UploadedFile, rawFile?: File): Promise<boolean | void> | void => {
     if (onUploadDocument && rawFile) {
-      onUploadDocument(rawFile, 'address_proof');
+      return onUploadDocument(rawFile, 'address_proof');
     } else {
       onChange({
         ...data,
