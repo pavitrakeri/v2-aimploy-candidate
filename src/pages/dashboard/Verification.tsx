@@ -523,14 +523,12 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
         }
         setUploadingFile({ name: file.name, docType });
         const analysisResult = await actions.analyzeDocument(file, docType);
-        console.log("Analyze result for", docType, ":", analysisResult);
         
         setPendingDocuments(prev => {
-          // Replace any existing pending document for the same docType & entryId
           const filtered = prev.filter(p => {
             if (p.documentType !== docType) return true;
             if (entryId) return p.metadata?.entryId !== entryId;
-            return false; // If same docType and no entryId, replace it
+            return false;
           });
           
           return [...filtered, {
@@ -542,10 +540,15 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
             analysisResult
           }];
         });
+        
         return true;
       } catch (err: any) {
         console.error("Document upload error:", err);
-        alert(`Upload failed: ${err.message || 'Unknown error'}`);
+        let errorMessage = err.message || 'Unknown error';
+        if (errorMessage.includes("Failed to fetch") || errorMessage.includes("Network Error")) {
+          errorMessage = "The file might be too large for the server. Please try a smaller file (under 1MB) or check your connection.";
+        }
+        alert(`Upload failed: ${errorMessage}`);
         return false;
       } finally {
         setUploadingFile(null);
@@ -585,11 +588,10 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       const analysisResult = await actions.analyzeDocument(activeUploadFile.file, activeUploadFile.documentType);
       
       setPendingDocuments(prev => {
-        // Replace any existing pending document for the same docType & entryId
         const filtered = prev.filter(p => {
           if (p.documentType !== activeUploadFile.documentType) return true;
           if (activeUploadFile.entryId) return p.metadata?.entryId !== activeUploadFile.entryId;
-          return false; // If same docType and no entryId, replace it
+          return false;
         });
         
         return [...filtered, {
@@ -601,7 +603,6 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
           analysisResult
         }];
       });
-      console.log('handleEmploymentSubmit finished. metadata:', metadata, 'analysisResult:', analysisResult);
       
       // Update local text fields if mapped to an entry
       if (activeUploadFile.entryId) {
@@ -626,7 +627,11 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       setActiveUploadFile(null);
     } catch (error: any) {
       console.error('Employment upload error:', error);
-      alert(`Upload failed: ${error.message || 'Unknown error'}`);
+      let errorMessage = error.message || 'Unknown error';
+      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("Network Error")) {
+        errorMessage = "The file might be too large for the server. Please try a smaller file (under 1MB) or check your connection.";
+      }
+      alert(`Upload failed: ${errorMessage}`);
     } finally {
       setUploadingFile(null);
     }
@@ -728,15 +733,21 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       // 1. Upload all pending documents first
       if (pendingDocuments.length > 0) {
         for (const pd of pendingDocuments) {
-          setIsSubmittingDocs({ name: pd.file.name, docType: pd.documentType });
-          await actions.uploadDocument(
-            bgvState.verification.id,
-            pd.file,
-            pd.documentType,
-            pd.description,
-            true, // skip validation since we did it with analyzeDocument, or just false
-            pd.metadata
-          );
+          try {
+            setIsSubmittingDocs({ name: pd.file.name, docType: pd.documentType });
+            await actions.uploadDocument(
+              bgvState.verification.id,
+              pd.file,
+              pd.documentType,
+              pd.description,
+              true, // skip validation since we did it with analyzeDocument
+              pd.metadata
+            );
+          } catch (uploadError: any) {
+            console.error(`Failed to upload pending document ${pd.file.name}:`, uploadError);
+            alert(`Failed to upload ${pd.file.name}. Error: ${uploadError.message}. Please try again or use a smaller file.`);
+            return; // Abort the submission process!
+          }
         }
         setPendingDocuments([]);
       }
@@ -745,8 +756,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       setIsSubmittingDocs({ name: "Finalizing", docType: "Submitting Verification" });
       await actions.submitVerification(bgvState.verification.id, candidateName || 'Candidate');
       await actions.getCandidateStatus(candidateId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit verification:', error);
+      alert(`Failed to submit verification: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSubmittingDocs(null);
     }
