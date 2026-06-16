@@ -56,8 +56,13 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
       setIsUploading(true);
       try {
         await onFileUpload(uploadedFile, file);
-      } catch (err) {
-        setError('Upload failed. Please try again.');
+      } catch (err: any) {
+        let errorMessage = err?.message || '';
+        if (errorMessage.includes("Failed to fetch") || errorMessage.includes("Network Error")) {
+          setError("Upload failed: The file may be too large for the server (try under 1MB) or your connection was lost.");
+        } else {
+          setError(errorMessage || 'Upload failed. Please try again.');
+        }
       } finally {
         setIsUploading(false);
       }
