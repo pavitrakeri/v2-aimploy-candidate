@@ -11,15 +11,15 @@ interface DocumentValidationCardProps {
 
 const DocumentValidationCard: React.FC<DocumentValidationCardProps> = ({ document }) => {
   const getValidationColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 80) return 'text-green-600 dark:text-green-400';
+    if (score >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const getValidationBgColor = (score: number) => {
-    if (score >= 80) return 'bg-green-100';
-    if (score >= 60) return 'bg-yellow-100';
-    return 'bg-red-100';
+    if (score >= 80) return 'bg-green-100/80 dark:bg-green-950/30';
+    if (score >= 60) return 'bg-yellow-100/80 dark:bg-yellow-950/30';
+    return 'bg-red-100/80 dark:bg-red-950/30';
   };
 
   const getValidationIcon = (score: number) => {
@@ -69,10 +69,10 @@ const DocumentValidationCard: React.FC<DocumentValidationCardProps> = ({ documen
           <div className="flex items-center gap-2">
             {document.validation_score !== undefined && (
               <Badge 
-                className={`${getValidationBgColor(validationScore)} ${getValidationColor(validationScore)}`}
+                className={`${getValidationBgColor(validationScore)} ${getValidationColor(validationScore)} border-transparent font-semibold`}
               >
                 {getValidationIcon(validationScore)}
-                <span className="ml-1">{getValidationText(validationScore)}</span>
+                <span className="ml-1.5">{getValidationText(validationScore)}</span>
               </Badge>
             )}
             {document.analysis_method && (
@@ -126,13 +126,17 @@ const DocumentValidationCard: React.FC<DocumentValidationCardProps> = ({ documen
         {/* Validation Details */}
         {document.validation_details && Object.keys(document.validation_details).length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Validation Details</h4>
-            <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            <h4 className="text-sm font-semibold text-foreground">Validation Details</h4>
+            <div className="bg-secondary/35 border border-border/40 rounded-lg p-3 space-y-1 shadow-sm">
               {Object.entries(document.validation_details).map(([key, value]) => (
-                <div key={key} className="text-sm">
-                  <span className="font-medium capitalize">{key.replace('_', ' ')}:</span>
-                  <span className="ml-2 text-muted-foreground">
-                    {typeof value === 'string' ? value : JSON.stringify(value)}
+                <div key={key} className="flex justify-between items-center text-xs py-1.5 border-b border-border/20 last:border-0">
+                  <span className="font-medium capitalize text-muted-foreground">{key.replace(/_/g, ' ')}</span>
+                  <span className="ml-2 text-foreground font-semibold text-right max-w-[65%] truncate">
+                    {typeof value === 'boolean' 
+                      ? (value ? '✅ Yes' : '❌ No') 
+                      : typeof value === 'string' 
+                        ? value 
+                        : JSON.stringify(value)}
                   </span>
                 </div>
               ))}
@@ -143,8 +147,8 @@ const DocumentValidationCard: React.FC<DocumentValidationCardProps> = ({ documen
         {/* Verification Notes */}
         {document.verification_notes && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Verification Notes</h4>
-            <p className="text-sm text-muted-foreground bg-blue-50 rounded-lg p-3">
+            <h4 className="text-sm font-semibold text-foreground">Verification Notes</h4>
+            <p className="text-sm text-muted-foreground bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-lg p-3">
               {document.verification_notes}
             </p>
           </div>
@@ -153,8 +157,8 @@ const DocumentValidationCard: React.FC<DocumentValidationCardProps> = ({ documen
         {/* Rejection Reason */}
         {document.rejection_reason && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-red-600">Rejection Reason</h4>
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3">
+            <h4 className="text-sm font-semibold text-red-605 dark:text-red-400">Rejection Reason</h4>
+            <p className="text-sm text-red-655 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-lg p-3">
               {document.rejection_reason}
             </p>
           </div>

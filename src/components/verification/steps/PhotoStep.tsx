@@ -108,25 +108,25 @@ export const PhotoStep: React.FC<PhotoStepProps> = ({ data, onChange, onUploadDo
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-3">Requirements:</h4>
+                <h4 className="font-semibold text-foreground mb-3 text-sm">Requirements:</h4>
                 <ul className="space-y-2">
                   {photoGuidelines.map((guideline, index) => {
                     const Icon = guideline.icon;
                     return (
-                      <li key={index} className="flex items-start gap-2">
+                      <li key={index} className="flex items-start gap-2 text-foreground/90">
                         <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                          guideline.valid ? 'text-green-600' : 'text-amber-600'
+                          guideline.valid ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'
                         }`} />
-                        <span className="text-sm">{guideline.text}</span>
+                        <span className="text-xs">{guideline.text}</span>
                       </li>
                     );
                   })}
                 </ul>
               </div>
 
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Recommended Specifications:</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="p-4 bg-blue-50/50 border border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-400 text-sm mb-2">Recommended Specifications:</h4>
+                <ul className="text-xs text-blue-850 dark:text-blue-400 space-y-1">
                   <li>• Dimensions: 35mm × 45mm (2" × 2")</li>
                   <li>• Resolution: Minimum 600 DPI</li>
                   <li>• Format: JPG or PNG</li>
@@ -135,9 +135,9 @@ export const PhotoStep: React.FC<PhotoStepProps> = ({ data, onChange, onUploadDo
               </div>
 
               {data.photo && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">Photo Uploaded Successfully!</h4>
-                  <p className="text-sm text-green-800">
+                <div className="p-4 bg-green-50/50 border border-green-200 dark:bg-green-950/20 dark:border-green-900/50 rounded-lg">
+                  <h4 className="font-semibold text-green-900 dark:text-green-400 text-sm mb-2">Photo Uploaded Successfully!</h4>
+                  <p className="text-xs text-green-800 dark:text-green-400 leading-relaxed">
                     Your photo has been uploaded and will be verified for compliance with the guidelines above.
                   </p>
                 </div>

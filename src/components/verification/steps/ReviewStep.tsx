@@ -51,9 +51,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 }) => {
   const getStepStatus = (stepIndex: number) => {
     if (completedSteps.has(stepIndex)) {
-      return { status: 'completed', color: 'text-green-600', bgColor: 'bg-green-100' };
+      return { status: 'completed', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100/80 dark:bg-green-950/30 text-green-700 dark:text-green-400 border-transparent font-semibold text-[10px]' };
     }
-    return { status: 'pending', color: 'text-gray-400', bgColor: 'bg-gray-100' };
+    return { status: 'pending', color: 'text-muted-foreground/50', bgColor: 'bg-muted text-muted-foreground border-transparent font-semibold text-[10px]' };
   };
 
   const getDocumentCount = () => {
@@ -142,12 +142,12 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100">
-                <CheckCircle className="h-6 w-6 text-blue-600" />
+              <div className="p-2 rounded-lg bg-blue-100/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+                <CheckCircle className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{completedSteps.size}</p>
-                <p className="text-sm text-muted-foreground">Steps Completed</p>
+                <p className="text-2xl font-bold text-foreground">{completedSteps.size}</p>
+                <p className="text-xs text-muted-foreground">Steps Completed</p>
               </div>
             </div>
           </CardContent>
@@ -156,12 +156,12 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100">
-                <FileText className="h-6 w-6 text-green-600" />
+              <div className="p-2 rounded-lg bg-green-100/80 dark:bg-green-950/40 text-green-600 dark:text-green-400">
+                <FileText className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{getDocumentCount()}</p>
-                <p className="text-sm text-muted-foreground">Documents Uploaded</p>
+                <p className="text-2xl font-bold text-foreground">{getDocumentCount()}</p>
+                <p className="text-xs text-muted-foreground">Documents Uploaded</p>
               </div>
             </div>
           </CardContent>
@@ -170,14 +170,14 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100">
-                <ShieldCheck className="h-6 w-6 text-purple-600" />
+              <div className="p-2 rounded-lg bg-purple-100/80 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
+                <ShieldCheck className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold text-foreground">
                   {isReadyToSubmit ? 'Ready' : 'Pending'}
                 </p>
-                <p className="text-sm text-muted-foreground">Submission Status</p>
+                <p className="text-xs text-muted-foreground">Submission Status</p>
               </div>
             </div>
           </CardContent>
@@ -199,41 +199,44 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
               return (
                 <div
                   key={index}
-                  className={`flex items-center gap-4 p-4 rounded-lg border ${
-                    isCompleted ? 'border-green-200 bg-green-50/50' : 'border-gray-200 bg-gray-50/50'
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg border transition-all ${
+                    isCompleted 
+                      ? 'border-green-200 bg-green-50/25 dark:border-green-900/30 dark:bg-green-950/5' 
+                      : 'border-border bg-muted/20'
                   }`}
                 >
-                  <div className="flex-shrink-0">
-                    {isCompleted ? (
-                      <CheckCircle className={`h-6 w-6 ${stepStatus.color}`} />
-                    ) : (
-                      <Circle className={`h-6 w-6 ${stepStatus.color}`} />
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Icon className={`h-4 w-4 ${stepStatus.color}`} />
-                      <h3 className="font-medium">{title}</h3>
-                      <Badge 
-                        variant={isCompleted ? "default" : "secondary"}
-                        className={isCompleted ? stepStatus.bgColor : ''}
-                      >
-                        {isCompleted ? 'Completed' : 'Pending'}
-                      </Badge>
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {isCompleted ? (
+                        <CheckCircle className={`h-5 w-5 ${stepStatus.color}`} />
+                      ) : (
+                        <Circle className={`h-5 w-5 ${stepStatus.color}`} />
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {getStepSummary(index)}
-                    </p>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <Icon className={`h-3.5 w-3.5 ${stepStatus.color}`} />
+                        <h3 className="font-semibold text-sm text-foreground">{title}</h3>
+                        <Badge 
+                          className={stepStatus.bgColor}
+                        >
+                          {isCompleted ? 'Completed' : 'Pending'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground font-normal">
+                        {getStepSummary(index)}
+                      </p>
+                    </div>
                   </div>
                   
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onGoToStep(index)}
-                    className="gap-2"
+                    className="gap-2 self-start sm:self-center text-xs h-8"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-3.5 w-3.5" />
                     Edit
                   </Button>
                 </div>
@@ -251,28 +254,28 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <CardContent className="space-y-4">
           {isReadyToSubmit ? (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-medium text-green-900 mb-2">Ready to Submit!</h4>
-                <p className="text-sm text-green-800">
+              <div className="p-4 bg-green-50/50 border border-green-200 dark:bg-green-950/20 dark:border-green-900/50 rounded-lg">
+                <h4 className="font-semibold text-green-900 dark:text-green-400 mb-1 text-sm">Ready to Submit!</h4>
+                <p className="text-xs text-green-800 dark:text-green-450 leading-relaxed">
                   Your verification is complete. Click below to submit for review.
                 </p>
               </div>
               
-              <Button size="lg" className="w-full gradient-primary gap-2">
+              <Button size="lg" className="w-full bg-gradient-primary text-white hover:opacity-90 transition-opacity gap-2 font-bold text-sm">
                 Submit Verification
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <h4 className="font-medium text-amber-900 mb-2">Almost There!</h4>
-                <p className="text-sm text-amber-800">
+              <div className="p-4 bg-amber-50/50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50 rounded-lg">
+                <h4 className="font-semibold text-amber-900 dark:text-amber-400 mb-1 text-sm">Almost There!</h4>
+                <p className="text-xs text-amber-800 dark:text-amber-450 leading-relaxed">
                   Complete {8 - completedSteps.size} more step{(8 - completedSteps.size) !== 1 ? 's' : ''} to submit your verification.
                 </p>
               </div>
               
-              <Button size="lg" className="w-full" disabled>
+              <Button size="lg" className="w-full text-sm font-semibold" disabled>
                 Submit Verification
                 <ChevronRight className="h-4 w-4" />
               </Button>

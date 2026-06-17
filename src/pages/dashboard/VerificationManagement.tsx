@@ -54,30 +54,30 @@ const VerificationManagement: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100/80 dark:bg-green-950/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-900/50';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100/80 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/50';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100/80 dark:bg-yellow-950/30 text-yellow-750 dark:text-yellow-400 border-yellow-200/50 dark:border-yellow-900/50';
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100/80 dark:bg-red-950/30 text-red-700 dark:text-red-400 border-red-200/50 dark:border-red-900/50';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-secondary/40 text-muted-foreground border-border/50';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
       case 'in_progress':
-        return <Clock className="h-5 w-5 text-blue-600" />;
+        return <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
       case 'pending':
-        return <Clock className="h-5 w-5 text-yellow-600" />;
+        return <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />;
       case 'failed':
-        return <AlertCircle className="h-5 w-5 text-red-600" />;
+        return <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />;
       default:
-        return <Clock className="h-5 w-5 text-gray-600" />;
+        return <Clock className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -159,30 +159,30 @@ const VerificationManagement: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center bg-muted/20 border border-border/50 rounded-xl p-4">
+                  <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-450">
                     {verificationStatus.progress_percentage}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Progress</div>
+                  <div className="text-xs font-semibold text-muted-foreground mt-1">Progress</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                <div className="text-center bg-muted/20 border border-border/50 rounded-xl p-4">
+                  <div className="text-2xl font-extrabold text-green-600 dark:text-green-450">
                     {verificationStatus.references_verified}/{verificationStatus.references_count}
                   </div>
-                  <div className="text-sm text-muted-foreground">References</div>
+                  <div className="text-xs font-semibold text-muted-foreground mt-1">References</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">
+                <div className="text-center bg-muted/20 border border-border/50 rounded-xl p-4">
+                  <div className="text-2xl font-extrabold text-purple-600 dark:text-purple-450">
                     {verificationStatus.documents_verified}/{verificationStatus.documents_count}
                   </div>
-                  <div className="text-sm text-muted-foreground">Documents</div>
+                  <div className="text-xs font-semibold text-muted-foreground mt-1">Documents</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
+                <div className="text-center bg-muted/20 border border-border/50 rounded-xl p-4">
+                  <div className="text-2xl font-extrabold text-orange-600 dark:text-orange-450">
                     {verificationStatus.checks.length}
                   </div>
-                  <div className="text-sm text-muted-foreground">Total Checks</div>
+                  <div className="text-xs font-semibold text-muted-foreground mt-1">Total Checks</div>
                 </div>
               </div>
             </CardContent>
@@ -216,35 +216,35 @@ const VerificationManagement: React.FC = () => {
                   ) : (
                     <div className="space-y-4">
                       {references.map((reference) => (
-                        <div key={reference.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-medium">{reference.name}</h3>
-                            <Badge className={getStatusColor(reference.status)}>
+                        <div key={reference.id} className="border border-border/80 bg-muted/10 dark:bg-muted/5 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3 border-b border-border/40 pb-2.5">
+                            <h3 className="font-bold text-foreground">{reference.name}</h3>
+                            <Badge className={`${getStatusColor(reference.status)} border-transparent font-bold text-[10px] uppercase`}>
                               {reference.status.replace('_', ' ')}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-muted-foreground">
                             <div>
-                              <span className="text-muted-foreground">Email:</span> {reference.email}
+                              <span className="font-semibold text-foreground">Email:</span> {reference.email}
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Phone:</span> {reference.phone}
+                              <span className="font-semibold text-foreground">Phone:</span> {reference.phone}
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Company:</span> {reference.company}
+                              <span className="font-semibold text-foreground">Company:</span> {reference.company}
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Relationship:</span> {reference.relationship}
+                              <span className="font-semibold text-foreground">Relationship:</span> {reference.relationship}
                             </div>
                           </div>
                           {reference.response_notes && (
-                            <div className="mt-2 text-sm">
-                              <span className="text-muted-foreground">Response:</span> {reference.response_notes}
+                            <div className="mt-3 text-xs italic bg-muted/40 p-2.5 rounded-lg border border-border/30">
+                              <span className="font-semibold text-foreground not-italic">Response:</span> "{reference.response_notes}"
                             </div>
                           )}
                           {reference.verification_notes && (
-                            <div className="mt-2 text-sm">
-                              <span className="text-muted-foreground">Notes:</span> {reference.verification_notes}
+                            <div className="mt-2 text-xs bg-muted/40 p-2.5 rounded-lg border border-border/30">
+                              <span className="font-semibold text-foreground">Notes:</span> {reference.verification_notes}
                             </div>
                           )}
                         </div>
@@ -266,42 +266,42 @@ const VerificationManagement: React.FC = () => {
                   ) : (
                     <div className="space-y-4">
                       {documents.map((document) => (
-                        <div key={document.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-medium">{document.file_name}</h3>
-                            <Badge className={getStatusColor(document.status)}>
+                        <div key={document.id} className="border border-border/80 bg-muted/10 dark:bg-muted/5 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3 border-b border-border/40 pb-2.5">
+                            <h3 className="font-bold text-foreground">{document.file_name}</h3>
+                            <Badge className={`${getStatusColor(document.status)} border-transparent font-bold text-[10px] uppercase`}>
                               {document.status.replace('_', ' ')}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-muted-foreground">
                             <div>
-                              <span className="text-muted-foreground">Type:</span> {document.document_type.replace('_', ' ')}
+                              <span className="font-semibold text-foreground">Type:</span> {document.document_type.replace('_', ' ')}
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Size:</span> {(document.file_size / 1024 / 1024).toFixed(2)} MB
+                              <span className="font-semibold text-foreground">Size:</span> {(document.file_size / 1024 / 1024).toFixed(2)} MB
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Uploaded:</span> {new Date(document.created_at).toLocaleDateString()}
+                              <span className="font-semibold text-foreground">Uploaded:</span> {new Date(document.created_at).toLocaleDateString()}
                             </div>
                             {document.verified_at && (
                               <div>
-                                <span className="text-muted-foreground">Verified:</span> {new Date(document.verified_at).toLocaleDateString()}
+                                <span className="font-semibold text-foreground">Verified:</span> {new Date(document.verified_at).toLocaleDateString()}
                               </div>
                             )}
                           </div>
                           {document.description && (
-                            <div className="mt-2 text-sm">
-                              <span className="text-muted-foreground">Description:</span> {document.description}
+                            <div className="mt-3 text-xs bg-muted/40 p-2.5 rounded-lg border border-border/30">
+                              <span className="font-semibold text-foreground">Description:</span> {document.description}
                             </div>
                           )}
                           {document.verification_notes && (
-                            <div className="mt-2 text-sm">
-                              <span className="text-muted-foreground">Notes:</span> {document.verification_notes}
+                            <div className="mt-2 text-xs bg-muted/40 p-2.5 rounded-lg border border-border/30">
+                              <span className="font-semibold text-foreground">Notes:</span> {document.verification_notes}
                             </div>
                           )}
                           {document.rejection_reason && (
-                            <div className="mt-2 text-sm text-red-600">
-                              <span className="text-muted-foreground">Rejection Reason:</span> {document.rejection_reason}
+                            <div className="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 p-2.5 rounded-lg border border-red-200/50 dark:border-red-900/50">
+                              <span className="font-bold">Rejection Reason:</span> {document.rejection_reason}
                             </div>
                           )}
                         </div>
@@ -318,23 +318,23 @@ const VerificationManagement: React.FC = () => {
                   <CardTitle>Verification Timeline</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  <div className="space-y-6 relative pl-4 border-l border-border/80 ml-2">
+                    <div className="relative">
+                      <div className="absolute -left-[22px] top-1.5 w-3 h-3 bg-blue-600 dark:bg-blue-500 rounded-full ring-4 ring-blue-100 dark:ring-blue-950/50"></div>
                       <div>
-                        <p className="font-medium">Verification Started</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-bold text-sm text-foreground">Verification Started</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {new Date(verificationStatus.initiated_at).toLocaleDateString()} at {new Date(verificationStatus.initiated_at).toLocaleTimeString()}
                         </p>
                       </div>
                     </div>
                     
                     {verificationStatus.last_updated !== verificationStatus.initiated_at && (
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                      <div className="relative">
+                        <div className="absolute -left-[22px] top-1.5 w-3 h-3 bg-green-600 dark:bg-green-500 rounded-full ring-4 ring-green-100 dark:ring-green-950/50"></div>
                         <div>
-                          <p className="font-medium">Last Updated</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="font-bold text-sm text-foreground">Last Updated</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {new Date(verificationStatus.last_updated).toLocaleDateString()} at {new Date(verificationStatus.last_updated).toLocaleTimeString()}
                           </p>
                         </div>
@@ -342,11 +342,11 @@ const VerificationManagement: React.FC = () => {
                     )}
                     
                     {verificationStatus.estimated_completion && (
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
+                      <div className="relative">
+                        <div className="absolute -left-[22px] top-1.5 w-3 h-3 bg-orange-600 dark:bg-orange-500 rounded-full ring-4 ring-orange-100 dark:ring-orange-950/50"></div>
                         <div>
-                          <p className="font-medium">Estimated Completion</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="font-bold text-sm text-foreground">Estimated Completion</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {new Date(verificationStatus.estimated_completion).toLocaleDateString()}
                           </p>
                         </div>

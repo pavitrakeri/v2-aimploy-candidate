@@ -92,22 +92,22 @@ export const EducationStep: React.FC<EducationStepProps> = ({ data, onChange, on
           const hasDocument = !!entry.document;
           
           return (
-            <Card key={eduLevel.id} className="card-hover">
+            <Card key={eduLevel.id} className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      {eduLevel.title}
+                    <div className="flex items-center gap-2 text-foreground">
+                      <span>{eduLevel.title}</span>
                       {hasDocument && (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                          Document Uploaded
+                        <span className="px-2 py-0.5 bg-green-100/80 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-[10px] rounded-full font-semibold">
+                          Uploaded
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground font-normal">
+                    <p className="text-xs text-muted-foreground font-normal mt-0.5">
                       {eduLevel.description}
                     </p>
                   </div>

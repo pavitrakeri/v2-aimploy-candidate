@@ -83,7 +83,7 @@ export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange, 
 
       <div className="space-y-6">
         {data.map((entry, index) => (
-          <Card key={entry.id} className="card-hover">
+          <Card key={entry.id} className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-3">
@@ -97,7 +97,7 @@ export const EmploymentStep: React.FC<EmploymentStepProps> = ({ data, onChange, 
                     variant="outline"
                     size="sm"
                     onClick={() => removeEmploymentEntry(entry.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 hover:text-red-755 hover:bg-red-50 dark:text-red-450 dark:hover:bg-red-950/30"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

@@ -75,15 +75,15 @@ export const FinancialStep: React.FC<FinancialStepProps> = ({ data, onChange, on
           const uploadedFile = data[doc.key];
           
           return (
-            <Card key={doc.key} className="card-hover">
+            <Card key={doc.key} className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{doc.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{doc.description}</p>
+                    <CardTitle className="text-base text-foreground">{doc.title}</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">{doc.description}</p>
                   </div>
                 </div>
               </CardHeader>
@@ -102,9 +102,9 @@ export const FinancialStep: React.FC<FinancialStepProps> = ({ data, onChange, on
         })}
       </div>
 
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2">Privacy & Security</h4>
-        <ul className="text-sm text-blue-800 space-y-1">
+      <div className="p-4 bg-blue-50/50 border border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/50 rounded-lg">
+        <h4 className="font-semibold text-blue-900 dark:text-blue-400 text-sm mb-2">Privacy & Security</h4>
+        <ul className="text-xs text-blue-800 dark:text-blue-400 space-y-1">
           <li>• All financial documents are encrypted and stored securely</li>
           <li>• Documents are used only for verification purposes</li>
           <li>• Sensitive information is masked during processing</li>

@@ -98,16 +98,16 @@ export const AdditionalDocsStep: React.FC<AdditionalDocsStepProps> = ({ data, on
       ) : (
         <div className="space-y-4">
           {data.map((doc, index) => (
-            <Card key={doc.id} className="card-hover">
+            <Card key={doc.id} className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <span>Document {index + 1}</span>
+                    <span className="text-base text-foreground">Document {index + 1}</span>
                     {doc.file && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                      <span className="px-2 py-0.5 bg-green-100/80 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-[10px] rounded-full font-semibold">
                         Uploaded
                       </span>
                     )}
@@ -116,7 +116,7 @@ export const AdditionalDocsStep: React.FC<AdditionalDocsStepProps> = ({ data, on
                     variant="outline"
                     size="sm"
                     onClick={() => removeDocument(doc.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -164,9 +164,9 @@ export const AdditionalDocsStep: React.FC<AdditionalDocsStepProps> = ({ data, on
         </div>
       )}
 
-      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-        <h4 className="font-medium text-amber-900 mb-2">Tips for Additional Documents:</h4>
-        <ul className="text-sm text-amber-800 space-y-1">
+      <div className="p-4 bg-amber-50/50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50 rounded-lg">
+        <h4 className="font-semibold text-amber-900 dark:text-amber-400 text-sm mb-2">Tips for Additional Documents:</h4>
+        <ul className="text-xs text-amber-800 dark:text-amber-400 space-y-1">
           <li>• Upload documents that showcase your skills and achievements</li>
           <li>• Include certifications relevant to your field</li>
           <li>• Ensure documents are clear and readable</li>

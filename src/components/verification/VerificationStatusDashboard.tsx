@@ -21,15 +21,15 @@ const VerificationStatusDashboard: React.FC<VerificationStatusDashboardProps> = 
     switch (status) {
       case 'completed':
       case 'verified':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100/80 dark:bg-green-950/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-900/50';
       case 'in_progress':
       case 'pending_verification':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100/80 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/50';
       case 'failed':
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100/80 dark:bg-red-950/30 text-red-700 dark:text-red-400 border-red-200/50 dark:border-red-900/50';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-secondary/40 text-muted-foreground border-border/50';
     }
   };
 
@@ -37,15 +37,15 @@ const VerificationStatusDashboard: React.FC<VerificationStatusDashboardProps> = 
     switch (status) {
       case 'completed':
       case 'verified':
-        return <CheckCircle className="h-4 w-4" />;
+        return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
       case 'in_progress':
       case 'pending_verification':
-        return <Clock className="h-4 w-4" />;
+        return <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
       case 'failed':
       case 'rejected':
-        return <AlertCircle className="h-4 w-4" />;
+        return <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />;
       default:
-        return <Clock className="h-4 w-4" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -109,19 +109,19 @@ const VerificationStatusDashboard: React.FC<VerificationStatusDashboardProps> = 
         <CardContent>
           <div className="space-y-3">
             {verificationStatus.checks.map((check, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3.5 border border-border/80 bg-muted/10 dark:bg-muted/5 rounded-xl shadow-sm hover:shadow transition-shadow">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(check.status)}
                   <div>
-                    <p className="font-medium capitalize">
+                    <p className="font-bold text-sm text-foreground capitalize">
                       {check.verification_type.replace('_', ' ')}
                     </p>
                     {check.result && (
-                      <p className="text-sm text-muted-foreground">{check.result}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{check.result}</p>
                     )}
                   </div>
                 </div>
-                <Badge className={getStatusColor(check.status)}>
+                <Badge className={`${getStatusColor(check.status)} border-transparent font-bold text-[10px] uppercase`}>
                   {check.status.replace('_', ' ')}
                 </Badge>
               </div>
@@ -151,20 +151,20 @@ const VerificationStatusDashboard: React.FC<VerificationStatusDashboardProps> = 
               </span>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               {references.map((reference) => (
-                <div key={reference.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={reference.id} className="flex items-center justify-between p-3.5 border border-border/80 bg-muted/10 dark:bg-muted/5 rounded-xl shadow-sm hover:shadow transition-shadow">
                   <div>
-                    <p className="font-medium">{reference.name}</p>
-                    <p className="text-sm text-muted-foreground">{reference.company} • {reference.relationship}</p>
-                    <p className="text-sm text-muted-foreground">{reference.email}</p>
+                    <p className="font-bold text-sm text-foreground">{reference.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{reference.company} • {reference.relationship}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{reference.email}</p>
                   </div>
                   <div className="text-right">
-                    <Badge className={getStatusColor(reference.status)}>
+                    <Badge className={`${getStatusColor(reference.status)} border-transparent font-bold text-[10px] uppercase`}>
                       {reference.status.replace('_', ' ')}
                     </Badge>
                     {reference.verified_at && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[10px] text-muted-foreground mt-1">
                         Verified {new Date(reference.verified_at).toLocaleDateString()}
                       </p>
                     )}

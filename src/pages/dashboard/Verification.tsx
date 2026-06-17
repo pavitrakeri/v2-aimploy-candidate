@@ -850,21 +850,21 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
 
     if (digiLockerState.isConnected && digiLockerState.userDetails) {
       return (
-        <Card className="mb-6 border-emerald-100 bg-emerald-50/20 shadow-sm relative overflow-hidden">
+        <Card className="mb-6 border-emerald-100 bg-emerald-50/20 dark:border-emerald-950/40 dark:bg-emerald-950/10 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
           <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
             <div className="flex items-center gap-3">
-              <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+              <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                 <Shield className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-semibold text-emerald-950 text-sm flex items-center gap-2">
+                <h4 className="font-semibold text-emerald-950 dark:text-emerald-250 text-sm flex items-center gap-2">
                   DigiLocker Account Linked
-                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-[10px] py-0 border-emerald-200">Verified</Badge>
+                  <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-450 hover:bg-emerald-100 text-[10px] py-0 border-emerald-200 dark:border-emerald-800">Verified</Badge>
                 </h4>
-                <p className="text-xs text-emerald-800 mt-0.5">
+                <p className="text-xs text-emerald-800 dark:text-emerald-400 mt-0.5">
                   Import verified credentials (Aadhaar, PAN, DL) directly within step upload cards.
-                  Linked ID: <span className="font-mono font-semibold text-emerald-950">{digiLockerState.userDetails.digilockerId}</span>
+                  Linked ID: <span className="font-mono font-semibold text-emerald-950 dark:text-emerald-250">{digiLockerState.userDetails.digilockerId}</span>
                 </p>
               </div>
             </div>
@@ -872,7 +872,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
               onClick={() => digiLockerActions.disconnect()}
               variant="outline"
               size="sm"
-              className="text-emerald-900 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-950 text-xs shrink-0"
+              className="text-emerald-900 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 text-xs shrink-0"
             >
               Disconnect
             </Button>
@@ -882,22 +882,22 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     }
 
     return (
-      <Card className="mb-6 border-blue-100 bg-blue-50/10 shadow-sm relative overflow-hidden">
+      <Card className="mb-6 border-blue-100 bg-blue-50/10 dark:border-blue-950/20 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1 flex">
           <div className="flex-1 bg-[#F97316]" />
-          <div className="flex-1 bg-white" />
+          <div className="flex-1 bg-white dark:bg-slate-900" />
           <div className="flex-1 bg-[#22C55E]" />
         </div>
         <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
           <div className="flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-              <Wifi className="h-5 w-5 text-blue-600" />
+            <div className="w-8.5 h-8.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/30">
+              <Wifi className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="space-y-0.5">
-              <h4 className="font-semibold text-blue-900 text-sm flex items-center gap-2">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-250 text-sm flex items-center gap-2">
                 Link DigiLocker to Skip Manual Uploads
               </h4>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-blue-700 dark:text-blue-400">
                 Instantly fetch authenticated, government-signed documents directly from your DigiLocker.
               </p>
             </div>
@@ -921,7 +921,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 </>
               )}
             </Button>
-            {error && <p className="text-[10px] text-red-500">{error}</p>}
+            {error && <p className="text-[10px] text-red-550 dark:text-red-400">{error}</p>}
           </div>
         </CardContent>
       </Card>
@@ -931,68 +931,67 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
   return (
     <div className="w-full -mt-6">
       {/* Start Verification Screen */}
+      {/* Start Verification Screen */}
       {!bgvState.verification && !isSubmitted && (
-        <div className="flex items-center justify-center min-h-screen">
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <Shield className="h-8 w-8 text-blue-600" />
+        <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">
+          <Card className="w-full max-w-2xl mx-auto border-border/80 shadow-purple-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto w-16 h-16 bg-blue-100/85 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                <Shield className="h-8 w-8" />
               </div>
-              <CardTitle className="text-2xl">Background Verification</CardTitle>
-              <p className="text-muted-foreground">
+              <CardTitle className="text-2xl font-bold tracking-tight text-foreground">Background Verification</CardTitle>
+              <p className="text-muted-foreground text-sm mt-1.5 leading-relaxed">
                 Complete your background verification process by providing the required documents and information.
               </p>
             </CardHeader>
-            <CardContent className="text-center">
-              <div className="space-y-4 mb-6">
-                <div className="text-left">
-                  <h3 className="font-medium mb-2">What you'll need:</h3>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>• Identity documents (Aadhaar, PAN, Passport)</li>
-                    <li>• Address proof documents</li>
-                    <li>• Education certificates</li>
-                    <li>• Employment documents (HR contact emails)</li>
-                    <li>• Professional references</li>
-                    <li>• Recent photograph</li>
-                  </ul>
-                </div>
+            <CardContent className="text-center space-y-6">
+              <div className="space-y-3 p-4 bg-muted/40 border border-border/50 rounded-xl text-left">
+                <h3 className="text-sm font-bold text-foreground">What you'll need:</h3>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground font-medium">
+                  <li className="flex items-center gap-1.5">• Identity documents (Aadhaar, PAN, Passport)</li>
+                  <li className="flex items-center gap-1.5">• Address proof documents</li>
+                  <li className="flex items-center gap-1.5">• Education certificates</li>
+                  <li className="flex items-center gap-1.5">• Employment documents (HR contact emails)</li>
+                  <li className="flex items-center gap-1.5">• Professional references</li>
+                  <li className="flex items-center gap-1.5">• Recent photograph</li>
+                </ul>
               </div>
 
               {/* DigiLocker Option - Prominent */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
-                <div className="flex items-center space-x-4">
+              <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/15 dark:to-indigo-950/15 border border-blue-200/60 dark:border-blue-900/50 rounded-xl p-5 md:p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center shadow-md">
                       <Wifi className="w-6 h-6 text-white" />
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="text-base font-bold text-foreground mb-1">
                       🚀 Quick Start with DigiLocker
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
                       Connect your DigiLocker account to instantly fetch verified government documents. 
                       No manual uploads required for Aadhaar, PAN, Passport, and more.
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-1.5">
+                      <Badge className="bg-green-100/80 dark:bg-green-950/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-900/50 text-[10px] py-0.5 font-bold">
                         ✓ Instant Verification
                       </Badge>
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                      <Badge className="bg-blue-100/80 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/50 text-[10px] py-0.5 font-bold">
                         ✓ 70+ Document Types
                       </Badge>
-                      <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                      <Badge className="bg-purple-100/80 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 border-purple-200/50 dark:border-purple-900/50 text-[10px] py-0.5 font-bold">
                         ✓ Government Verified
                       </Badge>
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-4 flex space-x-3">
+                <div className="mt-5">
                   <Button
                     onClick={() => handleStartVerification(undefined, true)}
                     disabled={bgvState.loading}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9.5"
                   >
                     <Wifi className="w-4 h-4 mr-2" />
                     Start with DigiLocker
@@ -1000,19 +999,16 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 </div>
               </div>
 
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500 font-semibold">OR</span>
-                </div>
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-border"></div>
+                <span className="flex-shrink mx-4 text-muted-foreground font-semibold text-xs uppercase tracking-wider">or manual</span>
+                <div className="flex-grow border-t border-border"></div>
               </div>
 
               <Button 
                 onClick={() => handleStartVerification()}
                 size="lg"
-                className="w-full sm:w-auto"
+                className="w-full font-bold text-xs h-10 border-border"
                 disabled={bgvState.loading}
                 variant="outline"
               >
@@ -1026,30 +1022,30 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       {/* Success / Live Verification Status Screen */}
       {isSubmitted && (
         <div className="flex flex-col gap-6 max-w-4xl mx-auto p-4 md:p-8">
-          <Card className="w-full">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+          <Card className="w-full border-border/80 shadow-md">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto w-16 h-16 bg-green-100/80 dark:bg-green-950/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                <CheckCircle className="h-8 w-8" />
               </div>
-              <CardTitle className="text-2xl text-green-600">Verification in Progress</CardTitle>
-              <p className="text-muted-foreground mt-2">
+              <CardTitle className="text-2xl font-bold tracking-tight text-green-650 dark:text-green-400">Verification in Progress</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2 max-w-xl mx-auto leading-relaxed">
                 Your background verification details have been submitted. Our automated checks and email confirmations are actively running.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
               {bgvState.verification && (
-                <div className="bg-gray-50 rounded-lg p-6 border text-left">
-                  <h3 className="font-semibold text-lg mb-4 text-gray-900 border-b pb-2">Verification Details:</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <p><span className="text-muted-foreground font-medium">Verification ID:</span> #{bgvState.verification.id}</p>
-                    <p>
-                      <span className="text-muted-foreground font-medium">Overall Status:</span>{' '}
-                      <Badge className={getStatusColor(bgvState.verification.status)}>
+                <div className="bg-secondary/25 dark:bg-secondary/5 rounded-xl p-5 border border-border text-left">
+                  <h3 className="font-bold text-base mb-4 text-foreground border-b border-border pb-2">Verification Details:</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <p><span className="text-muted-foreground font-semibold">Verification ID:</span> <span className="font-mono text-foreground font-bold">#{bgvState.verification.id}</span></p>
+                    <p className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground font-semibold">Overall Status:</span>{' '}
+                      <Badge className={`${getStatusColor(bgvState.verification.status)} border-transparent font-bold text-[10px]`}>
                         {bgvState.verification.status.toUpperCase()}
                       </Badge>
                     </p>
-                    <p><span className="text-muted-foreground font-medium">Submitted on:</span> {new Date(bgvState.verification.initiated_at).toLocaleDateString()}</p>
-                    <p><span className="text-muted-foreground font-medium">Initiated by:</span> Candidate</p>
+                    <p><span className="text-muted-foreground font-semibold">Submitted on:</span> <span className="text-foreground font-medium">{new Date(bgvState.verification.initiated_at).toLocaleDateString()}</span></p>
+                    <p><span className="text-muted-foreground font-semibold">Initiated by:</span> <span className="text-foreground font-medium">Candidate</span></p>
                   </div>
                 </div>
               )}
@@ -1057,31 +1053,31 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
               {/* Employer HR Status Block */}
               {hrStatus && hrStatus.requests && hrStatus.requests.length > 0 && (
                 <div className="space-y-4 text-left">
-                  <h3 className="text-lg font-semibold text-gray-950 flex items-center gap-2 border-b pb-2">
-                    <Briefcase className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2 border-b border-border pb-2">
+                    <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     Employer HR Confirmations
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {hrStatus.requests.map((req: any) => (
-                      <div key={req.id || req.hr_email} className="border rounded-lg p-4 bg-white shadow-sm flex flex-col justify-between">
+                      <div key={req.id || req.hr_email} className="border border-border rounded-xl p-4 bg-card shadow-sm flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <h4 className="font-semibold text-gray-900">{req.company}</h4>
-                            <p className="text-xs text-muted-foreground">{req.designation}</p>
+                            <h4 className="font-bold text-sm text-foreground">{req.company}</h4>
+                            <p className="text-xs text-muted-foreground mt-0.5">{req.designation}</p>
                           </div>
-                          <Badge className={
-                            req.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            req.status === 'disputed' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }>
+                          <Badge className={`${
+                            req.status === 'confirmed' ? 'bg-green-100/85 text-green-700 dark:bg-green-950/30 dark:text-green-400' :
+                            req.status === 'disputed' ? 'bg-red-100/85 text-red-700 dark:bg-red-950/30 dark:text-red-400' :
+                            'bg-yellow-100/85 text-yellow-750 dark:bg-yellow-950/30 dark:text-yellow-400'
+                          } border-transparent font-bold text-[10px]`}>
                             {req.status?.toUpperCase() || 'PENDING'}
                           </Badge>
                         </div>
-                        <div className="text-xs text-muted-foreground space-y-1 mt-2 border-t pt-2">
-                          <div><span>HR Contact:</span> <strong className="text-gray-700">{req.hr_email}</strong></div>
-                          {req.manager_name && <div><span>Manager:</span> <strong className="text-gray-700">{req.manager_name}</strong></div>}
-                          {req.response_date && <div><span>Response date:</span> <strong className="text-gray-700">{new Date(req.response_date).toLocaleDateString()}</strong></div>}
-                          {req.notes && <div className="italic bg-gray-50 p-2 rounded mt-1 border">" {req.notes} "</div>}
+                        <div className="text-xs text-muted-foreground space-y-1 mt-2 border-t border-border/40 pt-2.5">
+                          <div className="flex justify-between"><span>HR Contact:</span> <span className="text-foreground font-semibold">{req.hr_email}</span></div>
+                          {req.manager_name && <div className="flex justify-between"><span>Manager:</span> <span className="text-foreground font-semibold">{req.manager_name}</span></div>}
+                          {req.response_date && <div className="flex justify-between"><span>Response date:</span> <span className="text-foreground font-semibold">{new Date(req.response_date).toLocaleDateString()}</span></div>}
+                          {req.notes && <div className="italic bg-muted/40 text-muted-foreground p-2.5 rounded-lg mt-2 border border-border/30">" {req.notes} "</div>}
                         </div>
                       </div>
                     ))}
@@ -1089,11 +1085,11 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-3 justify-center pt-4">
+              <div className="flex flex-wrap gap-3 justify-center pt-4 border-t border-border/55">
                 {bgvState.verification && bgvState.verification.status !== 'completed' && (
                   <Button 
                     onClick={() => setIsEditing(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
                   >
                     Edit Details
                   </Button>
@@ -1109,6 +1105,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                     }
                   }}
                   variant="outline"
+                  className="font-semibold text-xs border-border"
                   disabled={bgvState.loading}
                 >
                   Refresh Live Status
@@ -1116,6 +1113,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 <Button 
                   onClick={() => window.location.href = '/dashboard'}
                   variant="secondary"
+                  className="font-semibold text-xs"
                 >
                   Back to Dashboard
                 </Button>

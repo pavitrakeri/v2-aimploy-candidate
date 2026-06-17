@@ -213,17 +213,17 @@ export const AddressStep: React.FC<AddressStepProps> = ({
       </div>
 
       {/* Address Proof */}
-      <Card className="hover:shadow-lg transition-all duration-300 border border-slate-100">
+      <Card className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-card-foreground">Address Proof Document</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-slate-700">Accepted Documents:</Label>
+              <Label className="text-sm font-semibold text-foreground/90">Accepted Documents:</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {addressProofTypes.map((type, index) => (
-                  <span key={index} className="px-2 py-1 bg-slate-50 border border-slate-100 text-[10px] font-medium text-slate-600 rounded-md">
+                  <span key={index} className="px-2 py-1 bg-muted border border-border text-[10px] font-semibold text-muted-foreground rounded-md">
                     {type}
                   </span>
                 ))}
@@ -243,14 +243,14 @@ export const AddressStep: React.FC<AddressStepProps> = ({
             ) : (
               <div className="space-y-4">
                 {/* Tabs Header Toggle */}
-                <div className="flex p-1 bg-slate-100/70 rounded-lg border border-slate-200/50">
+                <div className="flex p-1 bg-muted/80 rounded-lg border border-border">
                   <button
                     type="button"
                     onClick={() => setActiveTab('upload')}
                     className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
                       activeTab === 'upload'
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     📤 Manual File
@@ -260,8 +260,8 @@ export const AddressStep: React.FC<AddressStepProps> = ({
                     onClick={() => setActiveTab('digilocker')}
                     className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1 ${
                       activeTab === 'digilocker'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-card text-primary shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     🔐 DigiLocker

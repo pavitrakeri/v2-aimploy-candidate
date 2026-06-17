@@ -118,7 +118,7 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
           };
 
           return (
-            <Card key={doc.key} className="hover:shadow-lg transition-all duration-300 border border-slate-100 flex flex-col justify-between">
+            <Card key={doc.key} className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60 flex flex-col justify-between">
               <div>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
@@ -136,7 +136,7 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
                         Required
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide text-slate-500 bg-slate-50">
+                      <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide text-muted-foreground bg-muted border border-border/20">
                         Optional
                       </Badge>
                     )}
@@ -155,14 +155,14 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
                   ) : (
                     <div className="space-y-4">
                       {/* Tabs Header Toggle */}
-                      <div className="flex p-1 bg-slate-100/70 rounded-lg border border-slate-200/50">
+                      <div className="flex p-1 bg-muted/80 rounded-lg border border-border">
                         <button
                           type="button"
                           onClick={() => setTab('upload')}
                           className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
                             currentTab === 'upload'
-                              ? 'bg-white text-slate-900 shadow-sm'
-                              : 'text-slate-500 hover:text-slate-800'
+                              ? 'bg-card text-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           📤 Manual File
@@ -172,8 +172,8 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
                           onClick={() => setTab('digilocker')}
                           className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1 ${
                             currentTab === 'digilocker'
-                              ? 'bg-white text-blue-600 shadow-sm'
-                              : 'text-slate-500 hover:text-slate-800'
+                              ? 'bg-card text-primary shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           🔐 DigiLocker
@@ -210,8 +210,8 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
       </div>
 
       {!hasRequiredDocument && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
+        <div className="p-4 bg-yellow-50/50 border border-yellow-250 dark:bg-yellow-950/20 dark:border-yellow-900/50 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-400">
             <strong>Note:</strong> Please upload at least one required document (Aadhaar or PAN card) to proceed.
           </p>
         </div>

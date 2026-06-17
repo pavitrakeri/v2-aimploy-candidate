@@ -139,7 +139,7 @@ export const BackgroundCheckStep: React.FC<BackgroundCheckStepProps> = ({ data, 
                       variant="outline"
                       size="sm"
                       onClick={() => removeReference(reference.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -203,9 +203,9 @@ export const BackgroundCheckStep: React.FC<BackgroundCheckStepProps> = ({ data, 
             ))}
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Reference Guidelines:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="mt-6 p-4 bg-blue-50/50 border border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/50 rounded-lg">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-400 text-sm mb-2">Reference Guidelines:</h4>
+            <ul className="text-xs text-blue-800 dark:text-blue-400 space-y-1">
               <li>• Provide at least one professional reference</li>
               <li>• References should be former managers, colleagues, or professors</li>
               <li>• Ensure references are aware they may be contacted</li>
