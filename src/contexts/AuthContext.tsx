@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { authApi, profileApi, tokenUtils, CandidateProfile, AuthResponse } from "@/services/api";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface AuthContextType {
   user: CandidateProfile | null;
@@ -18,6 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { setTheme } = useTheme();
   const [user, setUser] = useState<CandidateProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,6 +30,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error("Failed to fetch profile:", error);
       tokenUtils.removeToken();
+      localStorage.removeItem("aimploy-theme");
+      setTheme("light");
       setUser(null);
     }
   };
@@ -36,14 +40,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initAuth = async () => {
       if (tokenUtils.isAuthenticated()) {
         await fetchProfile();
+      } else {
+        localStorage.removeItem("aimploy-theme");
+        setTheme("light");
       }
       setIsLoading(false);
     };
     initAuth();
-  }, []);
+  }, [setTheme]);
 
   const handleAuthSuccess = async (response: AuthResponse) => {
     tokenUtils.setToken(response.access_token);
+    localStorage.removeItem("aimploy-theme");
+    setTheme("light");
     await fetchProfile();
   };
 
@@ -96,6 +105,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     tokenUtils.removeToken();
+    localStorage.removeItem("aimploy-theme");
+    setTheme("light");
     setUser(null);
   };
 
