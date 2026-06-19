@@ -102,7 +102,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
 
   // Scroll to top on step change
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTo(0, 0);
+    document.body.scrollTo(0, 0);
   }, [step]);
 
   // Map server-side documents & references to the local state expected by step components
@@ -1177,7 +1179,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="bg-white rounded-xl border p-4 md:p-6 shadow-sm min-h-[400px]">
+              <div className="bg-card rounded-xl border border-border/80 p-4 md:p-6 shadow-sm min-h-[400px]">
                 {renderStep()}
               </div>
 
@@ -1235,10 +1237,10 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
       {/* Employment Metadata Collection Modal */}
       {showEmploymentModal && activeUploadFile && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl border text-left animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-2 border-b pb-3">
-              <Briefcase className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-bold text-gray-900">
+          <div className="bg-card border-border/80 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl border text-left animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-2 border-b border-border pb-3">
+              <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-lg font-bold text-foreground">
                 Employment Details Required
               </h3>
             </div>
@@ -1249,45 +1251,45 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
             
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">Company Name *</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Company Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. Google India"
                   value={employmentForm.company_declared}
                   onChange={(e) => setEmploymentForm({...employmentForm, company_declared: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full mt-1.5 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">Designation *</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Designation *</label>
                 <input
                   type="text"
                   placeholder="e.g. Software Engineer"
                   value={employmentForm.designation_declared}
                   onChange={(e) => setEmploymentForm({...employmentForm, designation_declared: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full mt-1.5 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase">Joining Date</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Joining Date</label>
                   <input
                     type="date"
                     value={employmentForm.joining_date_declared}
                     onChange={(e) => setEmploymentForm({...employmentForm, joining_date_declared: e.target.value})}
-                    className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full mt-1.5 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase">Leaving Date</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Leaving Date</label>
                   <input
                     type="date"
                     disabled={employmentForm.is_current_employer}
                     value={employmentForm.is_current_employer ? '' : employmentForm.leaving_date_declared}
                     onChange={(e) => setEmploymentForm({...employmentForm, leaving_date_declared: e.target.value})}
-                    className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full mt-1.5 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
                 </div>
               </div>
@@ -1298,38 +1300,38 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                   id="is_current_employer"
                   checked={employmentForm.is_current_employer}
                   onChange={(e) => setEmploymentForm({...employmentForm, is_current_employer: e.target.checked})}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                  className="rounded border-input bg-background text-primary focus:ring-primary w-4 h-4"
                 />
-                <label htmlFor="is_current_employer" className="text-xs font-medium text-gray-700">
+                <label htmlFor="is_current_employer" className="text-xs font-semibold text-foreground">
                   This is my current employer
                 </label>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">HR Contact Email *</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">HR Contact Email *</label>
                 <input
                   type="email"
                   placeholder="hr@company.com"
                   value={employmentForm.hr_email}
                   onChange={(e) => setEmploymentForm({...employmentForm, hr_email: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full mt-1.5 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase">Reporting Manager Name</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Reporting Manager Name</label>
                 <input
                   type="text"
                   placeholder="e.g. John Doe"
                   value={employmentForm.manager_name}
                   onChange={(e) => setEmploymentForm({...employmentForm, manager_name: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full mt-1.5 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 />
               </div>
             </div>
 
-            <div className="flex space-x-2 pt-3 border-t">
-              <Button onClick={handleEmploymentSubmit} className="flex-1 bg-blue-600 text-white hover:bg-blue-700 font-semibold text-sm">
+            <div className="flex space-x-2 pt-3 border-t border-border">
+              <Button onClick={handleEmploymentSubmit} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9.5">
                 Upload & Save
               </Button>
               <Button
@@ -1338,7 +1340,7 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                   setShowEmploymentModal(false);
                   setActiveUploadFile(null);
                 }}
-                className="flex-1 text-sm"
+                className="flex-1 text-xs h-9.5 border-border"
               >
                 Cancel
               </Button>
@@ -1349,13 +1351,13 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
 
       {/* Uploading Overlay for Final Submit */}
       {isSubmittingDocs && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-          <div className="bg-white p-8 rounded-2xl shadow-xl border flex flex-col items-center space-y-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-            <h3 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-background/85 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+          <div className="bg-card p-8 rounded-2xl shadow-xl border border-border/80 flex flex-col items-center space-y-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <h3 className="text-lg font-bold text-foreground">
               {isSubmittingDocs.name === "Finalizing" ? "Finalizing Verification..." : "Uploading Documents..."}
             </h3>
-            <p className="text-sm text-gray-500 max-w-xs text-center">
+            <p className="text-xs text-muted-foreground max-w-xs text-center leading-relaxed">
               {isSubmittingDocs.name === "Finalizing" 
                 ? "Please wait while we submit your application." 
                 : `Please wait while we securely upload your ${isSubmittingDocs.docType.replace('_', ' ')}...`}
