@@ -419,6 +419,33 @@ export const jobsApi = {
       body: formData,
     });
   },
+
+  checkJobEligibility: async (jobId: number): Promise<{
+    eligible: boolean;
+    detected_country?: string;
+    detected_state?: string;
+    restricted_country?: string;
+    restricted_state?: string;
+  }> => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const mockCountry = queryParams.get("mockCountry");
+    const mockState = queryParams.get("mockState");
+    
+    let url = `/candidate/jobs/${jobId}/check-eligibility`;
+    const params = new URLSearchParams();
+    if (mockCountry) params.append("mockCountry", mockCountry);
+    if (mockState) params.append("mockState", mockState);
+    const queryString = params.toString();
+    if (queryString) url += `?${queryString}`;
+    
+    return apiRequest<{
+      eligible: boolean;
+      detected_country?: string;
+      detected_state?: string;
+      restricted_country?: string;
+      restricted_state?: string;
+    }>(url);
+  },
 };
 
 // Applications APIs

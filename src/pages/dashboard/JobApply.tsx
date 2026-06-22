@@ -55,6 +55,13 @@ export const JobApply = () => {
   const [showApplication, setShowApplication] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [eligibility, setEligibility] = useState<{
+    eligible: boolean;
+    detected_country?: string;
+    detected_state?: string;
+    restricted_country?: string;
+    restricted_state?: string;
+  } | null>(null);
 
   // Form data
   const [fullName, setFullName] = useState("");
@@ -78,14 +85,16 @@ export const JobApply = () => {
       if (!jobId) return;
 
       try {
-        const [jobData, prefillData, questionsData, applicationsData] = await Promise.all([
+        const [jobData, prefillData, questionsData, applicationsData, eligibilityData] = await Promise.all([
           jobsApi.getJobById(parseInt(jobId)),
           jobsApi.getApplicationPrefill().catch(() => null),
           jobsApi.getJobAudioQuestions(parseInt(jobId)),
           applicationsApi.getMyApplications({ page_size: 100 }).catch(() => ({ applications: [] })),
+          jobsApi.checkJobEligibility(parseInt(jobId)).catch(() => null),
         ]);
 
         setJob(jobData);
+        setEligibility(eligibilityData);
         setAudioQuestions(questionsData.questions || []);
         setAudioRecordings(new Array(questionsData.questions?.length || 0).fill(null));
 
@@ -251,6 +260,44 @@ export const JobApply = () => {
           </div>
         </motion.div>
 
+        {/* Location Restriction Warning Banner */}
+        {eligibility && !eligibility.eligible && (
+          <motion.div variants={itemVariants}>
+            <div className="p-6 bg-gradient-to-br from-amber-500/10 via-red-500/10 to-rose-500/10 dark:from-amber-500/5 dark:via-red-500/5 dark:to-rose-500/5 backdrop-blur-md border border-red-500/20 dark:border-red-500/10 rounded-2xl shadow-xl flex items-start gap-4 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
+              <div className="p-3 bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl shadow-inner flex-shrink-0 relative">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-600 block animate-ping absolute" />
+                <MapPin className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-lg font-bold text-red-700 dark:text-red-400">Application Restricted</h4>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  This position has geographic restrictions. Your current location does not match the eligibility criteria set by the employer.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 pt-3 border-t border-red-500/10">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Allowed Location</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">
+                      {eligibility.restricted_state ? `${eligibility.restricted_state}, ` : ''}{eligibility.restricted_country}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Detected Location</span>
+                    <span className="text-sm font-bold text-red-600 dark:text-red-400 mt-0.5 block">
+                      {eligibility.detected_country 
+                        ? `${eligibility.detected_state ? `${eligibility.detected_state}, ` : ''}${eligibility.detected_country}`
+                        : 'Unknown location'
+                      }
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 italic">
+                  * Location detected via client IP address. If you are using a VPN or proxy, please disable it to verify your location.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Job Header Card */}
         <motion.div variants={itemVariants}>
           <Card className="overflow-hidden">
@@ -383,16 +430,20 @@ export const JobApply = () => {
                     <div>
                       <h3 className="font-display text-lg font-semibold">Ready to Apply?</h3>
                       <p className="text-sm text-muted-foreground">
-                        Submit your application and take the next step in your career
+                        {eligibility && !eligibility.eligible 
+                          ? "This position is not open to applications from your current location."
+                          : "Submit your application and take the next step in your career"
+                        }
                       </p>
                     </div>
                     <Button
-                      variant="gradient"
+                      variant={eligibility && !eligibility.eligible ? "outline" : "gradient"}
                       size="lg"
                       className="w-full md:w-auto"
                       onClick={() => setShowApplication(true)}
+                      disabled={eligibility !== null && !eligibility.eligible}
                     >
-                      Apply Now
+                      {eligibility && !eligibility.eligible ? "Apply Restricted" : "Apply Now"}
                       <ArrowRight size={18} className="ml-2" />
                     </Button>
                   </>
