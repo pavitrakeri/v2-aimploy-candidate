@@ -21,6 +21,7 @@ import {
   Briefcase,
   Users,
   Calendar,
+  Globe,
 } from "lucide-react";
 import { jobsApi, Job, applicationsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -67,6 +68,7 @@ export const JobApply = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [previousCompanyWebsite, setPreviousCompanyWebsite] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 
   // Audio questions
@@ -108,6 +110,7 @@ export const JobApply = () => {
           setFullName(prefillData.full_name || "");
           setEmail(prefillData.email || "");
           setPhone(prefillData.phone || "");
+          setPreviousCompanyWebsite(prefillData.previous_company_website || "");
         }
       } catch (error) {
         toast({
@@ -191,6 +194,7 @@ export const JobApply = () => {
         email,
         phone,
         resume: resumeFile,
+        previous_company_website: previousCompanyWebsite,
         ...audioFiles,
       });
 
@@ -582,6 +586,24 @@ export const JobApply = () => {
                     placeholder="Enter your phone number"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="previousCompanyWebsite">
+                    Previous Company Website <span className="text-slate-400 dark:text-slate-500 font-normal text-xs">(Optional)</span>
+                  </Label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <Input
+                      id="previousCompanyWebsite"
+                      type="text"
+                      value={previousCompanyWebsite}
+                      onChange={(e) => setPreviousCompanyWebsite(e.target.value)}
+                      placeholder="example.com"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
@@ -663,6 +685,12 @@ export const JobApply = () => {
                       <div>
                         <span className="text-muted-foreground">Phone:</span> {phone}
                       </div>
+                      {previousCompanyWebsite && (
+                        <div className="sm:col-span-2">
+                          <span className="text-muted-foreground">Previous Company Website:</span>{" "}
+                          <span className="text-primary font-medium">{previousCompanyWebsite}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="border rounded-lg p-4">

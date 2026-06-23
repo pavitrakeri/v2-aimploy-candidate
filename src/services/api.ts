@@ -200,6 +200,7 @@ export interface ApplicationPrefill {
   email: string;
   phone?: string;
   resume_url?: string;
+  previous_company_website?: string;
 }
 
 export interface AudioQuestionsResponse {
@@ -393,6 +394,7 @@ export const jobsApi = {
       email: string;
       phone: string;
       resume: File;
+      previous_company_website?: string;
       audio_q1?: File;
       audio_q2?: File;
       audio_q3?: File;
@@ -406,6 +408,10 @@ export const jobsApi = {
     formData.append("email", data.email);
     formData.append("phone", data.phone);
     formData.append("resume", data.resume);
+    
+    if (data.previous_company_website) {
+      formData.append("previous_company_website", data.previous_company_website);
+    }
     
     if (data.audio_q1) formData.append("audio_q1", data.audio_q1);
     if (data.audio_q2) formData.append("audio_q2", data.audio_q2);
