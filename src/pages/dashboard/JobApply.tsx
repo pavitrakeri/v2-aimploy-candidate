@@ -21,7 +21,6 @@ import {
   Briefcase,
   Users,
   Calendar,
-  Globe,
 } from "lucide-react";
 import { jobsApi, Job, applicationsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -587,22 +586,13 @@ export const JobApply = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="previousCompanyWebsite">
-                    Previous Company Website <span className="text-slate-400 dark:text-slate-500 font-normal text-xs">(Optional)</span>
-                  </Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                      <Globe className="w-4 h-4" />
-                    </div>
-                    <Input
-                      id="previousCompanyWebsite"
-                      type="text"
-                      value={previousCompanyWebsite}
-                      onChange={(e) => setPreviousCompanyWebsite(e.target.value)}
-                      placeholder="example.com"
-                      className="pl-10"
-                    />
-                  </div>
+                  <Label htmlFor="previousCompanyWebsite">Previous Company Website <span className="text-muted-foreground font-normal text-xs">(Optional)</span></Label>
+                  <Input
+                    id="previousCompanyWebsite"
+                    value={previousCompanyWebsite}
+                    onChange={(e) => setPreviousCompanyWebsite(e.target.value)}
+                    placeholder="example.com"
+                  />
                 </div>
               </div>
             )}
@@ -685,12 +675,9 @@ export const JobApply = () => {
                       <div>
                         <span className="text-muted-foreground">Phone:</span> {phone}
                       </div>
-                      {previousCompanyWebsite && (
-                        <div className="sm:col-span-2">
-                          <span className="text-muted-foreground">Previous Company Website:</span>{" "}
-                          <span className="text-primary font-medium">{previousCompanyWebsite}</span>
-                        </div>
-                      )}
+                      <div>
+                        <span className="text-muted-foreground">Previous Company Website:</span> {previousCompanyWebsite || "Not provided"}
+                      </div>
                     </div>
                   </div>
                   <div className="border rounded-lg p-4">

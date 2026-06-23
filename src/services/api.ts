@@ -182,6 +182,7 @@ export interface Application {
   candidate_name?: string;
   resume_url?: string;
   cover_letter?: string;
+  previous_company_website?: string;
   created_at: string;
   updated_at?: string;
   reviewed_at?: string;
@@ -408,7 +409,6 @@ export const jobsApi = {
     formData.append("email", data.email);
     formData.append("phone", data.phone);
     formData.append("resume", data.resume);
-    
     if (data.previous_company_website) {
       formData.append("previous_company_website", data.previous_company_website);
     }
