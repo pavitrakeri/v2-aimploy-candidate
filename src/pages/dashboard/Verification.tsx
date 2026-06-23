@@ -1171,6 +1171,10 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
 
           <DigiLockerStatusBanner />
 
+          <div className="lg:hidden mb-4">
+            <StepSidebar currentStep={step} completedSteps={completedSteps} onStepClick={goTo} />
+          </div>
+
           <div className="flex gap-6 mt-6">
             <div className="hidden lg:block w-80 flex-shrink-0">
               <div className="sticky top-6">

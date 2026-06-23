@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Briefcase, Shield, Users, Sparkles, CheckCircle, TrendingUp, Award, Globe, Zap, Star, Quote, BookOpen } from "lucide-react";
+import { ArrowRight, Briefcase, Shield, Users, Sparkles, CheckCircle, TrendingUp, Award, Globe, Zap, Star, Quote, BookOpen, Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import landingHero from "@/assets/landing-hero.jpg";
 import teamPhoto from "@/assets/team-photo.jpg";
@@ -140,13 +141,69 @@ export const Landing = () => {
               User Guide
             </Link>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost" asChild>
               <Link to="/login">Login</Link>
             </Button>
             <Button variant="gradient" asChild>
               <Link to="/register">Get Started</Link>
             </Button>
+          </div>
+          {/* Mobile Hamburger menu */}
+          <div className="md:hidden flex items-center">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-muted p-2 rounded-lg">
+                  <Menu size={24} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-6 flex flex-col gap-6 bg-background">
+                <SheetHeader className="text-left pb-2 border-b">
+                  <SheetTitle className="font-display text-xl font-bold flex items-center">
+                    <img src={aimployLogo} alt="Aimploy" className="h-7" />
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-4 text-left">
+                  <SheetClose asChild>
+                    <a href="#features" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors py-2 border-b">
+                      Features
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a href="#how-it-works" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors py-2 border-b">
+                      How It Works
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a href="#about" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors py-2 border-b">
+                      About
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link to="/programs" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors py-2 border-b">
+                      Programs
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link to="/user-guidance" className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors py-2 border-b">
+                      User Guide
+                    </Link>
+                  </SheetClose>
+                </nav>
+                <div className="mt-auto flex flex-col gap-3">
+                  <SheetClose asChild>
+                    <Button variant="outline" className="w-full h-11" asChild>
+                      <Link to="/login">Login</Link>
+                    </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Button variant="gradient" className="w-full h-11" asChild>
+                      <Link to="/register">Get Started</Link>
+                    </Button>
+                  </SheetClose>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </motion.nav>

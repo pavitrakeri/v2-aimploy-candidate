@@ -125,15 +125,18 @@ export const UserGuidance = () => {
           <Link to="/" className="flex items-center">
             <img src={aimployLogo} alt="Aimploy" className="h-8" />
           </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/">
-                <ArrowLeft size={16} />
-                Back to Home
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild className="px-2.5">
+              <Link to="/" className="flex items-center">
+                <ArrowLeft size={16} className="sm:mr-1.5" />
+                <span className="hidden sm:inline">Back to Home</span>
               </Link>
             </Button>
-            <Button variant="gradient" asChild>
-              <Link to="/register">Get Started</Link>
+            <Button variant="gradient" size="sm" asChild className="px-3">
+              <Link to="/register">
+                <span className="hidden sm:inline">Get Started</span>
+                <span className="sm:hidden">Get Started</span>
+              </Link>
             </Button>
           </div>
         </div>

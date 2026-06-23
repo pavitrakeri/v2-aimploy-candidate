@@ -273,7 +273,7 @@ export const Applications = () => {
 
       {/* Stats */}
       {activeSubTab === "jobs" && (
-        <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-4">
+        <motion.div variants={itemVariants} className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Total Applications</p>

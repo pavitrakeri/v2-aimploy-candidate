@@ -17,13 +17,13 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import aimployLogo from "@/assets/aimploy-logo.png";
 
-interface NavItem {
+export interface NavItem {
   label: string;
   icon: React.ElementType;
   path: string;
 }
 
-const navItems: NavItem[] = [
+export const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Browse Jobs", icon: Briefcase, path: "/dashboard/jobs" },
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
@@ -48,7 +48,7 @@ export const DashboardSidebar = () => {
       initial={false}
       animate={{ width: collapsed ? 80 : 280 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="fixed left-0 top-0 h-screen bg-sidebar flex flex-col border-r border-sidebar-border z-50"
+      className="hidden lg:flex fixed left-0 top-0 h-screen bg-sidebar flex-col border-r border-sidebar-border z-50"
     >
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">

@@ -132,7 +132,7 @@ export const Challenges = () => {
       </motion.div>
 
       {/* Stats */}
-      <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-4">
+      <motion.div variants={itemVariants} className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card className="bg-gradient-primary text-primary-foreground">
           <CardContent className="pt-6">
             <Trophy className="mb-2" size={24} />
