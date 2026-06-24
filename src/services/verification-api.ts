@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.aimploy.org";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://api.aimploy.org";
 
 export interface VerificationStartRequest {
   candidate_id: number;

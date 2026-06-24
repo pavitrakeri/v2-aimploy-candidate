@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const params = new URLSearchParams({ code });
     if (state) params.append('state', state);
     
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "https://api.aimploy.org/api/v1"}/candidate/login/google/callback?${params}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://api.aimploy.org/api/v1"}/candidate/login/google/callback?${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
