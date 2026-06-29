@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,17 @@ import authRegisterHero from "@/assets/auth-register-hero.jpg";
 
 export const Register = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  const searchParams = new URLSearchParams(location.search);
+  const emailParam = searchParams.get("email");
 
   const [formData, setFormData] = useState({
     fullName: "",
     firstName: "",
     lastName: "",
-    email: "",
+    email: emailParam || "",
     phone: "",
     password: "",
     confirmPassword: "",
@@ -86,7 +90,7 @@ export const Register = () => {
 
       toast({ title: "Success", description: "Account created successfully! Please login to continue." });
       
-      navigate("/login", { replace: true });
+      navigate(`/login${location.search}`, { replace: true, state: location.state });
     } catch (error) {
       toast({
         title: "Registration Failed",
@@ -356,7 +360,7 @@ export const Register = () => {
 
             <p className="text-center text-sm text-muted-foreground mt-8">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary font-medium hover:underline">
+              <Link to={`/login${location.search}`} state={location.state} className="text-primary font-medium hover:underline">
                 Sign in
               </Link>
             </p>

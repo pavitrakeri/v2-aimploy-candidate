@@ -18,7 +18,11 @@ export const Login = () => {
   const { login, loginWithOTP, requestOTP, loginWithGoogle } = useAuth();
   const { toast } = useToast();
 
-  const [email, setEmail] = useState("");
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get("redirect") || searchParams.get("redirectTo");
+  const emailParam = searchParams.get("email");
+
+  const [email, setEmail] = useState(() => emailParam || "");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +30,15 @@ export const Login = () => {
   const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
   const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || redirectParam || "/dashboard";
+
+  const performRedirect = (target: string) => {
+    if (target.startsWith("http://") || target.startsWith("https://") || target.includes("//")) {
+      window.location.href = target;
+    } else {
+      navigate(target, { replace: true });
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -51,7 +63,7 @@ export const Login = () => {
     try {
       await login(email, password);
       toast({ title: "Success", description: "Welcome back!" });
-      navigate(from, { replace: true });
+      performRedirect(from);
     } catch (error) {
       toast({
         title: "Login Failed",
@@ -96,7 +108,7 @@ export const Login = () => {
     try {
       await loginWithOTP(email, otp);
       toast({ title: "Success", description: "Welcome back!" });
-      navigate(from, { replace: true });
+      performRedirect(from);
     } catch (error) {
       toast({
         title: "Verification Failed",
@@ -384,7 +396,11 @@ export const Login = () => {
 
             <p className="text-center text-sm text-muted-foreground mt-8">
               Don't have an account?{" "}
-              <Link to="/register" className="text-primary font-medium hover:underline">
+              <Link 
+                to={`/register${location.search}`} 
+                state={location.state} 
+                className="text-primary font-medium hover:underline"
+              >
                 Sign up for free
               </Link>
             </p>

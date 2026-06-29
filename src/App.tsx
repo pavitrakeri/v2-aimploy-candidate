@@ -75,7 +75,14 @@ const App = () => (
                   <Route path="validation-demo" element={<ValidationDemo />} />
                   <Route path="profile" element={<Profile />} />
                 </Route>
-              <Route path="/dashboard/jobs/:jobId/apply" element={<JobApply />} />
+              <Route 
+                path="/dashboard/jobs/:jobId/apply" 
+                element={
+                  <ProtectedRoute>
+                    <JobApply />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

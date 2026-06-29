@@ -44,6 +44,40 @@ interface AudioRecording {
   duration: number;
 }
 
+const getStatusColor = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400 dark:border-yellow-900/30";
+    case "reviewing":
+      return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30";
+    case "shortlisted":
+      return "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/30";
+    case "rejected":
+      return "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30";
+    case "hired":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30";
+    default:
+      return "bg-primary/10 text-primary border-primary/20 dark:bg-primary/5 dark:text-primary dark:border-primary/10";
+  }
+};
+
+const getStageFromStatus = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case "pending":
+      return 1;
+    case "reviewing":
+      return 2;
+    case "shortlisted":
+      return 3;
+    case "rejected":
+      return 4;
+    case "hired":
+      return 4;
+    default:
+      return 1;
+  }
+};
+
 export const JobApply = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
@@ -52,6 +86,7 @@ export const JobApply = () => {
   const [job, setJob] = useState<Job | null>(null);
   const [isLoadingJob, setIsLoadingJob] = useState(true);
   const [hasApplied, setHasApplied] = useState(false);
+  const [existingApplication, setExistingApplication] = useState<any | null>(null);
   const [showApplication, setShowApplication] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,10 +135,13 @@ export const JobApply = () => {
         setAudioRecordings(new Array(questionsData.questions?.length || 0).fill(null));
 
         // Check if already applied to this job
-        const appliedJobIds = applicationsData.applications
-          .filter((app) => app.job_id)
-          .map((app) => app.job_id);
-        setHasApplied(appliedJobIds.includes(parseInt(jobId)));
+        const matchedApp = applicationsData.applications.find(
+          (app) => app.job_id === parseInt(jobId)
+        );
+        if (matchedApp) {
+          setHasApplied(true);
+          setExistingApplication(matchedApp);
+        }
 
         if (prefillData) {
           setFullName(prefillData.full_name || "");
@@ -404,30 +442,162 @@ export const JobApply = () => {
         )}
 
         <motion.div variants={itemVariants}>
-          <Card className={hasApplied ? "border-green-500/30 bg-green-500/5" : "border-primary/30 bg-primary/5"}>
+          <Card className={hasApplied ? "border-green-500/30 bg-green-500/5 dark:bg-green-950/5" : "border-primary/30 bg-primary/5"}>
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                {hasApplied ? (
-                  <>
+                {hasApplied && existingApplication ? (
+                  <div className="w-full space-y-6">
                     <div>
-                      <h3 className="font-display text-lg font-semibold text-green-700 dark:text-green-400 flex items-center gap-2">
-                        <CheckCircle2 size={20} />
-                        Application Submitted
+                      <h3 className="font-display text-xl font-bold flex items-center gap-2 mb-2 text-primary">
+                        <CheckCircle2 size={24} className="text-green-500" />
+                        Application Status
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        You have already applied for this position. Check your applications for status updates.
+                        You applied for this position on {formatDate(existingApplication.created_at)}.
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full md:w-auto"
-                      onClick={() => navigate("/dashboard/applications")}
-                    >
-                      View My Applications
-                      <ArrowRight size={18} className="ml-2" />
-                    </Button>
-                  </>
+
+                    {/* Status Badges & Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                      <div className="p-4 bg-muted/40 rounded-xl border border-border/50">
+                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider block mb-1">Current Status</span>
+                        <Badge className={`${getStatusColor(existingApplication.status)} px-3 py-1 font-semibold text-sm border`}>
+                          {existingApplication.status ? existingApplication.status.charAt(0).toUpperCase() + existingApplication.status.slice(1) : 'Pending'}
+                        </Badge>
+                      </div>
+                      {existingApplication.match_score !== undefined && existingApplication.match_score !== null && (
+                        <div className="p-4 bg-muted/40 rounded-xl border border-border/50">
+                          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider block mb-1">AI Match Score</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-bold text-primary">{existingApplication.match_score}%</span>
+                            <div className="w-24 bg-muted h-2 rounded-full overflow-hidden">
+                              <div className="bg-primary h-full rounded-full" style={{ width: `${existingApplication.match_score}%` }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-4 bg-muted/40 rounded-xl border border-border/50">
+                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider block mb-1">Position Type</span>
+                        <span className="font-semibold text-foreground">{job.employment_type || "Full-time"}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Timeline */}
+                    <div className="py-6 px-4 bg-muted/20 rounded-2xl border border-border/30">
+                      <h4 className="font-semibold text-sm text-foreground mb-6 uppercase tracking-wider">Application Timeline</h4>
+                      <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-4">
+                        {/* Horizontal line for desktop */}
+                        <div className="hidden md:block absolute top-[18px] left-[5%] right-[5%] h-0.5 bg-muted-foreground/20 -z-10 w-[90%]">
+                          <div 
+                            className="bg-primary h-full transition-all duration-500" 
+                            style={{ 
+                              width: existingApplication.status?.toLowerCase() === 'rejected' 
+                                ? '100%' 
+                                : `${Math.max(0, (getStageFromStatus(existingApplication.status) - 1) * 33.3)}%` 
+                            }}
+                          />
+                        </div>
+
+                        {/* Timeline Steps */}
+                        {[
+                          { step: 1, label: "Applied", desc: "Form submitted successfully" },
+                          { step: 2, label: "Screening", desc: "Resume & audio scoring" },
+                          { step: 3, label: "Interview", desc: "Shortlist decision" },
+                          { 
+                            step: 4, 
+                            label: existingApplication.status?.toLowerCase() === 'rejected' ? "Rejected" : "Decision", 
+                            desc: existingApplication.status?.toLowerCase() === 'hired' 
+                              ? "Offer extended!" 
+                              : existingApplication.status?.toLowerCase() === 'rejected'
+                              ? "Application closed"
+                              : "Final updates"
+                          }
+                        ].map((t) => {
+                          const isCurrent = t.step === getStageFromStatus(existingApplication.status);
+                          const isCompleted = t.step < getStageFromStatus(existingApplication.status) || existingApplication.status?.toLowerCase() === 'hired' || (existingApplication.status?.toLowerCase() === 'rejected' && t.step === 4);
+                          const isRejectedStep = t.step === 4 && existingApplication.status?.toLowerCase() === 'rejected';
+
+                          return (
+                            <div key={t.step} className="flex md:flex-col items-center gap-4 md:gap-2 flex-1 text-left md:text-center relative">
+                              <div 
+                                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm border-2 z-10 transition-all duration-300 ${
+                                  isRejectedStep 
+                                    ? "bg-red-100 border-red-500 text-red-600 dark:bg-red-950/30"
+                                    : isCompleted 
+                                    ? "bg-primary border-primary text-primary-foreground" 
+                                    : isCurrent 
+                                    ? "bg-background border-primary text-primary shadow-md ring-2 ring-primary/20" 
+                                    : "bg-background border-muted text-muted-foreground"
+                                }`}
+                              >
+                                {isCompleted && !isRejectedStep ? "✓" : isRejectedStep ? "✗" : t.step}
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className={`font-semibold text-sm ${isCurrent ? 'text-primary' : isRejectedStep ? 'text-red-600' : 'text-foreground'}`}>
+                                  {t.label}
+                                </p>
+                                <p className="text-xs text-muted-foreground hidden md:block max-w-[120px] mx-auto leading-relaxed">
+                                  {t.desc}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Skills match */}
+                    {((existingApplication.match_skills && existingApplication.match_skills.length > 0) || 
+                      (existingApplication.missing_skills && existingApplication.missing_skills.length > 0)) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {existingApplication.match_skills && existingApplication.match_skills.length > 0 && (
+                          <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/10">
+                            <h5 className="text-xs font-semibold text-green-800 dark:text-green-400 uppercase tracking-wider mb-2">Matched Skills</h5>
+                            <div className="flex flex-wrap gap-1.5">
+                              {existingApplication.match_skills.map((skill: string) => (
+                                <Badge key={skill} className="bg-green-100 hover:bg-green-100 text-green-800 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/30 text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {existingApplication.missing_skills && existingApplication.missing_skills.length > 0 && (
+                          <div className="p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/10">
+                            <h5 className="text-xs font-semibold text-yellow-800 dark:text-yellow-400 uppercase tracking-wider mb-2">Missing Skills</h5>
+                            <div className="flex flex-wrap gap-1.5">
+                              {existingApplication.missing_skills.map((skill: string) => (
+                                <Badge key={skill} className="bg-yellow-100 hover:bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-400 dark:border-yellow-900/30 text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="flex-1 rounded-xl shadow-sm"
+                        onClick={() => navigate("/dashboard/jobs")}
+                      >
+                        Browse All Jobs
+                      </Button>
+                      <Button
+                        variant="gradient"
+                        size="lg"
+                        className="flex-1 rounded-xl shadow-md"
+                        onClick={() => navigate("/dashboard/applications")}
+                      >
+                        View My Applications
+                        <ArrowRight size={18} className="ml-2" />
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <div>
