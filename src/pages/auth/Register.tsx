@@ -99,7 +99,21 @@ export const Register = () => {
         const from = (location.state as any)?.from?.pathname || redirectParam || "/dashboard";
         
         if (from.startsWith("http://") || from.startsWith("https://") || from.includes("//")) {
-          window.location.href = from;
+          let targetUrl = from;
+          try {
+            const urlObj = new URL(targetUrl);
+            urlObj.searchParams.set("email", formData.email);
+            urlObj.searchParams.set("checked", "1");
+            targetUrl = urlObj.toString();
+          } catch (e) {
+            console.error("Failed to parse redirect URL", e);
+            if (targetUrl.includes("?")) {
+              targetUrl += `&email=${encodeURIComponent(formData.email)}&checked=1`;
+            } else {
+              targetUrl += `?email=${encodeURIComponent(formData.email)}&checked=1`;
+            }
+          }
+          window.location.href = targetUrl;
         } else {
           navigate(from, { replace: true });
         }
