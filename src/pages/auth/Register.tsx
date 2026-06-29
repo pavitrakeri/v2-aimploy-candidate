@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, User, ArrowRight, Loader2, Upload, Sparkles, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { authApi } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import authRegisterHero from "@/assets/auth-register-hero.jpg";
 
@@ -15,6 +16,7 @@ export const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const searchParams = new URLSearchParams(location.search);
   const emailParam = searchParams.get("email");
@@ -88,9 +90,23 @@ export const Register = () => {
         await authApi.register(registerData);
       }
 
-      toast({ title: "Success", description: "Account created successfully! Please login to continue." });
+      toast({ title: "Success", description: "Account created successfully!" });
       
-      navigate(`/login${location.search}`, { replace: true, state: location.state });
+      try {
+        await login(formData.email, formData.password);
+        
+        const redirectParam = searchParams.get("redirect") || searchParams.get("redirectTo");
+        const from = (location.state as any)?.from?.pathname || redirectParam || "/dashboard";
+        
+        if (from.startsWith("http://") || from.startsWith("https://") || from.includes("//")) {
+          window.location.href = from;
+        } else {
+          navigate(from, { replace: true });
+        }
+      } catch (loginError) {
+        console.error("Auto-login after registration failed:", loginError);
+        navigate(`/login${location.search}`, { replace: true, state: location.state });
+      }
     } catch (error) {
       toast({
         title: "Registration Failed",
