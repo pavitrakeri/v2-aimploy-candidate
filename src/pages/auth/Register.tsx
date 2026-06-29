@@ -22,7 +22,6 @@ export const Register = () => {
   const emailParam = searchParams.get("email");
 
   const [formData, setFormData] = useState({
-    fullName: "",
     firstName: "",
     lastName: "",
     email: emailParam || "",
@@ -78,7 +77,7 @@ export const Register = () => {
       const registerData = {
         email: formData.email,
         password: formData.password,
-        full_name: formData.fullName || `${formData.firstName} ${formData.lastName}`.trim(),
+        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone: formData.phone,
@@ -209,23 +208,6 @@ export const Register = () => {
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    placeholder="John Doe"
-                    className="pl-10 h-12"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
