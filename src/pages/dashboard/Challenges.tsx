@@ -165,6 +165,14 @@ export const Challenges = () => {
 
   const handleJoin = (challengeId: number, challengeTitle: string) => {
     const challenge = challenges.find((c) => c.id === challengeId);
+    alert("JOIN CLICKED!\n" + JSON.stringify({
+      id: challenge?.id,
+      title: challenge?.title,
+      questions_len: challenge?.questions?.length,
+      questions_type: typeof challenge?.questions,
+      questions_raw: challenge?.questions
+    }, null, 2));
+
     console.log("CANDIDATE PORTAL handleJoin challenge:", challenge);
     console.log("questions field:", challenge?.questions, "type:", typeof challenge?.questions);
     
