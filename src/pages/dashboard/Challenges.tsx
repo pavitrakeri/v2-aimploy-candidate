@@ -253,7 +253,7 @@ export const Challenges = () => {
               <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                 {questions.map((q: any, idx: number) => {
                   const selected = answers[q.id];
-                  const isCorrect = selected && selected.trim().lower() === q.correct_answer.trim().lower();
+                  const isCorrect = selected && selected.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
                   return (
                     <div key={q.id} className="p-4 rounded-2xl border border-border bg-muted/20 space-y-3">
                       <div className="flex items-start justify-between gap-3">
