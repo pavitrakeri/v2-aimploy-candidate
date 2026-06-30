@@ -751,6 +751,8 @@ export const Challenges = () => {
             </CardContent>
           </Card>
         </motion.div>
+      </div>
+
       {/* Quiz Intro / Instructions Modal */}
       {showingQuizIntro && activeQuizChallenge && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
