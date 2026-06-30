@@ -628,17 +628,35 @@ export const Challenges = () => {
                         </div>
                         
                         <Button
-                          variant={challenge.status === "Live" ? "gradient" : "outline"}
+                          variant={challenge.status !== "Live" ? "outline" : (challenge.participant_status === "submitted" ? "secondary" : "gradient")}
                           size="sm"
                           className="w-full sm:w-auto shadow-md"
-                          onClick={() => challenge.status === "Live" ? handleJoin(challenge.id, challenge.title) : handleRemind(challenge.title)}
-                          disabled={joinMutation.isPending && joinMutation.variables === challenge.id}
+                          onClick={() => {
+                            if (challenge.status !== "Live") {
+                              handleRemind(challenge.title);
+                            } else if (challenge.participant_status !== "submitted") {
+                              handleJoin(challenge.id, challenge.title);
+                            }
+                          }}
+                          disabled={(joinMutation.isPending && joinMutation.variables === challenge.id) || challenge.participant_status === "submitted"}
                         >
                           {challenge.status === "Live" ? (
-                            <>
-                              <Zap size={14} className="mr-1.5" />
-                              {joinMutation.isPending && joinMutation.variables === challenge.id ? "Entering..." : "Join Now"}
-                            </>
+                            challenge.participant_status === "submitted" ? (
+                              <>
+                                <CheckCircle size={14} className="mr-1.5 text-emerald-500" />
+                                {`Completed (${challenge.participant_score}%)`}
+                              </>
+                            ) : challenge.participant_status === "started" ? (
+                              <>
+                                <Zap size={14} className="mr-1.5 animate-pulse" />
+                                Resume Challenge
+                              </>
+                            ) : (
+                              <>
+                                <Zap size={14} className="mr-1.5" />
+                                {joinMutation.isPending && joinMutation.variables === challenge.id ? "Entering..." : "Join Now"}
+                              </>
+                            )
                           ) : (
                             <>
                               Remind Me

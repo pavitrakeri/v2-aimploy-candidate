@@ -576,6 +576,8 @@ export interface Challenge {
   questions?: any[];
   duration_minutes?: number;
   num_questions?: number;
+  participant_status?: string;
+  participant_score?: number;
   created_at?: string;
   updated_at?: string;
 }
