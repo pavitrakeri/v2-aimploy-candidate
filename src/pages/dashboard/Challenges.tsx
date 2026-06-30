@@ -321,9 +321,7 @@ export const Challenges = () => {
 
                       <div className="flex sm:flex-col items-center sm:items-end justify-between gap-4 shrink-0 sm:border-l border-border/40 sm:pl-5">
                         <div className="text-right sm:space-y-1">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Prize Pool</p>
-                          <p className="text-2xl font-extrabold tracking-tight text-primary">{challenge.prize || "No Prize"}</p>
-                          <p className="text-[10px] text-muted-foreground/80 font-medium">
+                          <p className="text-sm text-muted-foreground/80 font-medium">
                             {challenge.ends_in ? `Ends in ${challenge.ends_in}` : challenge.starts_in ? `Starts in ${challenge.starts_in}` : ""}
                           </p>
                         </div>
