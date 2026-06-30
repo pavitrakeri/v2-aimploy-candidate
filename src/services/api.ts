@@ -559,3 +559,61 @@ export const programsApi = {
   },
 };
 
+// Challenges Types & APIs
+export interface Challenge {
+  id: number;
+  title: string;
+  company: string;
+  difficulty: string;
+  difficulty_color?: string;
+  time_limit?: string;
+  prize?: string;
+  status: string;
+  status_color?: string;
+  tags: string[];
+  ends_in?: string;
+  starts_in?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ChallengeStats {
+  challenges_won: number;
+  participated: number;
+  total_points: number;
+  global_rank: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  score: number;
+  badge: string;
+}
+
+export const challengesApi = {
+  getChallenges: async (): Promise<Challenge[]> => {
+    return apiRequest<Challenge[]>("/challenges", {
+      method: "GET",
+    });
+  },
+
+  getStats: async (): Promise<ChallengeStats> => {
+    return apiRequest<ChallengeStats>("/challenges/stats", {
+      method: "GET",
+    });
+  },
+
+  getLeaderboard: async (): Promise<LeaderboardEntry[]> => {
+    return apiRequest<LeaderboardEntry[]>("/challenges/leaderboard", {
+      method: "GET",
+    });
+  },
+
+  joinChallenge: async (challengeId: number): Promise<{ message: string }> => {
+    return apiRequest<{ message: string }>(`/challenges/${challengeId}/join`, {
+      method: "POST",
+    });
+  },
+};
+
