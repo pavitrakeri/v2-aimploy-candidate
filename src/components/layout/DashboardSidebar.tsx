@@ -10,6 +10,7 @@ import {
   LogOut,
   GraduationCap,
   ShieldCheck,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +29,7 @@ export const navItems: NavItem[] = [
   { label: "Browse Jobs", icon: Briefcase, path: "/dashboard/jobs" },
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
   { label: "Programs", icon: GraduationCap, path: "/dashboard/programs" },
+  { label: "Challenges", icon: Trophy, path: "/dashboard/challenges" },
   { label: "Verification", icon: ShieldCheck, path: "/dashboard/bgv-verification" },
   { label: "Profile", icon: User, path: "/dashboard/profile" },
 ];
