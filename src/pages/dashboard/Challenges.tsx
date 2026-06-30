@@ -18,6 +18,7 @@ import {
   Sparkles,
   CheckCircle,
   X,
+  Award,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Challenge } from "@/services/api";
