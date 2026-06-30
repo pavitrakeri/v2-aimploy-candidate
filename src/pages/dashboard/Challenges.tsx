@@ -165,8 +165,23 @@ export const Challenges = () => {
 
   const handleJoin = (challengeId: number, challengeTitle: string) => {
     const challenge = challenges.find((c) => c.id === challengeId);
-    if (challenge && challenge.questions && challenge.questions.length > 0) {
-      setActiveQuizChallenge(challenge);
+    console.log("CANDIDATE PORTAL handleJoin challenge:", challenge);
+    console.log("questions field:", challenge?.questions, "type:", typeof challenge?.questions);
+    
+    // Parse questions if it's a string
+    let parsedQuestions = challenge?.questions;
+    if (typeof parsedQuestions === 'string') {
+      try {
+        parsedQuestions = JSON.parse(parsedQuestions);
+      } catch (e) {
+        parsedQuestions = [];
+      }
+    }
+
+    if (challenge && parsedQuestions && Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
+      // Create a copy of challenge with parsed questions
+      const finalChallenge = { ...challenge, questions: parsedQuestions };
+      setActiveQuizChallenge(finalChallenge);
       setShowingQuizIntro(true);
     } else {
       joinMutation.mutate(challengeId);
@@ -379,6 +394,8 @@ export const Challenges = () => {
       </div>
     );
   }
+
+  console.log("CANDIDATE PORTAL ALL CHALLENGES:", challenges);
 
   return (
     <motion.div
