@@ -573,6 +573,9 @@ export interface Challenge {
   tags: string[];
   ends_in?: string;
   starts_in?: string;
+  questions?: any[];
+  duration_minutes?: number;
+  num_questions?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -613,6 +616,19 @@ export const challengesApi = {
   joinChallenge: async (challengeId: number): Promise<{ message: string }> => {
     return apiRequest<{ message: string }>(`/challenges/${challengeId}/join`, {
       method: "POST",
+    });
+  },
+
+  startChallenge: async (challengeId: number): Promise<{ message: string }> => {
+    return apiRequest<{ message: string }>(`/challenges/${challengeId}/start`, {
+      method: "POST",
+    });
+  },
+
+  submitChallenge: async (challengeId: number, answers: { question_id: string, selected_option: string }[]): Promise<{ message: string, score: number, correct_count: number, total_questions: number }> => {
+    return apiRequest<{ message: string, score: number, correct_count: number, total_questions: number }>(`/challenges/${challengeId}/submit`, {
+      method: "POST",
+      body: JSON.stringify({ answers }),
     });
   },
 };

@@ -16,8 +16,11 @@ import {
   Target,
   Code,
   Sparkles,
-  Award,
+  CheckCircle,
+  X,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Challenge } from "@/services/api";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -82,8 +85,92 @@ export const Challenges = () => {
     },
   });
 
+  const [activeQuizChallenge, setActiveQuizChallenge] = useState<Challenge | null>(null);
+  const [showingQuizIntro, setShowingQuizIntro] = useState(false);
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [quizSecondsLeft, setQuizSecondsLeft] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [quizResults, setQuizResults] = useState<{ score: number; correct_count: number; total_questions: number } | null>(null);
+  const [submittingQuiz, setSubmittingQuiz] = useState(false);
+
+  // Timer countdown hook
+  useEffect(() => {
+    if (!quizStarted || quizSecondsLeft <= 0 || quizResults) return;
+
+    const timer = setInterval(() => {
+      setQuizSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          triggerSubmitQuiz();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [quizStarted, quizSecondsLeft, quizResults]);
+
+  const triggerSubmitQuiz = async (overrideAnswers?: Record<string, string>) => {
+    if (!activeQuizChallenge || submittingQuiz) return;
+    setSubmittingQuiz(true);
+    try {
+      const answersMap = overrideAnswers || answers;
+      const formattedAnswers = Object.entries(answersMap).map(([question_id, selected_option]) => ({
+        question_id,
+        selected_option,
+      }));
+
+      const res = await challengesApi.submitChallenge(activeQuizChallenge.id, formattedAnswers);
+      setQuizResults({
+        score: res.score,
+        correct_count: res.correct_count,
+        total_questions: res.total_questions,
+      });
+      toast({
+        title: "Challenge Completed!",
+        description: `You scored ${res.score}% on the challenge.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["challenge-stats"] });
+    } catch (err: any) {
+      toast({
+        title: "Submission Failed",
+        description: err.message || "Failed to submit challenge responses.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingQuiz(false);
+    }
+  };
+
+  const handleStartQuiz = async () => {
+    if (!activeQuizChallenge) return;
+    try {
+      await challengesApi.startChallenge(activeQuizChallenge.id);
+      setShowingQuizIntro(false);
+      setQuizStarted(true);
+      setQuizSecondsLeft((activeQuizChallenge.duration_minutes || 60) * 60);
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      setQuizResults(null);
+    } catch (err: any) {
+      toast({
+        title: "Initialization Failed",
+        description: err.message || "Could not start the challenge. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleJoin = (challengeId: number, challengeTitle: string) => {
-    joinMutation.mutate(challengeId);
+    const challenge = challenges.find((c) => c.id === challengeId);
+    if (challenge && challenge.questions && challenge.questions.length > 0) {
+      setActiveQuizChallenge(challenge);
+      setShowingQuizIntro(true);
+    } else {
+      joinMutation.mutate(challengeId);
+    }
   };
 
   const handleRemind = (challengeTitle: string) => {
@@ -96,6 +183,202 @@ export const Challenges = () => {
   // Extract top 3 podium entries if available
   const topThree = leaderboard.slice(0, 3);
   const restOfLeaderboard = leaderboard.slice(3);
+
+  if (quizStarted && activeQuizChallenge) {
+    const questions = activeQuizChallenge.questions || [];
+    const currentQuestion = questions[currentQuestionIndex];
+    const minutes = Math.floor(quizSecondsLeft / 60);
+    const seconds = quizSecondsLeft % 60;
+    const isWarningTime = minutes < 2;
+
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+        {quizResults ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-3xl bg-card border border-border rounded-3xl p-8 shadow-2xl space-y-8"
+          >
+            <div className="text-center space-y-3">
+              <div className="inline-flex p-4 rounded-full bg-emerald-500/10 text-emerald-500 animate-bounce">
+                <Trophy size={48} />
+              </div>
+              <h2 className="text-3xl font-display font-extrabold tracking-tight">Challenge Evaluated!</h2>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                Excellent effort. Your submission has been processed and graded by the evaluator.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-muted/50 p-4 rounded-2xl text-center space-y-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Score</span>
+                <h3 className="text-2xl font-extrabold text-primary">{quizResults.score}%</h3>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-2xl text-center space-y-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Correct</span>
+                <h3 className="text-2xl font-extrabold text-emerald-500">{quizResults.correct_count} / {quizResults.total_questions}</h3>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-2xl text-center space-y-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Status</span>
+                <h3 className="text-2xl font-extrabold text-indigo-500">{quizResults.score >= 80 ? "Winner" : "Completed"}</h3>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-bold text-base text-foreground/90">Detailed Question Summary</h3>
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                {questions.map((q: any, idx: number) => {
+                  const selected = answers[q.id];
+                  const isCorrect = selected && selected.trim().lower() === q.correct_answer.trim().lower();
+                  return (
+                    <div key={q.id} className="p-4 rounded-2xl border border-border bg-muted/20 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-semibold text-sm">Q{idx + 1}: {q.text}</p>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${isCorrect ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                          {isCorrect ? "Correct" : "Incorrect"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {q.options.map((opt: string) => {
+                          const isSelected = selected === opt;
+                          const isCorrectOpt = q.correct_answer === opt;
+                          let borderClass = "border-border";
+                          let bgClass = "";
+                          if (isSelected) {
+                            borderClass = isCorrect ? "border-emerald-500" : "border-rose-500";
+                            bgClass = isCorrect ? "bg-emerald-500/5" : "bg-rose-500/5";
+                          } else if (isCorrectOpt) {
+                            borderClass = "border-emerald-500/50";
+                          }
+                          return (
+                            <div key={opt} className={`p-2.5 rounded-xl border ${borderClass} ${bgClass} flex items-center justify-between`}>
+                              <span>{opt}</span>
+                              {isCorrectOpt && <CheckCircle size={14} className="text-emerald-500 shrink-0" />}
+                              {isSelected && !isCorrect && <X size={14} className="text-rose-500 shrink-0" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {q.explanation && (
+                        <p className="text-[11px] text-muted-foreground italic bg-muted/40 p-2.5 rounded-lg">
+                          Explanation: {q.explanation}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => {
+                setQuizStarted(false);
+                setActiveQuizChallenge(null);
+                setQuizResults(null);
+              }}
+            >
+              Back to Challenges
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-xl space-y-6"
+          >
+            <div className="flex items-center justify-between border-b pb-4">
+              <div>
+                <h2 className="text-xl font-bold font-display">{activeQuizChallenge.title}</h2>
+                <p className="text-xs text-muted-foreground">{activeQuizChallenge.company} Challenge</p>
+              </div>
+              <div className={`px-4 py-2 rounded-2xl flex items-center gap-2 border ${isWarningTime ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 animate-pulse' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                <Clock size={16} />
+                <span className="font-mono font-bold text-sm">
+                  {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs text-muted-foreground font-semibold">
+                <span>QUESTION {currentQuestionIndex + 1} OF {questions.length}</span>
+                <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% COMPLETE</span>
+              </div>
+              <div className="h-1 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-primary transition-all duration-300" style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }} />
+              </div>
+            </div>
+
+            {currentQuestion && (
+              <div className="space-y-6">
+                <p className="text-lg font-medium text-foreground">{currentQuestion.text}</p>
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option: string) => {
+                    const isSelected = answers[currentQuestion.id] === option;
+                    return (
+                      <button
+                        key={option}
+                        onClick={() => {
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [currentQuestion.id]: option,
+                          }));
+                        }}
+                        className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${isSelected ? 'border-primary bg-primary/5 text-primary shadow-sm font-semibold' : 'border-border hover:border-primary/50'}`}
+                      >
+                        <span className="text-sm">{option}</span>
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/30 group-hover:border-primary/50'}`}>
+                          {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-4 border-t gap-4">
+              <Button
+                variant="outline"
+                disabled={currentQuestionIndex === 0}
+                onClick={() => setCurrentQuestionIndex((prev) => prev - 1)}
+              >
+                Previous
+              </Button>
+
+              <div className="flex gap-2">
+                {questions.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentQuestionIndex(idx)}
+                    className={`w-2.5 h-2.5 rounded-full ${currentQuestionIndex === idx ? 'bg-primary' : answers[questions[idx].id] ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+                  />
+                ))}
+              </div>
+
+              {currentQuestionIndex === questions.length - 1 ? (
+                <Button
+                  variant="gradient"
+                  disabled={submittingQuiz}
+                  onClick={() => triggerSubmitQuiz()}
+                >
+                  {submittingQuiz ? "Submitting..." : "Submit Challenge"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
+                >
+                  Next
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -451,7 +734,65 @@ export const Challenges = () => {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
+      {/* Quiz Intro / Instructions Modal */}
+      {showingQuizIntro && activeQuizChallenge && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5"
+          >
+            <div className="flex items-center gap-3 text-primary">
+              <Trophy size={28} />
+              <h3 className="text-xl font-bold font-display">Start Skill Challenge</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg text-foreground">{activeQuizChallenge.title}</h4>
+              <p className="text-sm text-muted-foreground">
+                You are about to start a timed multiple-choice coding/design sprint hosted by <span className="font-semibold text-foreground/80">{activeQuizChallenge.company}</span>.
+              </p>
+              
+              <div className="bg-muted/50 p-4 rounded-2xl space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-medium">Questions:</span>
+                  <span className="font-bold text-foreground">{activeQuizChallenge.questions?.length || 5} MCQs</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-medium">Time Limit:</span>
+                  <span className="font-bold text-foreground">{activeQuizChallenge.duration_minutes || 60} Minutes</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-medium">Difficulty:</span>
+                  <span className="font-bold text-indigo-500">{activeQuizChallenge.difficulty}</span>
+                </div>
+              </div>
+              
+              <p className="text-xs text-rose-500 font-medium">
+                ⚠️ Warning: Once you click "Start Timer", the session will begin. You cannot pause or restart the timer. Unfinished questions will be auto-submitted when the time runs out.
+              </p>
+            </div>
+            
+            <div className="flex gap-3 justify-end pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowingQuizIntro(false);
+                  setActiveQuizChallenge(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="gradient"
+                onClick={handleStartQuiz}
+              >
+                Start Timer
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 };
