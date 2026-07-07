@@ -252,6 +252,8 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
                       let formattedValue = '';
                       if (typeof value === 'boolean') {
                         formattedValue = value ? '✅ Yes' : '❌ No';
+                      } else if (typeof value === 'string' && ['value_found', 'true', 'yes', 'found', 'present'].includes(value.toLowerCase().trim())) {
+                        formattedValue = '✅ Yes';
                       } else if (typeof value === 'object' && value !== null) {
                         if (Array.isArray(value)) {
                           formattedValue = value.length > 0 ? value.join(', ') : 'None';

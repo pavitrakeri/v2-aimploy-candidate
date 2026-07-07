@@ -116,7 +116,7 @@ const DashboardContent = () => {
         transition={{ duration: 0.3 }}
         className={cn(
           "flex-1 transition-all duration-300 min-h-screen pt-16 lg:pt-0",
-          collapsed ? "lg:pl-20" : "lg:pl-[280px]"
+          collapsed ? "lg:pl-20" : "lg:pl-[240px]"
         )}
       >
         <div className="p-4 md:p-6 lg:p-8">

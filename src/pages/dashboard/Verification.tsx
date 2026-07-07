@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi, WifiOff, Info, FileText, Download, Landmark, Briefcase, Camera, Trash2, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Shield, Wifi, WifiOff, Info, FileText, Download, Landmark, Briefcase, Camera, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
 import { VerificationHeader } from '@/components/verification/VerificationHeader';
 import { StepSidebar } from '@/components/verification/StepSidebar';
 import { IdentityStep } from '@/components/verification/steps/IdentityStep';
@@ -780,9 +781,9 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     if (localState.financial.bankStatement || localState.financial.salarySlip || localState.financial.taxReturn) set.add(4);
     // Step 5: Photo
     if (localState.photo.photo) set.add(5);
-    // Step 6: Additional Docs - optional, mark done if has any OR if no docs added (skippable)
-    if (localState.additionalDocs.length === 0 || localState.additionalDocs.some((doc) => doc.file)) set.add(6);
-    // Step 7: Review - unlocked when all mandatory steps done (0,1,2,3,4,5)
+    // Step 6: Additional Docs - optional, only tick when at least one doc is actually uploaded
+    if (localState.additionalDocs.some((doc) => doc.file)) set.add(6);
+    // Step 7: Review - unlocked when all mandatory steps done (0-5); step 6 is optional so excluded
     const mandatoryStepsDone = set.has(0) && set.has(1) && set.has(2) && set.has(3) && set.has(4) && set.has(5);
     if (mandatoryStepsDone) set.add(7);
     return set;
@@ -832,102 +833,22 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
     }
   };
 
-  const DigiLockerStatusBanner = () => {
-    const [connecting, setConnecting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  // DigiLocker connect action helper for the redesigned unified header
+  const [connectingDigiLocker, setConnectingDigiLocker] = useState(false);
+  const [digiLockerError, setDigiLockerError] = useState<string | null>(null);
 
-    const handleConnect = async () => {
-      if (!bgvState.verification) return;
-      try {
-        setConnecting(true);
-        setError(null);
-        await digiLockerActions.connectWithDigiLocker(bgvState.verification.id, candidateId);
-      } catch (err) {
-        console.error('Failed to link DigiLocker:', err);
-        setError(err instanceof Error ? err.message : 'Connection failed');
-      } finally {
-        setConnecting(false);
-      }
-    };
-
-    if (digiLockerState.isConnected && digiLockerState.userDetails) {
-      return (
-        <Card className="mb-6 border-emerald-100 bg-emerald-50/20 dark:border-emerald-950/40 dark:bg-emerald-950/10 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
-          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Shield className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-emerald-950 dark:text-emerald-250 text-sm flex items-center gap-2">
-                  DigiLocker Account Linked
-                  <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-450 hover:bg-emerald-100 text-[10px] py-0 border-emerald-200 dark:border-emerald-800">Verified</Badge>
-                </h4>
-                <p className="text-xs text-emerald-800 dark:text-emerald-400 mt-0.5">
-                  Import verified credentials (Aadhaar, PAN, DL) directly within step upload cards.
-                  Linked ID: <span className="font-mono font-semibold text-emerald-950 dark:text-emerald-250">{digiLockerState.userDetails.digilockerId}</span>
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={() => digiLockerActions.disconnect()}
-              variant="outline"
-              size="sm"
-              className="text-emerald-900 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-950/30 text-xs shrink-0"
-            >
-              Disconnect
-            </Button>
-          </CardContent>
-        </Card>
-      );
+  const handleDigiLockerConnect = async () => {
+    if (!bgvState.verification) return;
+    try {
+      setConnectingDigiLocker(true);
+      setDigiLockerError(null);
+      await digiLockerActions.connectWithDigiLocker(bgvState.verification.id, candidateId);
+    } catch (err) {
+      console.error('Failed to link DigiLocker:', err);
+      setDigiLockerError(err instanceof Error ? err.message : 'Connection failed');
+    } finally {
+      setConnectingDigiLocker(false);
     }
-
-    return (
-      <Card className="mb-6 border-blue-100 bg-blue-50/10 dark:border-blue-950/20 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 flex">
-          <div className="flex-1 bg-[#F97316]" />
-          <div className="flex-1 bg-white dark:bg-slate-900" />
-          <div className="flex-1 bg-[#22C55E]" />
-        </div>
-        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
-          <div className="flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/30">
-              <Wifi className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="space-y-0.5">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-250 text-sm flex items-center gap-2">
-                Link DigiLocker to Skip Manual Uploads
-              </h4>
-              <p className="text-xs text-blue-700 dark:text-blue-400">
-                Instantly fetch authenticated, government-signed documents directly from your DigiLocker.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-1.5 shrink-0 w-full sm:w-auto">
-            <Button
-              onClick={handleConnect}
-              disabled={connecting}
-              size="sm"
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 h-8.5"
-            >
-              {connecting ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-3.5 w-3.5 mr-1" />
-                  Link DigiLocker Account
-                </>
-              )}
-            </Button>
-            {error && <p className="text-[10px] text-red-550 dark:text-red-400">{error}</p>}
-          </div>
-        </CardContent>
-      </Card>
-    );
   };
 
   return (
@@ -1052,6 +973,83 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
                 </div>
               )}
 
+              {/* Redesigned BGV Component Status Checklist */}
+              {bgvState.documents && bgvState.documents.length > 0 && (
+                <div className="bg-secondary/15 dark:bg-secondary/5 border border-border rounded-xl p-5 text-left space-y-4 shadow-sm">
+                  <div className="flex items-center gap-2 border-b border-border pb-2">
+                    <Shield className="w-5 h-5 text-primary shrink-0" />
+                    <h3 className="font-bold text-base text-foreground">
+                      Document Verification Checklists
+                    </h3>
+                  </div>
+
+                  {/* 1. Show Red Warnings for Rejected Documents */}
+                  {bgvState.documents.some(d => d.validation_status === 'rejected' || (d.validation_score && d.validation_score < 50)) && (
+                    <div className="space-y-2.5">
+                      {bgvState.documents.filter(d => d.validation_status === 'rejected' || (d.validation_score && d.validation_score < 50)).map(d => {
+                        const label = d.document_type === 'voter_id' ? 'Voter ID' : d.document_type === 'driving_licence' ? 'Driving Licence' : d.document_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        return (
+                          <div key={d.id} className="p-3.5 bg-red-50/70 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/50 rounded-lg text-xs flex gap-2.5">
+                            <AlertCircle className="h-4.5 w-4.5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-red-800 dark:text-red-400">
+                                Re-upload Required: {label} failed validation
+                              </p>
+                              {d.rejection_reason && (
+                                <p className="text-red-750 dark:text-red-300 mt-1 font-semibold">
+                                  Reason: {d.rejection_reason}
+                                </p>
+                              )}
+                              <p className="text-muted-foreground mt-1.5 text-[10px]">
+                                Click the <strong>Edit Details</strong> button at the bottom of this page to re-upload a clear copy.
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* 2. Show the list of all documents and their status */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {bgvState.documents.map(d => {
+                      const label = d.document_type === 'voter_id' ? 'Voter ID' : d.document_type === 'driving_licence' ? 'Driving Licence' : d.document_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      
+                      // Match backend status
+                      const score = d.validation_score;
+                      const status = d.validation_status;
+                      const scoreDisplay = score !== undefined && score !== null ? ` (${score}/100)` : '';
+                      
+                      let badgeStyle = "bg-blue-50 text-blue-700 border-blue-200";
+                      let displayStatus = "Uploaded";
+
+                      if (status === 'approved' || (score && score >= 80)) {
+                        badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-250 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30";
+                        displayStatus = "Validated";
+                      } else if (status === 'rejected' || (score && score < 50)) {
+                        badgeStyle = "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30";
+                        displayStatus = "Action Required";
+                      } else if (status === 'needs_review' || (score && score >= 50 && score < 80)) {
+                        badgeStyle = "bg-amber-50 text-amber-700 border-amber-250 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30";
+                        displayStatus = "Under Review";
+                      } else if (status === 'processing') {
+                        badgeStyle = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30 animate-pulse";
+                        displayStatus = "Analyzing...";
+                      }
+
+                      return (
+                        <div key={d.id} className="flex justify-between items-center border border-border bg-card p-3 rounded-lg shadow-sm">
+                          <span className="font-semibold text-foreground/80">{label}</span>
+                          <Badge className={`${badgeStyle} border hover:bg-transparent font-bold text-[10px] py-0.5`}>
+                            {displayStatus} {scoreDisplay}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Employer HR Status Block */}
               {hrStatus && hrStatus.requests && hrStatus.requests.length > 0 && (
                 <div className="space-y-4 text-left">
@@ -1125,37 +1123,113 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
         </div>
       )}
 
-      {/* Verification Wizard Form */}
+      {/* Redesigned Premium Unified Header */}
       {bgvState.verification && !isSubmitted && (
         <>
-          {/* Draft Notification Banner */}
-          <Card className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 shadow-sm">
-            <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 sm:mt-0 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-amber-900 text-sm">
-                    {bgvState.verification.status === 'pending' ? 'Draft Mode - Uploads are immediate' : 'Editing Mode — Documents updated'}
-                  </h4>
-                  <p className="text-xs text-amber-800 mt-0.5">
-                    {bgvState.verification.status === 'pending' 
-                      ? 'Your files will upload and validate as you navigate steps. When complete, click Submit Verification on the last step to trigger HR validation emails.' 
-                      : 'You are editing a submitted verification. Your document changes are saved automatically. Click "Done Editing" when finished — no new HR emails will be sent.'}
-                  </p>
+          <Card className="mb-6 border border-border/80 shadow-sm relative overflow-hidden bg-card">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600" />
+            <CardContent className="p-5 md:p-6 space-y-4">
+              {/* Header Title & Info Area */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                    <CheckCircle className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Background Verification</h1>
+                      {bgvState.verification.status === 'pending' ? (
+                        <Badge className="bg-amber-100/80 text-amber-800 border-amber-250 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50 hover:bg-amber-100 text-[10px] py-0.5 font-bold tracking-wide uppercase">
+                          Draft Mode
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-purple-100/80 text-purple-800 border-purple-250 dark:bg-purple-950/30 dark:text-purple-400 dark:border-purple-900/50 hover:bg-purple-100 text-[10px] py-0.5 font-bold tracking-wide uppercase">
+                          Editing Mode
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Verify your educational, identity, and professional credentials securely.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress Details */}
+                <div className="flex items-center gap-3 sm:text-right">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-xs font-bold text-foreground">{completedSteps.size} of 9 steps done</p>
+                    <p className="text-[10px] text-muted-foreground">Verification Progress</p>
+                  </div>
+                  <Progress 
+                    value={(completedSteps.size / 9) * 100} 
+                    className="h-2 w-28 sm:w-32 bg-muted border border-border/40" 
+                  />
                 </div>
               </div>
-              <div className="flex items-center gap-2 self-stretch sm:self-center">
-                {bgvState.verification.status !== 'pending' && (
+
+              {/* DigiLocker Sub-panel integration (Compact inline) */}
+              <div className="border-t border-border/60 pt-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/30 p-3 rounded-lg border border-border/30">
+                {digiLockerState.isConnected && digiLockerState.userDetails ? (
+                  <>
+                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-400">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      <span>DigiLocker linked: </span>
+                      <span className="font-mono text-emerald-950 dark:text-emerald-250">{digiLockerState.userDetails.digilockerId}</span>
+                    </div>
+                    <Button
+                      onClick={() => digiLockerActions.disconnect()}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2.5 rounded-md"
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                      <span className="w-2 h-2 rounded-full bg-yellow-500 shrink-0" />
+                      <span>Link DigiLocker to auto-fill government ID proofs instantly</span>
+                    </div>
+                    <Button
+                      onClick={handleDigiLockerConnect}
+                      disabled={connectingDigiLocker}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-7.5 px-3 rounded-md flex items-center gap-1.5"
+                    >
+                      {connectingDigiLocker ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Linking...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="h-3 w-3" />
+                          Link DigiLocker
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )}
+                {digiLockerError && (
+                  <p className="text-[10px] text-red-500 mt-1 sm:mt-0 font-medium">{digiLockerError}</p>
+                )}
+              </div>
+
+              {/* Action buttons if in Edit Mode */}
+              {isEditing && bgvState.verification.status !== 'pending' && (
+                <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg text-xs">
+                  <span className="text-amber-800 dark:text-amber-400 font-semibold">You have unsaved edits. Click Done when finished.</span>
                   <Button
                     onClick={() => setIsEditing(false)}
                     variant="outline"
                     size="sm"
-                    className="border-amber-300 text-amber-950 hover:bg-amber-100"
+                    className="border-amber-300 text-amber-950 hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-950/25 h-7.5 px-3 text-xs"
                   >
                     Done Editing
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -1167,16 +1241,12 @@ const VerificationInner: React.FC<VerificationProps> = ({ candidateId, candidate
             </Alert>
           )}
 
-          <VerificationHeader completedSteps={completedSteps} />
-
-          <DigiLockerStatusBanner />
-
           <div className="lg:hidden mb-4">
             <StepSidebar currentStep={step} completedSteps={completedSteps} onStepClick={goTo} />
           </div>
 
           <div className="flex gap-6 mt-6">
-            <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-6">
                 <StepSidebar currentStep={step} completedSteps={completedSteps} onStepClick={goTo} />
               </div>

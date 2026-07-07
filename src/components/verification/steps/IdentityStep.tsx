@@ -3,9 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileUploadZone } from '@/components/ui/FileUploadZone';
 import { IdentityData, UploadedFile } from '@/types/verification';
-import { CreditCard, Shield, Camera, FileText, Car, DownloadCloud, Loader2 } from 'lucide-react';
+import { CreditCard, Shield, Camera, FileText, Car, CheckCircle2, ChevronDown, ChevronUp, AlertCircle, Sparkles } from 'lucide-react';
 import { useDigiLocker } from '@/contexts/DigiLockerContext';
-import { Button } from '@/components/ui/button';
 import { InlineDigiLockerFetcher } from '../../digilocker/InlineDigiLockerFetcher';
 
 interface IdentityStepProps {
@@ -69,6 +68,7 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
   candidateId
 }) => {
   const [activeTabs, setActiveTabs] = React.useState<Record<string, 'upload' | 'digilocker'>>({});
+  const [expandedDoc, setExpandedDoc] = React.useState<string | null>('aadhaar');
   const { state: digiLockerState } = useDigiLocker();
 
   const handleFileUpload = (key: keyof IdentityData) => (file: UploadedFile, rawFile?: File): Promise<boolean | void> | void => {
@@ -98,121 +98,189 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
   const hasRequiredDocument = data.aadhaar || data.pan;
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-      <div>
-        <h2 className="text-2xl font-bold mb-2 text-foreground">Identity Verification</h2>
-        <p className="text-muted-foreground text-sm">
+    <div className="space-y-6">
+      <div className="border-b border-border/60 pb-4">
+        <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <CreditCard className="h-5.5 w-5.5 text-primary" />
+          1. Identity Verification
+        </h2>
+        <p className="text-muted-foreground text-xs mt-1">
           Select manual upload or instant DigiLocker import. At least one document (Aadhaar or PAN) is required to proceed.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-3">
         {identityDocuments.map((doc) => {
           const Icon = doc.icon;
           const uploadedFile = data[doc.key];
-          
+          const isExpanded = expandedDoc === doc.key;
           const currentTab = activeTabs[doc.key] || (digiLockerState.isConnected ? 'digilocker' : 'upload');
-          
+
+          const toggleExpand = () => {
+            setExpandedDoc(isExpanded ? null : doc.key);
+          };
+
           const setTab = (tab: 'upload' | 'digilocker') => {
             setActiveTabs(prev => ({ ...prev, [doc.key]: tab }));
           };
 
-          return (
-            <Card key={doc.key} className="hover:shadow-md hover:border-primary/20 dark:hover:border-primary/40 transition-all duration-300 border border-border/60 flex flex-col justify-between">
-              <div>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base font-semibold text-card-foreground">{doc.title}</CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">{doc.description}</p>
-                      </div>
-                    </div>
-                    {doc.required ? (
-                      <Badge variant="destructive" className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
-                        Required
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide text-muted-foreground bg-muted border border-border/20">
-                        Optional
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  {uploadedFile ? (
-                    <FileUploadZone
-                      onFileUpload={handleFileUpload(doc.key)}
-                      onFileRemove={handleFileRemove(doc.key)}
-                      uploadedFile={uploadedFile}
-                      title={`Upload ${doc.title}`}
-                      aiChecks={doc.aiChecks}
-                      required={doc.required}
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Tabs Header Toggle */}
-                      <div className="flex p-1 bg-muted/80 rounded-lg border border-border">
-                        <button
-                          type="button"
-                          onClick={() => setTab('upload')}
-                          className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                            currentTab === 'upload'
-                              ? 'bg-card text-foreground shadow-sm'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          📤 Manual File
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTab('digilocker')}
-                          className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1 ${
-                            currentTab === 'digilocker'
-                              ? 'bg-card text-primary shadow-sm'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          🔐 DigiLocker
-                        </button>
-                      </div>
+          // Compute status badge
+          let statusBadge = (
+            <Badge variant="outline" className="text-[10px] border-muted-foreground/30 text-muted-foreground bg-muted/10 font-bold px-2 py-0.5">
+              Not Uploaded
+            </Badge>
+          );
 
-                      {currentTab === 'upload' ? (
-                        <FileUploadZone
-                          onFileUpload={handleFileUpload(doc.key)}
-                          onFileRemove={handleFileRemove(doc.key)}
-                          uploadedFile={uploadedFile}
-                          title={`Upload ${doc.title}`}
-                          aiChecks={doc.aiChecks}
-                          required={doc.required}
-                        />
-                      ) : (
-                        <InlineDigiLockerFetcher
-                          verificationId={verificationId || 0}
-                          candidateId={candidateId || 0}
-                          documentType={doc.key as any}
-                          onDocumentFetched={() => {
-                            // Empty call simply triggers data updates
-                            onChange({ ...data });
-                          }}
-                        />
+          if (uploadedFile) {
+            if (uploadedFile.validation_status === 'verified') {
+              statusBadge = (
+                <Badge className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200/50 hover:bg-emerald-50 text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Verified
+                </Badge>
+              );
+            } else if (uploadedFile.validation_status === 'needs_review') {
+              statusBadge = (
+                <Badge className="bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200/50 hover:bg-amber-50 text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> Under Review ({uploadedFile.validation_score}%)
+                </Badge>
+              );
+            } else if (uploadedFile.validation_status === 'rejected') {
+              statusBadge = (
+                <Badge className="bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border-red-200/50 hover:bg-red-50 text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> Action Required
+                </Badge>
+              );
+            } else {
+              statusBadge = (
+                <Badge className="bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200/50 hover:bg-blue-50 text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
+                  Uploaded
+                </Badge>
+              );
+            }
+          }
+
+          return (
+            <Card 
+              key={doc.key} 
+              className={`transition-all duration-200 border shadow-none ${
+                isExpanded 
+                  ? 'border-primary/40 bg-card' 
+                  : 'border-border/60 bg-muted/10 hover:bg-muted/20 hover:border-border'
+              }`}
+            >
+              {/* Collapsed Header */}
+              <div 
+                onClick={toggleExpand}
+                className="p-4 flex items-center justify-between cursor-pointer select-none"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg transition-colors ${
+                    isExpanded ? 'bg-primary/10 text-primary' : 'bg-muted border border-border/40 text-muted-foreground'
+                  }`}>
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-foreground">{doc.title}</span>
+                      {doc.required && (
+                        <span className="text-[10px] font-extrabold text-red-650 tracking-wide uppercase">* Required</span>
                       )}
                     </div>
+                    {!isExpanded && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[280px] sm:max-w-md">
+                        {uploadedFile ? `Attached: ${uploadedFile.name}` : doc.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {statusBadge}
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
-                </CardContent>
+                </div>
               </div>
+
+              {/* Expanded content area */}
+              {isExpanded && (
+                <CardContent className="pt-0 pb-4 px-4 border-t border-border/40 bg-card">
+                  <div className="pt-4 space-y-4">
+                    <p className="text-xs text-muted-foreground">{doc.description}</p>
+                    
+                    {uploadedFile ? (
+                      <FileUploadZone
+                        onFileUpload={handleFileUpload(doc.key)}
+                        onFileRemove={handleFileRemove(doc.key)}
+                        uploadedFile={uploadedFile}
+                        title={`Upload ${doc.title}`}
+                        aiChecks={doc.aiChecks}
+                        required={doc.required}
+                      />
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Tabs Header Toggle */}
+                        <div className="flex p-0.5 bg-muted rounded-lg border border-border/50 max-w-xs">
+                          <button
+                            type="button"
+                            onClick={() => setTab('upload')}
+                            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                              currentTab === 'upload'
+                                ? 'bg-card text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            📤 Manual File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTab('digilocker')}
+                            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1 ${
+                              currentTab === 'digilocker'
+                                ? 'bg-card text-primary shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            🔐 DigiLocker
+                          </button>
+                        </div>
+
+                        {currentTab === 'upload' ? (
+                          <FileUploadZone
+                            onFileUpload={handleFileUpload(doc.key)}
+                            onFileRemove={handleFileRemove(doc.key)}
+                            uploadedFile={uploadedFile}
+                            title={`Upload ${doc.title}`}
+                            aiChecks={doc.aiChecks}
+                            required={doc.required}
+                          />
+                        ) : (
+                          <InlineDigiLockerFetcher
+                            verificationId={verificationId || 0}
+                            candidateId={candidateId || 0}
+                            documentType={doc.key as any}
+                            onDocumentFetched={() => {
+                              onChange({ ...data });
+                            }}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              )}
             </Card>
           );
         })}
       </div>
 
       {!hasRequiredDocument && (
-        <div className="p-4 bg-yellow-50/50 border border-yellow-250 dark:bg-yellow-950/20 dark:border-yellow-900/50 rounded-lg">
-          <p className="text-sm text-yellow-800 dark:text-yellow-400">
-            <strong>Note:</strong> Please upload at least one required document (Aadhaar or PAN card) to proceed.
+        <div className="p-4 bg-amber-50/50 border border-amber-200/50 dark:bg-amber-950/20 dark:border-amber-900/50 rounded-xl flex items-start gap-2.5">
+          <AlertCircle className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed font-medium">
+            Please expand and upload at least one required identity document (Aadhaar or PAN card) to enable review submission.
           </p>
         </div>
       )}
