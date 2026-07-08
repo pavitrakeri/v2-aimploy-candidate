@@ -633,5 +633,12 @@ export const challengesApi = {
       body: JSON.stringify({ answers }),
     });
   },
+  
+  submitCodeChallenge: async (challengeId: number, code: string, score: number, test_results: any[] = []): Promise<{ message: string, score: number }> => {
+    return apiRequest<{ message: string, score: number }>(`/challenges/${challengeId}/submit_code`, {
+      method: "POST",
+      body: JSON.stringify({ code, score, test_results }),
+    });
+  },
 };
 

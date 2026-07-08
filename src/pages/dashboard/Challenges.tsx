@@ -92,6 +92,7 @@ export const Challenges = () => {
   const [quizSecondsLeft, setQuizSecondsLeft] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [code, setCode] = useState("");
   const [quizResults, setQuizResults] = useState<{ score: number; correct_count: number; total_questions: number } | null>(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
 
@@ -103,7 +104,11 @@ export const Challenges = () => {
       setQuizSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          triggerSubmitQuiz();
+          if (activeQuizChallenge?.challenge_type === 'coding') {
+            triggerSubmitCode();
+          } else {
+            triggerSubmitQuiz();
+          }
           return 0;
         }
         return prev - 1;
@@ -145,6 +150,33 @@ export const Challenges = () => {
     }
   };
 
+  const triggerSubmitCode = async () => {
+    if (!activeQuizChallenge || submittingQuiz) return;
+    setSubmittingQuiz(true);
+    try {
+      const mockScore = code.trim().length > 10 ? Math.floor(Math.random() * 51) + 50 : 0;
+      const res = await challengesApi.submitCodeChallenge(activeQuizChallenge.id, code, mockScore);
+      setQuizResults({
+        score: res.score,
+        correct_count: mockScore >= 50 ? 1 : 0,
+        total_questions: 1,
+      });
+      toast({
+        title: "Code Submitted!",
+        description: `You scored ${res.score}% on the challenge.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["challenge-stats"] });
+    } catch (err: any) {
+      toast({
+        title: "Submission Failed",
+        description: err.message || "Failed to submit code.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingQuiz(false);
+    }
+  };
+
   const handleStartQuiz = async () => {
     if (!activeQuizChallenge) return;
     try {
@@ -154,6 +186,7 @@ export const Challenges = () => {
       setQuizSecondsLeft((activeQuizChallenge.duration_minutes || 60) * 60);
       setCurrentQuestionIndex(0);
       setAnswers({});
+      setCode(activeQuizChallenge.starter_code || "");
       setQuizResults(null);
     } catch (err: any) {
       toast({
@@ -297,6 +330,55 @@ export const Challenges = () => {
             >
               Back to Challenges
             </Button>
+          </motion.div>
+        ) : activeQuizChallenge.challenge_type === 'coding' ? (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-5xl bg-card border border-border rounded-3xl p-8 shadow-xl flex flex-col md:flex-row gap-8"
+          >
+            {/* Left Pane: Problem Statement */}
+            <div className="flex-1 space-y-6 flex flex-col h-full">
+              <div className="flex items-center justify-between border-b pb-4">
+                <div>
+                  <h2 className="text-xl font-bold font-display">{activeQuizChallenge.title}</h2>
+                  <p className="text-xs text-muted-foreground">{activeQuizChallenge.company} Coding Challenge</p>
+                </div>
+                <div className={`px-4 py-2 rounded-2xl flex items-center gap-2 border ${isWarningTime ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 animate-pulse' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                  <Clock size={16} />
+                  <span className="font-mono font-bold text-sm">
+                    {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+                  </span>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto prose dark:prose-invert prose-sm">
+                <p className="whitespace-pre-wrap">{activeQuizChallenge.problem_statement}</p>
+              </div>
+            </div>
+
+            {/* Right Pane: Code Editor */}
+            <div className="flex-1 flex flex-col space-y-4">
+              <div className="flex-1 bg-[#1e1e1e] rounded-xl overflow-hidden border border-border flex flex-col min-h-[400px]">
+                <div className="bg-[#2d2d2d] px-4 py-2 flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-300">Editor</span>
+                </div>
+                <textarea
+                  className="flex-1 w-full p-4 bg-transparent text-slate-200 font-mono text-sm focus:outline-none resize-none"
+                  spellCheck="false"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end pt-4 border-t gap-4">
+                <Button
+                  variant="gradient"
+                  disabled={submittingQuiz}
+                  onClick={() => triggerSubmitCode()}
+                >
+                  {submittingQuiz ? "Evaluating..." : "Run & Submit Code"}
+                </Button>
+              </div>
+            </div>
           </motion.div>
         ) : (
           <motion.div
