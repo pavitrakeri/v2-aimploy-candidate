@@ -634,10 +634,10 @@ export const challengesApi = {
     });
   },
   
-  submitCodeChallenge: async (challengeId: number, code: string, score: number, test_results: any[] = []): Promise<{ message: string, score: number }> => {
-    return apiRequest<{ message: string, score: number }>(`/challenges/${challengeId}/submit_code`, {
+  submitCodeChallenge: async (challengeId: number, code: string, language: string, test_results: any[] = []): Promise<{ message: string, score: number, feedback?: string }> => {
+    return apiRequest<{ message: string, score: number, feedback?: string }>(`/challenges/${challengeId}/submit_code`, {
       method: "POST",
-      body: JSON.stringify({ code, score, test_results }),
+      body: JSON.stringify({ code, language, test_results }),
     });
   },
 };

@@ -93,7 +93,8 @@ export const Challenges = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [code, setCode] = useState("");
-  const [quizResults, setQuizResults] = useState<{ score: number; correct_count: number; total_questions: number } | null>(null);
+  const [language, setLanguage] = useState("python");
+  const [quizResults, setQuizResults] = useState<{ score: number; correct_count: number; total_questions: number; feedback?: string } | null>(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
 
   // Timer countdown hook
@@ -154,15 +155,15 @@ export const Challenges = () => {
     if (!activeQuizChallenge || submittingQuiz) return;
     setSubmittingQuiz(true);
     try {
-      const mockScore = code.trim().length > 10 ? Math.floor(Math.random() * 51) + 50 : 0;
-      const res = await challengesApi.submitCodeChallenge(activeQuizChallenge.id, code, mockScore);
+      const res = await challengesApi.submitCodeChallenge(activeQuizChallenge.id, code, language);
       setQuizResults({
         score: res.score,
-        correct_count: mockScore >= 50 ? 1 : 0,
+        correct_count: res.score >= 50 ? 1 : 0,
         total_questions: 1,
+        feedback: res.feedback
       });
       toast({
-        title: "Code Submitted!",
+        title: "Code Evaluated!",
         description: `You scored ${res.score}% on the challenge.`,
       });
       queryClient.invalidateQueries({ queryKey: ["challenge-stats"] });
@@ -274,18 +275,27 @@ export const Challenges = () => {
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-bold text-base text-foreground/90">Detailed Question Summary</h3>
-              <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                {questions.map((q: any, idx: number) => {
-                  const selected = answers[q.id];
-                  const isCorrect = selected && selected.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
-                  return (
-                    <div key={q.id} className="p-4 rounded-2xl border border-border bg-muted/20 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="font-semibold text-sm">Q{idx + 1}: {q.text}</p>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${isCorrect ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
-                          {isCorrect ? "Correct" : "Incorrect"}
-                        </span>
+              {quizResults.feedback ? (
+                <>
+                  <h3 className="font-bold text-base text-foreground/90">AI Evaluation Feedback</h3>
+                  <div className="p-5 rounded-2xl border border-indigo-200 bg-indigo-50/50 dark:border-indigo-900/30 dark:bg-indigo-950/20">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{quizResults.feedback}</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-bold text-base text-foreground/90">Detailed Question Summary</h3>
+                  <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                    {questions.map((q: any, idx: number) => {
+                      const selected = answers[q.id];
+                      const isCorrect = selected && selected.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
+                      return (
+                        <div key={q.id} className="p-4 rounded-2xl border border-border bg-muted/20 space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="font-semibold text-sm">Q{idx + 1}: {q.text}</p>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${isCorrect ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                              {isCorrect ? "Correct" : "Incorrect"}
+                            </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {q.options.map((opt: string) => {
@@ -303,20 +313,39 @@ export const Challenges = () => {
                             <div key={opt} className={`p-2.5 rounded-xl border ${borderClass} ${bgClass} flex items-center justify-between`}>
                               <span>{opt}</span>
                               {isCorrectOpt && <CheckCircle size={14} className="text-emerald-500 shrink-0" />}
-                              {isSelected && !isCorrect && <X size={14} className="text-rose-500 shrink-0" />}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {q.explanation && (
-                        <p className="text-[11px] text-muted-foreground italic bg-muted/40 p-2.5 rounded-lg">
-                          Explanation: {q.explanation}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {q.options.map((opt: string) => {
+                              const isSelected = selected === opt;
+                              const isCorrectOpt = q.correct_answer === opt;
+                              let borderClass = "border-border";
+                              let bgClass = "";
+                              if (isSelected) {
+                                borderClass = isCorrect ? "border-emerald-500" : "border-rose-500";
+                                bgClass = isCorrect ? "bg-emerald-500/5" : "bg-rose-500/5";
+                              } else if (isCorrectOpt) {
+                                borderClass = "border-emerald-500/50";
+                              }
+                              return (
+                                <div key={opt} className={`p-2.5 rounded-xl border ${borderClass} ${bgClass} flex items-center justify-between`}>
+                                  <span>{opt}</span>
+                                  {isCorrectOpt && <CheckCircle size={14} className="text-emerald-500 shrink-0" />}
+                                  {isSelected && !isCorrect && <X size={14} className="text-rose-500 shrink-0" />}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {q.explanation && (
+                            <p className="text-[11px] text-muted-foreground italic bg-muted/40 p-2.5 rounded-lg">
+                              Explanation: {q.explanation}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
 
             <Button
@@ -361,6 +390,18 @@ export const Challenges = () => {
               <div className="flex-1 bg-[#1e1e1e] rounded-xl overflow-hidden border border-border flex flex-col min-h-[400px]">
                 <div className="bg-[#2d2d2d] px-4 py-2 flex items-center justify-between">
                   <span className="text-xs font-mono text-slate-300">Editor</span>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="bg-[#1e1e1e] text-xs text-slate-300 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  >
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="go">Go</option>
+                    <option value="csharp">C#</option>
+                  </select>
                 </div>
                 <textarea
                   className="flex-1 w-full p-4 bg-transparent text-slate-200 font-mono text-sm focus:outline-none resize-none"
@@ -375,7 +416,7 @@ export const Challenges = () => {
                   disabled={submittingQuiz}
                   onClick={() => triggerSubmitCode()}
                 >
-                  {submittingQuiz ? "Evaluating..." : "Run & Submit Code"}
+                  {submittingQuiz ? "Evaluating..." : "Run & Evaluate Code (AI)"}
                 </Button>
               </div>
             </div>
