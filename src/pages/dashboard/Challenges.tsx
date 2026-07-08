@@ -213,7 +213,7 @@ export const Challenges = () => {
       }
     }
 
-    if (challenge && parsedQuestions && Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
+    if (challenge && (challenge.challenge_type === 'coding' || (parsedQuestions && Array.isArray(parsedQuestions) && parsedQuestions.length > 0))) {
       // Create a copy of challenge with parsed questions
       const finalChallenge = { ...challenge, questions: parsedQuestions };
       setActiveQuizChallenge(finalChallenge);
@@ -916,8 +916,8 @@ export const Challenges = () => {
               
               <div className="bg-muted/50 p-4 rounded-2xl space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground font-medium">Questions:</span>
-                  <span className="font-bold text-foreground">{activeQuizChallenge.questions?.length || 5} MCQs</span>
+                  <span className="text-muted-foreground font-medium">Format:</span>
+                  <span className="font-bold text-foreground">{activeQuizChallenge.challenge_type === 'coding' ? 'Live Coding Round' : `${activeQuizChallenge.questions?.length || 5} MCQs`}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground font-medium">Time Limit:</span>
