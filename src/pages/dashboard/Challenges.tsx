@@ -313,28 +313,11 @@ export const Challenges = () => {
                             <div key={opt} className={`p-2.5 rounded-xl border ${borderClass} ${bgClass} flex items-center justify-between`}>
                               <span>{opt}</span>
                               {isCorrectOpt && <CheckCircle size={14} className="text-emerald-500 shrink-0" />}
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {q.options.map((opt: string) => {
-                              const isSelected = selected === opt;
-                              const isCorrectOpt = q.correct_answer === opt;
-                              let borderClass = "border-border";
-                              let bgClass = "";
-                              if (isSelected) {
-                                borderClass = isCorrect ? "border-emerald-500" : "border-rose-500";
-                                bgClass = isCorrect ? "bg-emerald-500/5" : "bg-rose-500/5";
-                              } else if (isCorrectOpt) {
-                                borderClass = "border-emerald-500/50";
-                              }
-                              return (
-                                <div key={opt} className={`p-2.5 rounded-xl border ${borderClass} ${bgClass} flex items-center justify-between`}>
-                                  <span>{opt}</span>
-                                  {isCorrectOpt && <CheckCircle size={14} className="text-emerald-500 shrink-0" />}
-                                  {isSelected && !isCorrect && <X size={14} className="text-rose-500 shrink-0" />}
-                                </div>
-                              );
-                            })}
-                          </div>
+                              {isSelected && !isCorrect && <X size={14} className="text-rose-500 shrink-0" />}
+                            </div>
+                          );
+                        })}
+                      </div>
                           {q.explanation && (
                             <p className="text-[11px] text-muted-foreground italic bg-muted/40 p-2.5 rounded-lg">
                               Explanation: {q.explanation}
