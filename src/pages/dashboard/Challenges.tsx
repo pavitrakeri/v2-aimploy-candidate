@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Challenge } from "@/services/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
@@ -91,6 +92,7 @@ export const Challenges = () => {
 
   const [activeQuizChallenge, setActiveQuizChallenge] = useState<Challenge | null>(null);
   const [showingQuizIntro, setShowingQuizIntro] = useState(false);
+  const [completedChallengeDetails, setCompletedChallengeDetails] = useState<Challenge | null>(null);
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizSecondsLeft, setQuizSecondsLeft] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -761,11 +763,13 @@ export const Challenges = () => {
                           onClick={() => {
                             if (challenge.status !== "Live") {
                               handleRemind(challenge.title);
-                            } else if (challenge.participant_status !== "completed" && challenge.participant_status !== "submitted") {
+                            } else if (challenge.participant_status === "completed" || challenge.participant_status === "submitted") {
+                              setCompletedChallengeDetails(challenge);
+                            } else {
                               handleJoin(challenge.id, challenge.title);
                             }
                           }}
-                          disabled={(joinMutation.isPending && joinMutation.variables === challenge.id) || challenge.participant_status === "completed" || challenge.participant_status === "submitted"}
+                          disabled={joinMutation.isPending && joinMutation.variables === challenge.id}
                         >
                           {challenge.status === "Live" ? (
                             (challenge.participant_status === "completed" || challenge.participant_status === "submitted") ? (
@@ -958,6 +962,110 @@ export const Challenges = () => {
           </motion.div>
         </div>
       )}
+
+      {/* Completed Challenge Details Modal */}
+      <Dialog open={!!completedChallengeDetails} onOpenChange={(open) => !open && setCompletedChallengeDetails(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <CheckCircle className="text-emerald-500" />
+              {completedChallengeDetails?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Completed on {completedChallengeDetails?.participant_completed_at ? new Date(completedChallengeDetails.participant_completed_at).toLocaleString() : "Unknown"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 mt-4">
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">Final Score</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {completedChallengeDetails?.participant_score ?? 0}%
+                </p>
+              </div>
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-4 py-1.5 text-sm">
+                Evaluation Complete
+              </Badge>
+            </div>
+
+            {completedChallengeDetails?.participant_answers && (
+              <div className="space-y-4">
+                <h4 className="font-semibold text-lg flex items-center gap-2">
+                  <FileText className="text-primary" size={20} />
+                  Detailed Feedback & Answers
+                </h4>
+                
+                {completedChallengeDetails.challenge_type === 'coding' ? (
+                  <div className="space-y-4">
+                    {/* For coding challenges, answers is usually an array with one entry containing code & feedback */}
+                    {(() => {
+                      try {
+                        const answersData = typeof completedChallengeDetails.participant_answers === 'string' 
+                          ? JSON.parse(completedChallengeDetails.participant_answers)
+                          : completedChallengeDetails.participant_answers;
+                          
+                        if (Array.isArray(answersData) && answersData.length > 0) {
+                          const codeSubmit = answersData[0];
+                          return (
+                            <div className="space-y-4">
+                              {codeSubmit.feedback && (
+                                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                                  <h5 className="font-semibold text-indigo-700 dark:text-indigo-400 mb-2 flex items-center gap-2">
+                                    <Sparkles size={16} /> AI Evaluation Feedback
+                                  </h5>
+                                  <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                                    <ReactMarkdown>{codeSubmit.feedback}</ReactMarkdown>
+                                  </div>
+                                </div>
+                              )}
+                              <div>
+                                <h5 className="font-medium text-sm text-muted-foreground mb-2">Submitted Code ({codeSubmit.language || 'python'})</h5>
+                                <div className="relative rounded-xl overflow-hidden bg-slate-950 p-4 font-mono text-sm text-emerald-400">
+                                  <pre className="overflow-x-auto">
+                                    <code>{codeSubmit.code || codeSubmit.selected_option}</code>
+                                  </pre>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                      } catch (e) {
+                        return <p className="text-sm text-muted-foreground">Could not parse submission data.</p>;
+                      }
+                      return <p className="text-sm text-muted-foreground">No detailed feedback available.</p>;
+                    })()}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* For Quiz challenges */}
+                    <p className="text-sm text-muted-foreground">Your multiple-choice answers have been recorded and evaluated.</p>
+                    <div className="grid gap-2">
+                      {(() => {
+                        try {
+                          const answersData = typeof completedChallengeDetails.participant_answers === 'string' 
+                            ? JSON.parse(completedChallengeDetails.participant_answers)
+                            : completedChallengeDetails.participant_answers;
+                            
+                          if (Array.isArray(answersData)) {
+                            return answersData.map((ans: any, idx: number) => (
+                              <div key={idx} className="p-3 bg-muted/30 rounded-lg text-sm flex flex-col gap-1">
+                                <span className="font-medium text-muted-foreground">Question ID: {ans.question_id}</span>
+                                <span className="font-semibold">Selected: {ans.selected_option}</span>
+                              </div>
+                            ));
+                          }
+                        } catch (e) {}
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

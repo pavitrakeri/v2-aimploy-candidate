@@ -578,6 +578,8 @@ export interface Challenge {
   num_questions?: number;
   participant_status?: string;
   participant_score?: number;
+  participant_answers?: any;
+  participant_completed_at?: string;
   created_at?: string;
   updated_at?: string;
 }
