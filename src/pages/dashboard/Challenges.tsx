@@ -22,8 +22,9 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Challenge } from "@/services/api";
-
-const containerVariants = {
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -347,36 +348,43 @@ export const Challenges = () => {
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-5xl bg-card border border-border rounded-3xl p-8 shadow-xl flex flex-col md:flex-row gap-8"
+            className="w-full max-w-[95vw] h-[85vh] bg-card border border-border rounded-xl shadow-xl flex overflow-hidden"
           >
-            {/* Left Pane: Problem Statement */}
-            <div className="flex-1 space-y-6 flex flex-col h-full">
-              <div className="flex items-center justify-between border-b pb-4">
-                <div>
-                  <h2 className="text-xl font-bold font-display">{activeQuizChallenge.title}</h2>
-                  <p className="text-xs text-muted-foreground">{activeQuizChallenge.company} Coding Challenge</p>
+            <ResizablePanelGroup direction="horizontal" className="w-full h-full">
+              {/* Left Pane: Problem Statement */}
+              <ResizablePanel defaultSize={40} minSize={25} className="flex flex-col bg-card">
+                <div className="flex items-center justify-between border-b p-4 shrink-0 bg-muted/20">
+                  <div>
+                    <h2 className="text-xl font-bold font-display">{activeQuizChallenge.title}</h2>
+                    <p className="text-xs text-muted-foreground">{activeQuizChallenge.company} Coding Challenge</p>
+                  </div>
+                  <div className={`px-4 py-2 rounded-2xl flex items-center gap-2 border shadow-sm ${isWarningTime ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 animate-pulse' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                    <Clock size={16} />
+                    <span className="font-mono font-bold text-sm">
+                      {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+                    </span>
+                  </div>
                 </div>
-                <div className={`px-4 py-2 rounded-2xl flex items-center gap-2 border ${isWarningTime ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 animate-pulse' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                  <Clock size={16} />
-                  <span className="font-mono font-bold text-sm">
-                    {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
-                  </span>
+                <div className="flex-1 overflow-y-auto p-6 prose dark:prose-invert prose-sm max-w-none prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {activeQuizChallenge.problem_statement || ""}
+                  </ReactMarkdown>
                 </div>
-              </div>
-              <div className="flex-1 overflow-y-auto prose dark:prose-invert prose-sm">
-                <p className="whitespace-pre-wrap">{activeQuizChallenge.problem_statement}</p>
-              </div>
-            </div>
+              </ResizablePanel>
 
-            {/* Right Pane: Code Editor */}
-            <div className="flex-1 flex flex-col space-y-4">
-              <div className="flex-1 bg-[#1e1e1e] rounded-xl overflow-hidden border border-border flex flex-col min-h-[400px]">
-                <div className="bg-[#2d2d2d] px-4 py-2 flex items-center justify-between">
-                  <span className="text-xs font-mono text-slate-300">Editor</span>
+              <ResizableHandle withHandle className="w-1.5 bg-border/50 hover:bg-primary/30 transition-colors" />
+
+              {/* Right Pane: Code Editor */}
+              <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col bg-[#1e1e1e]">
+                <div className="bg-[#2d2d2d] border-b border-[#3d3d3d] px-4 py-2 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Code size={16} className="text-slate-400" />
+                    <span className="text-sm font-medium text-slate-200">Solution</span>
+                  </div>
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
-                    className="bg-[#1e1e1e] text-xs text-slate-300 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="bg-[#1e1e1e] text-xs text-slate-300 border border-[#3d3d3d] rounded px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-[#252525] transition-colors"
                   >
                     <option value="python">Python</option>
                     <option value="javascript">JavaScript</option>
@@ -386,23 +394,45 @@ export const Challenges = () => {
                     <option value="csharp">C#</option>
                   </select>
                 </div>
-                <textarea
-                  className="flex-1 w-full p-4 bg-transparent text-slate-200 font-mono text-sm focus:outline-none resize-none"
-                  spellCheck="false"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-              </div>
-              <div className="flex justify-end pt-4 border-t gap-4">
-                <Button
-                  variant="gradient"
-                  disabled={submittingQuiz}
-                  onClick={() => triggerSubmitCode()}
-                >
-                  {submittingQuiz ? "Evaluating..." : "Run & Evaluate Code (AI)"}
-                </Button>
-              </div>
-            </div>
+                <div className="flex-1 relative">
+                  {/* Line numbers (fake simulation) */}
+                  <div className="absolute left-0 top-0 bottom-0 w-10 bg-[#1e1e1e] border-r border-[#333] text-right pr-2 pt-4 select-none pointer-events-none text-xs font-mono text-[#666]">
+                    {code.split('\n').map((_, i) => (
+                      <div key={i}>{i + 1}</div>
+                    ))}
+                  </div>
+                  <textarea
+                    className="w-full h-full pl-14 p-4 bg-transparent text-slate-200 font-mono text-sm focus:outline-none resize-none leading-relaxed"
+                    spellCheck="false"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="Write your code here..."
+                  />
+                </div>
+                <div className="bg-[#2d2d2d] border-t border-[#3d3d3d] p-4 flex justify-between items-center shrink-0">
+                  <div className="text-xs text-slate-400 flex items-center gap-2">
+                    <Sparkles size={14} className="text-purple-400" />
+                    AI Evaluation Engine Ready
+                  </div>
+                  <Button
+                    variant="gradient"
+                    size="sm"
+                    disabled={submittingQuiz}
+                    onClick={() => triggerSubmitCode()}
+                    className="shadow-lg shadow-primary/20"
+                  >
+                    {submittingQuiz ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        Evaluating...
+                      </span>
+                    ) : (
+                      "Run & Evaluate Code (AI)"
+                    )}
+                  </Button>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </motion.div>
         ) : (
           <motion.div
