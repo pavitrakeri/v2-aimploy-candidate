@@ -25,6 +25,8 @@ import { Challenge } from "@/services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+
+const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
