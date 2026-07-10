@@ -539,116 +539,129 @@ export const Challenges = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 max-w-7xl mx-auto"
+      className="space-y-8 max-w-[1200px] mx-auto px-4 sm:px-6"
     >
       {/* Header Section */}
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="font-display text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-600 to-indigo-600">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Skill Arenas
             </h1>
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 font-semibold px-2.5 py-0.5 animate-pulse shadow-md">
-              <Sparkles size={12} className="mr-1 inline-block" />
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors font-medium px-2.5 py-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse" />
               Arena Active
             </Badge>
           </div>
-          <p className="text-muted-foreground mt-2 text-lg">
-            Compete in top-tier engineering sprints, show off your talent, and catch the eye of global recruiters.
+          <p className="text-muted-foreground mt-1 text-sm max-w-2xl">
+            Compete in top-tier engineering sprints, benchmark your talent, and catch the eye of global recruiters.
           </p>
         </div>
       </motion.div>
 
       {/* Modern Dashboard Stats & Profile Banner */}
       <motion.div variants={itemVariants} className="grid gap-6 md:grid-cols-12">
-        <Card className="md:col-span-8 overflow-hidden border border-muted-foreground/10 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl relative">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,0.15),transparent_60%)] pointer-events-none" />
-          <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <span className="text-xs font-semibold tracking-wider uppercase text-indigo-400">CURRENT STANDINGS</span>
-                <h2 className="text-3xl font-bold tracking-tight">Your Combat Profile</h2>
-              </div>
-              <p className="text-slate-300 max-w-md text-sm leading-relaxed">
-                Join live coding challenges. Earn points to climb the ranks and unlock custom badges for your profile representation.
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md">
-                  <Award size={14} className="text-yellow-400" />
-                  <span>3 Achievements Locked</span>
+        <Card className="md:col-span-7 lg:col-span-8 overflow-hidden border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.03] to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          
+          <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-8 relative z-10">
+            <div className="space-y-5 flex-1">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                  <Target size={14} className="text-primary" />
+                  <span>Current Standings</span>
                 </div>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">Your Combat Profile</h2>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
+                Participate in live coding challenges to earn points. Climb the global leaderboard and unlock exclusive badges to stand out to employers.
+              </p>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-400 gap-1.5 px-3 py-1 text-xs">
+                  <Award size={14} />
+                  3 Achievements Locked
+                </Badge>
               </div>
             </div>
 
             {/* Circular score display */}
-            <div className="relative flex items-center justify-center self-center shrink-0">
-              <svg className="w-32 h-32 transform -rotate-90">
-                <circle cx="64" cy="64" r="54" className="stroke-slate-800" strokeWidth="8" fill="transparent" />
-                <circle cx="64" cy="64" r="54" className="stroke-indigo-500" strokeWidth="8" fill="transparent"
-                  strokeDasharray="339.3"
-                  strokeDashoffset={339.3 - (339.3 * (stats?.total_points ? Math.min(stats.total_points / 5000, 1) : 0.49))}
-                  strokeLinecap="round" />
+            <div className="relative flex items-center justify-center shrink-0 bg-background rounded-full p-2 shadow-sm border border-border/50">
+              <svg className="w-28 h-28 transform -rotate-90">
+                <circle cx="56" cy="56" r="46" className="stroke-muted" strokeWidth="8" fill="transparent" />
+                <circle cx="56" cy="56" r="46" className="stroke-primary" strokeWidth="8" fill="transparent"
+                  strokeDasharray="289"
+                  strokeDashoffset={289 - (289 * (stats?.total_points ? Math.min(stats.total_points / 5000, 1) : 0.49))}
+                  strokeLinecap="round" 
+                  className="transition-all duration-1000 ease-out"
+                />
               </svg>
-              <div className="absolute flex flex-col items-center justify-center text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 {isLoadingStats ? (
-                  <Skeleton className="h-6 w-14 bg-white/20" />
+                  <Skeleton className="h-6 w-14 mb-1" />
                 ) : (
-                  <span className="text-2xl font-bold tracking-tight text-white">{stats?.total_points ?? 2450}</span>
+                  <span className="text-2xl font-bold tracking-tight text-foreground">{stats?.total_points ?? 2450}</span>
                 )}
-                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5">Arena Pts</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground">Arena Pts</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Small stats cards grid */}
-        <div className="md:col-span-4 grid grid-cols-2 gap-4">
-          <Card className="border border-muted-foreground/10 bg-card/60 backdrop-blur-xl hover:shadow-lg transition-all duration-300 flex flex-col justify-between p-5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Trophy size={48} className="text-primary" />
-            </div>
-            <Trophy className="text-primary mb-2" size={24} />
-            <div>
-              {isLoadingStats ? (
-                <Skeleton className="h-7 w-12" />
-              ) : (
-                <h3 className="text-2xl font-extrabold tracking-tight">{stats?.challenges_won ?? 3}</h3>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Challenges Won</p>
-            </div>
-          </Card>
-
-          <Card className="border border-muted-foreground/10 bg-card/60 backdrop-blur-xl hover:shadow-lg transition-all duration-300 flex flex-col justify-between p-5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Target size={48} className="text-emerald-500" />
-            </div>
-            <Target className="text-emerald-500 mb-2" size={24} />
-            <div>
-              {isLoadingStats ? (
-                <Skeleton className="h-7 w-12" />
-              ) : (
-                <h3 className="text-2xl font-extrabold tracking-tight">{stats?.participated ?? 12}</h3>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Sprints Entered</p>
-            </div>
-          </Card>
-
-          <Card className="col-span-2 border border-muted-foreground/10 bg-card/60 backdrop-blur-xl hover:shadow-lg transition-all duration-300 flex flex-col justify-between p-5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Code size={48} className="text-purple-500" />
-            </div>
-            <Code className="text-purple-500 mb-2" size={24} />
-            <div className="flex items-center justify-between">
-              <div>
-                {isLoadingStats ? (
-                  <Skeleton className="h-7 w-16" />
-                ) : (
-                  <h3 className="text-2xl font-extrabold tracking-tight text-purple-600 dark:text-purple-400">{stats?.global_rank ?? "#42"}</h3>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">Global Standing Rank</p>
+        <div className="md:col-span-5 lg:col-span-4 grid grid-cols-2 gap-4">
+          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
+                <Trophy size={20} />
               </div>
-              <Button variant="link" className="text-xs text-purple-500 p-0 h-auto font-semibold">
-                Explore Perks <ArrowRight size={12} className="ml-1" />
+            </div>
+            <div>
+              {isLoadingStats ? (
+                <Skeleton className="h-8 w-12 mb-1" />
+              ) : (
+                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 3}</h3>
+              )}
+              <p className="text-xs font-medium text-muted-foreground">Challenges Won</p>
+            </div>
+          </Card>
+
+          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                <Zap size={20} />
+              </div>
+            </div>
+            <div>
+              {isLoadingStats ? (
+                <Skeleton className="h-8 w-12 mb-1" />
+              ) : (
+                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.participated ?? 12}</h3>
+              )}
+              <p className="text-xs font-medium text-muted-foreground">Sprints Entered</p>
+            </div>
+          </Card>
+
+          <Card className="col-span-2 border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 group flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute right-0 bottom-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity translate-x-4 translate-y-4">
+              <Trophy size={100} />
+            </div>
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-500/10 rounded-xl text-purple-600 dark:text-purple-400">
+                  <Medal size={24} />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Global Standing Rank</p>
+                  {isLoadingStats ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <h3 className="text-2xl font-bold tracking-tight text-foreground">{stats?.global_rank ?? "#42"}</h3>
+                  )}
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" className="text-xs text-primary font-medium hover:bg-primary/5">
+                View Leaderboard <ArrowRight size={14} className="ml-1" />
               </Button>
             </div>
           </Card>
