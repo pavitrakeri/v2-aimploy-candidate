@@ -546,116 +546,79 @@ export const Challenges = () => {
       className="space-y-8 max-w-[1200px] mx-auto px-4 sm:px-6"
     >
       {/* Header Section */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-6">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Skill Arenas
-            </h1>
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors font-medium px-2.5 py-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse" />
-              Arena Active
-            </Badge>
-          </div>
-          <p className="text-muted-foreground mt-1 text-sm max-w-2xl">
-            Compete in top-tier engineering sprints, benchmark your talent, and catch the eye of global recruiters.
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Skill Assessments
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
+            Complete engineering assessments to benchmark your skills and improve your profile visibility.
           </p>
         </div>
       </motion.div>
 
-      {/* Modern Dashboard Stats & Profile Banner */}
-      <motion.div variants={itemVariants} className="grid gap-6 md:grid-cols-12">
-        <Card className="md:col-span-7 lg:col-span-8 overflow-hidden border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.03] to-transparent pointer-events-none" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          
-          <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-8 relative z-10">
-            <div className="space-y-5 flex-1">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                  <Target size={14} className="text-primary" />
-                  <span>Current Standings</span>
-                </div>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">Your Combat Profile</h2>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
-                Participate in live coding challenges to earn points. Climb the global leaderboard and unlock exclusive badges to stand out to employers.
-              </p>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-400 gap-1.5 px-3 py-1 text-xs">
-                  <Award size={14} />
-                  3 Achievements Locked
-                </Badge>
-              </div>
-            </div>
-
-            {/* Circular score display */}
-            <div className="relative flex items-center justify-center shrink-0 bg-background rounded-full p-2 shadow-sm border border-border/50">
-              <svg className="w-28 h-28 transform -rotate-90">
-                <circle cx="56" cy="56" r="46" className="stroke-muted" strokeWidth="8" fill="transparent" />
-                <circle cx="56" cy="56" r="46" className="stroke-primary" strokeWidth="8" fill="transparent"
-                  strokeDasharray="289"
-                  strokeDashoffset={289 - (289 * (stats?.total_points ? Math.min(stats.total_points / 5000, 1) : 0.49))}
-                  strokeLinecap="round" 
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+      {/* Minimal Dashboard Stats */}
+      <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-3">
+        <Card className="border border-border bg-card shadow-sm">
+          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Assessment Points</p>
                 {isLoadingStats ? (
-                  <Skeleton className="h-6 w-14 mb-1" />
+                  <Skeleton className="h-8 w-16" />
                 ) : (
-                  <span className="text-2xl font-bold tracking-tight text-foreground">{stats?.total_points ?? 0}</span>
+                  <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.total_points ?? 0}</h3>
                 )}
-                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground">Arena Pts</span>
               </div>
+              <Target size={20} className="text-muted-foreground" />
             </div>
+            <p className="text-xs text-muted-foreground">Based on completed assessments</p>
           </CardContent>
         </Card>
 
-        {/* Small stats cards grid */}
-        <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-4">
-          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex-1 flex flex-col justify-center group">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform">
-                <Trophy size={24} />
+        <Card className="border border-border bg-card shadow-sm">
+          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Assessments Passed</p>
+                {isLoadingStats ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 0}</h3>
+                )}
               </div>
+              <CheckCircle size={20} className="text-muted-foreground" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Challenges Won</p>
-              {isLoadingStats ? (
-                <Skeleton className="h-10 w-16" />
-              ) : (
-                <h3 className="text-4xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 0}</h3>
-              )}
-            </div>
-          </Card>
+            <p className="text-xs text-muted-foreground">Successfully completed tests</p>
+          </CardContent>
+        </Card>
 
-          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex-1 flex flex-col justify-center group">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                <Zap size={24} />
+        <Card className="border border-border bg-card shadow-sm">
+          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Total Participated</p>
+                {isLoadingStats ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.participated ?? 0}</h3>
+                )}
               </div>
+              <FileText size={20} className="text-muted-foreground" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Sprints Entered</p>
-              {isLoadingStats ? (
-                <Skeleton className="h-10 w-16" />
-              ) : (
-                <h3 className="text-4xl font-bold tracking-tight text-foreground">{stats?.participated ?? 0}</h3>
-              )}
-            </div>
-          </Card>
-        </div>
+            <p className="text-xs text-muted-foreground">Assessments entered</p>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Main challenges & leaderboard section */}
       <div className="grid gap-8 lg:grid-cols-3 items-start">
         {/* Challenges list */}
         <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <h2 className="font-display text-2xl font-bold tracking-tight">Active Sprints</h2>
-            <span className="text-sm font-semibold text-muted-foreground">
-              {challenges.length} Available
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Available Assessments</h2>
+            <span className="text-sm font-medium text-muted-foreground">
+              {challenges.length} Items
             </span>
           </div>
 
@@ -691,75 +654,74 @@ export const Challenges = () => {
               </Card>
             ) : (
               challenges.map((challenge) => (
-                <Card key={challenge.id} className={`border border-border/60 bg-card/60 backdrop-blur-md transition-all duration-300 ${getDifficultyGlow(challenge.difficulty)} relative overflow-hidden group`}>
-                  {/* Subtle top indicator based on difficulty */}
-                  <div className={`absolute top-0 left-0 right-0 h-1 ${
-                    challenge.difficulty.toLowerCase() === 'hard' ? 'bg-rose-500' :
-                    challenge.difficulty.toLowerCase() === 'medium' ? 'bg-amber-500' :
-                    'bg-emerald-500'
+                <Card key={challenge.id} className="border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden">
+                  <div className={`h-1 w-full ${
+                    challenge.difficulty.toLowerCase() === 'hard' ? 'bg-rose-500/80' :
+                    challenge.difficulty.toLowerCase() === 'medium' ? 'bg-amber-500/80' :
+                    'bg-emerald-500/80'
                   }`} />
                   
-                  <CardContent className="p-6">
+                  <CardContent className="p-5">
                     <div className="flex flex-col sm:flex-row gap-5">
                       <div className="flex-1 space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-display text-xl font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="text-lg font-bold tracking-tight text-foreground">
                             {challenge.title}
                           </h3>
-                          <Badge variant="outline" className={`${
+                          <Badge variant="secondary" className={`${
                             challenge.status === "Live" 
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
-                              : "bg-indigo-500/10 text-indigo-600 border-indigo-500/20"
-                          } font-medium px-2 py-0.5`}>
-                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${challenge.status === "Live" ? "bg-emerald-500" : "bg-indigo-500"}`} />
+                              ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" 
+                              : "bg-muted text-muted-foreground"
+                          } font-medium px-2 py-0.5 rounded-sm`}>
+                            {challenge.status === "Live" && <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-emerald-500" />}
                             {challenge.status}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Hosted by <span className="font-semibold text-foreground/80">{challenge.company}</span>
+                          {challenge.company}
                         </p>
 
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-2">
                           {(challenge.tags || []).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground hover:bg-muted/80 text-[11px] font-medium tracking-wide transition-colors"
+                              className="px-2 py-0.5 border border-border rounded-md text-muted-foreground text-xs font-medium"
                             >
                               {tag}
                             </span>
                           ))}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-muted-foreground pt-1.5">
-                          <span className="flex items-center gap-1">
-                            <Clock size={14} className="text-slate-400" />
+                        <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground pt-2">
+                          <span className="flex items-center gap-1.5">
+                            <Clock size={14} />
                             {challenge.time_limit || "N/A"}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Users size={14} className="text-slate-400" />
-                            Competitive
+                          <span className="flex items-center gap-1.5">
+                            <Target size={14} />
+                            Assessment
                           </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                            challenge.difficulty.toLowerCase() === 'hard' ? 'bg-rose-500/10 text-rose-600' :
-                            challenge.difficulty.toLowerCase() === 'medium' ? 'bg-amber-500/10 text-amber-600' :
-                            'bg-emerald-500/10 text-emerald-600'
+                          <span className={`px-2 py-0.5 rounded-sm text-[10px] uppercase tracking-wider font-semibold ${
+                            challenge.difficulty.toLowerCase() === 'hard' ? 'text-rose-600 bg-rose-500/10' :
+                            challenge.difficulty.toLowerCase() === 'medium' ? 'text-amber-600 bg-amber-500/10' :
+                            'text-emerald-600 bg-emerald-500/10'
                           }`}>
                             {challenge.difficulty}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-4 shrink-0 sm:border-l border-border/40 sm:pl-5">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-4 shrink-0 sm:pl-5">
                         <div className="text-right sm:space-y-1">
-                          <p className="text-sm text-muted-foreground/80 font-medium">
-                            {challenge.ends_in ? `Ends in ${challenge.ends_in}` : challenge.starts_in ? `Starts in ${challenge.starts_in}` : ""}
+                          <p className="text-sm text-muted-foreground font-medium">
+                            {challenge.ends_in ? `Closes in ${challenge.ends_in}` : challenge.starts_in ? `Opens in ${challenge.starts_in}` : ""}
                           </p>
                         </div>
                         
                         <Button
-                          variant={challenge.status !== "Live" ? "outline" : ((challenge.participant_status === "completed" || challenge.participant_status === "submitted") ? "secondary" : "gradient")}
+                          variant={challenge.participant_status === "completed" || challenge.participant_status === "submitted" ? "secondary" : "default"}
                           size="sm"
-                          className="w-full sm:w-auto shadow-md"
+                          className="w-full sm:w-auto"
                           onClick={() => {
                             if (challenge.status !== "Live") {
                               handleRemind(challenge.title);
@@ -774,24 +736,21 @@ export const Challenges = () => {
                           {challenge.status === "Live" ? (
                             (challenge.participant_status === "completed" || challenge.participant_status === "submitted") ? (
                               <>
-                                <CheckCircle size={14} className="mr-1.5 text-emerald-500" />
+                                <CheckCircle size={14} className="mr-2" />
                                 {`Completed (${challenge.participant_score}%)`}
                               </>
                             ) : challenge.participant_status === "started" ? (
                               <>
-                                <Zap size={14} className="mr-1.5 animate-pulse" />
-                                Resume Challenge
+                                Resume
                               </>
                             ) : (
                               <>
-                                <Zap size={14} className="mr-1.5" />
-                                {joinMutation.isPending && joinMutation.variables === challenge.id ? "Entering..." : "Join Now"}
+                                {joinMutation.isPending && joinMutation.variables === challenge.id ? "Loading..." : "Start Assessment"}
                               </>
                             )
                           ) : (
                             <>
                               Remind Me
-                              <ArrowRight size={14} className="ml-1.5" />
                             </>
                           )}
                         </Button>
@@ -804,100 +763,56 @@ export const Challenges = () => {
           </div>
         </motion.div>
 
-        {/* Premium Leaderboard with Podium Visualizer */}
+        {/* Minimal Leaderboard */}
         <motion.div variants={itemVariants} className="space-y-6">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <h2 className="font-display text-2xl font-bold tracking-tight">Top Command</h2>
-            <Trophy size={20} className="text-amber-500" />
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Global Leaderboard</h2>
           </div>
 
-          <Card className="border border-border/60 bg-card/40 backdrop-blur-md overflow-hidden relative shadow-lg">
-            <CardContent className="p-6 space-y-6">
-              
-              {/* Podium Visualizer */}
-              {!isLoadingLeaderboard && topThree.length > 0 && (
-                <div className="flex items-end justify-center gap-2 pt-6 pb-2 px-1 border-b border-border/40">
-                  
-                  {/* Rank 2 */}
-                  {topThree[1] && (
-                    <div className="flex flex-col items-center flex-1">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-slate-300 flex items-center justify-center font-bold text-sm text-slate-800 shadow-md">
-                        🥈
-                      </div>
-                      <span className="text-xs font-bold text-foreground mt-2 truncate w-full text-center">{topThree[1].name}</span>
-                      <span className="text-[10px] font-bold text-slate-400 mt-0.5">{topThree[1].score}</span>
-                      <div className="w-full bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 h-12 rounded-t-lg mt-2 flex items-center justify-center">
-                        <span className="text-xs font-extrabold text-slate-400">2nd</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Rank 1 */}
-                  {topThree[0] && (
-                    <div className="flex flex-col items-center flex-1 -translate-y-3 scale-105">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-400 flex items-center justify-center font-bold text-base text-white shadow-lg animate-bounce">
-                        👑
-                      </div>
-                      <span className="text-xs font-extrabold text-foreground mt-2 truncate w-full text-center">{topThree[0].name}</span>
-                      <span className="text-[10px] font-extrabold text-amber-500 mt-0.5">{topThree[0].score}</span>
-                      <div className="w-full bg-gradient-to-b from-amber-500/20 to-amber-500/5 dark:from-amber-500/30 dark:to-transparent border border-amber-500/30 h-16 rounded-t-lg mt-2 flex items-center justify-center">
-                        <span className="text-xs font-extrabold text-amber-500">1st</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Rank 3 */}
-                  {topThree[2] && (
-                    <div className="flex flex-col items-center flex-1">
-                      <div className="w-10 h-10 rounded-full bg-orange-100 border-2 border-orange-200 flex items-center justify-center font-bold text-sm text-orange-800 shadow-md">
-                        🥉
-                      </div>
-                      <span className="text-xs font-bold text-foreground mt-2 truncate w-full text-center">{topThree[2].name}</span>
-                      <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 mt-0.5">{topThree[2].score}</span>
-                      <div className="w-full bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-950 h-9 rounded-t-lg mt-2 flex items-center justify-center">
-                        <span className="text-xs font-extrabold text-orange-400">3rd</span>
-                      </div>
-                    </div>
-                  )}
-
+          <Card className="border border-border bg-card shadow-sm">
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                {/* Table Header */}
+                <div className="flex items-center gap-4 px-6 py-3 bg-muted/30 text-xs font-semibold text-muted-foreground">
+                  <div className="w-8 text-center">Rank</div>
+                  <div className="flex-1">Candidate</div>
+                  <div className="w-16 text-right">Points</div>
                 </div>
-              )}
 
-              {/* Leaderboard entries */}
-              <div className="space-y-2">
-                {isLoadingLeaderboard ? (
-                  [1, 2, 3, 4, 5].map((n) => (
-                    <div key={n} className="flex items-center gap-3 p-3">
-                      <Skeleton className="h-6 w-6 rounded-full" />
-                      <Skeleton className="h-4 flex-1" />
-                      <Skeleton className="h-4 w-12" />
-                    </div>
-                  ))
-                ) : leaderboard.length === 0 ? (
-                  <p className="text-center text-sm text-muted-foreground py-4">No records yet</p>
-                ) : (
-                  restOfLeaderboard.map((user) => (
-                    <div
-                      key={user.rank}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/30"
-                    >
-                      <span className="text-sm font-bold w-6 text-center text-muted-foreground">
-                        {user.rank}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">{user.name}</p>
+                {/* Leaderboard entries */}
+                <div className="flex flex-col">
+                  {isLoadingLeaderboard ? (
+                    [1, 2, 3, 4, 5].map((n) => (
+                      <div key={n} className="flex items-center gap-4 px-6 py-4">
+                        <Skeleton className="h-4 w-4 mx-auto" />
+                        <Skeleton className="h-4 flex-1" />
+                        <Skeleton className="h-4 w-8" />
                       </div>
-                      <span className="font-bold text-sm text-primary">
-                        {user.score.toLocaleString()}
-                      </span>
+                    ))
+                  ) : leaderboard.length === 0 ? (
+                    <div className="px-6 py-8 text-center">
+                      <p className="text-sm text-muted-foreground">No records yet</p>
                     </div>
-                  ))
-                )}
+                  ) : (
+                    leaderboard.map((user) => (
+                      <div
+                        key={user.rank}
+                        className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors"
+                      >
+                        <span className="text-sm font-semibold w-8 text-center text-muted-foreground">
+                          {user.rank}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-foreground truncate">{user.name}</p>
+                        </div>
+                        <span className="font-semibold text-sm text-foreground w-16 text-right">
+                          {user.score.toLocaleString()}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-              <Button variant="ghost" className="w-full font-semibold text-xs border border-border/40 hover:bg-muted">
-                View Full Leaderboard
-                <ArrowRight size={14} className="ml-1.5" />
-              </Button>
             </CardContent>
           </Card>
         </motion.div>
