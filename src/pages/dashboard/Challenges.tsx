@@ -611,60 +611,36 @@ export const Challenges = () => {
         </Card>
 
         {/* Small stats cards grid */}
-        <div className="md:col-span-5 lg:col-span-4 grid grid-cols-2 gap-4">
-          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
-                <Trophy size={20} />
+        <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-4">
+          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex-1 flex flex-col justify-center group">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform">
+                <Trophy size={24} />
               </div>
             </div>
             <div>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Challenges Won</p>
               {isLoadingStats ? (
-                <Skeleton className="h-8 w-12 mb-1" />
+                <Skeleton className="h-10 w-16" />
               ) : (
-                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 0}</h3>
+                <h3 className="text-4xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 0}</h3>
               )}
-              <p className="text-xs font-medium text-muted-foreground">Challenges Won</p>
             </div>
           </Card>
 
-          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                <Zap size={20} />
+          <Card className="border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 flex-1 flex flex-col justify-center group">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                <Zap size={24} />
               </div>
             </div>
             <div>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Sprints Entered</p>
               {isLoadingStats ? (
-                <Skeleton className="h-8 w-12 mb-1" />
+                <Skeleton className="h-10 w-16" />
               ) : (
-                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.participated ?? 0}</h3>
+                <h3 className="text-4xl font-bold tracking-tight text-foreground">{stats?.participated ?? 0}</h3>
               )}
-              <p className="text-xs font-medium text-muted-foreground">Sprints Entered</p>
-            </div>
-          </Card>
-
-          <Card className="col-span-2 border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 group flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute right-0 bottom-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity translate-x-4 translate-y-4">
-              <Trophy size={100} />
-            </div>
-            <div className="flex items-center justify-between relative z-10">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-500/10 rounded-xl text-purple-600 dark:text-purple-400">
-                  <Medal size={24} />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Global Standing Rank</p>
-                  {isLoadingStats ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <h3 className="text-2xl font-bold tracking-tight text-foreground">{stats?.global_rank ?? "N/A"}</h3>
-                  )}
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" className="text-xs text-primary font-medium hover:bg-primary/5">
-                View Leaderboard <ArrowRight size={14} className="ml-1" />
-              </Button>
             </div>
           </Card>
         </div>
