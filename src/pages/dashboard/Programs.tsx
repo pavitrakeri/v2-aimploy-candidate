@@ -137,19 +137,19 @@ export const Programs = () => {
             {/* Immersive Hero Header */}
             <motion.div 
               variants={itemVariants}
-              className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 md:p-12 shadow-purple-lg text-primary-foreground"
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-background to-background border border-primary/10 p-8 md:p-12 shadow-sm text-foreground"
             >
-              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl transform translate-x-20 -translate-y-20" />
-              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-black/10 rounded-full blur-2xl" />
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl transform translate-x-20 -translate-y-20 pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none" />
               
-              <div className="relative z-10 max-w-2xl space-y-4">
-                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-md px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+              <div className="relative z-10 max-w-2xl space-y-5">
+                <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 backdrop-blur-md px-3 py-1 text-xs font-semibold uppercase tracking-wider">
                   Aimploy Academy
                 </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-extrabold tracking-tight leading-none">
+                <h1 className="font-display text-3xl md:text-5xl font-extrabold tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
                   Accelerate Your Career Growth
                 </h1>
-                <p className="text-white/80 text-sm md:text-lg max-w-xl font-normal leading-relaxed">
+                <p className="text-muted-foreground text-sm md:text-lg max-w-xl font-medium leading-relaxed">
                   Unlock exclusive incubator programs, leadership residencies, and verified certifications designed to connect you with premier tech opportunities.
                 </p>
               </div>
@@ -158,7 +158,7 @@ export const Programs = () => {
             {/* Filter and Search Bar */}
             <motion.div 
               variants={itemVariants}
-              className="glass rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm border border-primary/10"
+              className="bg-card/40 backdrop-blur-md rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm border border-border/50"
             >
               <div className="relative w-full md:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -205,29 +205,37 @@ export const Programs = () => {
               
               <div className="grid gap-6 md:grid-cols-2">
                 {filteredPrograms && filteredPrograms.length > 0 ? (
-                  filteredPrograms.map((program) => (
-                    <Card key={program.id} className="overflow-hidden bg-card/60 backdrop-blur-md hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group border border-border hover:border-primary/40 flex flex-col justify-between">
+                  filteredPrograms.map((program, idx) => (
+                    <Card key={program.id} className="overflow-hidden bg-card/40 backdrop-blur-md shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative group border border-border/50 flex flex-col justify-between">
+                      {/* Top gradient bar */}
+                      <div className={`absolute top-0 left-0 right-0 h-1 transition-all duration-500 group-hover:h-1.5 ${
+                        idx % 3 === 0 ? 'bg-gradient-to-r from-primary to-primary/60' :
+                        idx % 3 === 1 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
+                        'bg-gradient-to-r from-indigo-500 to-indigo-400'
+                      }`} />
+                      
                       <div>
                         {/* Header */}
-                        <div className="bg-gradient-hero p-6 relative overflow-hidden text-primary-foreground min-h-[160px] flex flex-col justify-between">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-primary-foreground/10 rounded-full blur-2xl" />
-                          <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-white/5 rounded-full blur-xl" />
+                        <div className="p-6 relative text-foreground min-h-[140px] flex flex-col justify-between pb-2 border-b border-border/40">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors pointer-events-none" />
                           
                           <div className="relative z-10 flex items-start justify-between">
-                            <Badge className={`${program.badge_color || "bg-white/20 text-white"} border border-white/10 hover:bg-white/30 backdrop-blur-sm px-2.5 py-0.5 text-xs font-semibold`}>
+                            <Badge variant="outline" className={`${
+                              program.badge_color || "text-primary border-primary/20 bg-primary/5"
+                            } px-2.5 py-0.5 text-xs font-semibold`}>
                               {program.badge || "Featured"}
                             </Badge>
-                            <span className="text-5xl filter drop-shadow-md group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-4xl filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300 opacity-80 group-hover:opacity-100">
                               {program.image || "🎓"}
                             </span>
                           </div>
                           
                           <div className="relative z-10 mt-4">
-                            <h3 className="font-display text-xl md:text-2xl font-extrabold tracking-tight">
+                            <h3 className="font-display text-xl md:text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">
                               {program.title}
                             </h3>
-                            <p className="text-white/80 text-xs mt-1 font-medium tracking-wide uppercase flex items-center gap-1">
-                              <Building2 size={12} />
+                            <p className="text-muted-foreground text-xs mt-1.5 font-semibold tracking-wide uppercase flex items-center gap-1.5">
+                              <Building2 size={14} className="text-primary/70" />
                               {program.provider}
                             </p>
                           </div>
@@ -247,7 +255,7 @@ export const Programs = () => {
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 {program.tracks.map((track) => (
-                                  <Badge key={track.id || track.title} variant="secondary" className="font-semibold px-2.5 py-1 text-xs border border-border hover:border-primary/20 transition-colors bg-secondary/50">
+                                  <Badge key={track.id || track.title} variant="secondary" className="font-semibold px-2.5 py-1 text-xs border border-border/50 hover:border-primary/30 transition-colors bg-muted/40 text-muted-foreground">
                                     {track.title}
                                   </Badge>
                                 ))}
@@ -307,8 +315,8 @@ export const Programs = () => {
                             Details
                           </Button>
                           <Button
-                            variant="gradient"
-                            className="flex-1 rounded-xl h-11 shadow-purple font-bold text-sm tracking-wide group-hover:shadow-purple-lg transition-all"
+                            variant="default"
+                            className="flex-1 rounded-xl h-11 font-bold text-sm tracking-wide shadow-sm hover:shadow-md transition-all"
                             onClick={() => handleApply(program.slug)}
                           >
                             Apply Now
