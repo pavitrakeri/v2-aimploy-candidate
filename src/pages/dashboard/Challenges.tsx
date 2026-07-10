@@ -547,67 +547,76 @@ export const Challenges = () => {
       className="space-y-8 max-w-[1200px] mx-auto px-4 sm:px-6"
     >
       {/* Header Section */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-6">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
             Skill Assessments
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
+          <p className="text-muted-foreground mt-2 text-base max-w-2xl">
             Complete engineering assessments to benchmark your skills and improve your profile visibility.
           </p>
         </div>
       </motion.div>
 
-      {/* Minimal Dashboard Stats */}
-      <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-3">
-        <Card className="border border-border bg-card shadow-sm">
-          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
+      {/* Premium Dashboard Stats */}
+      <motion.div variants={itemVariants} className="grid gap-5 md:grid-cols-3">
+        <Card className="border border-primary/10 bg-gradient-to-br from-primary/5 via-background to-background shadow-md overflow-hidden relative group hover:shadow-lg transition-all duration-300">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors" />
+          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4 relative z-10">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Assessment Points</p>
+                <p className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Points</p>
                 {isLoadingStats ? (
                   <Skeleton className="h-8 w-16" />
                 ) : (
-                  <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.total_points ?? 0}</h3>
+                  <h3 className="text-4xl font-black tracking-tighter text-foreground">{stats?.total_points ?? 0}</h3>
                 )}
               </div>
-              <Target size={20} className="text-muted-foreground" />
+              <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                <Target size={24} />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Based on completed assessments</p>
+            <p className="text-xs font-medium text-muted-foreground">Based on completed assessments</p>
           </CardContent>
         </Card>
 
-        <Card className="border border-border bg-card shadow-sm">
-          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
+        <Card className="border border-emerald-500/10 bg-gradient-to-br from-emerald-500/5 via-background to-background shadow-sm overflow-hidden relative group hover:shadow-md transition-all duration-300">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/20 transition-colors" />
+          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4 relative z-10">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Assessments Passed</p>
+                <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-500/80 uppercase tracking-wider">Passed</p>
                 {isLoadingStats ? (
                   <Skeleton className="h-8 w-16" />
                 ) : (
-                  <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 0}</h3>
+                  <h3 className="text-4xl font-black tracking-tighter text-foreground">{stats?.challenges_won ?? 0}</h3>
                 )}
               </div>
-              <CheckCircle size={20} className="text-muted-foreground" />
+              <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-600 dark:text-emerald-500">
+                <CheckCircle size={24} />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Successfully completed tests</p>
+            <p className="text-xs font-medium text-muted-foreground">Successfully completed tests</p>
           </CardContent>
         </Card>
 
-        <Card className="border border-border bg-card shadow-sm">
-          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
+        <Card className="border border-indigo-500/10 bg-gradient-to-br from-indigo-500/5 via-background to-background shadow-sm overflow-hidden relative group hover:shadow-md transition-all duration-300">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-500/20 transition-colors" />
+          <CardContent className="p-6 flex flex-col justify-between h-full space-y-4 relative z-10">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Total Participated</p>
+                <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-500/80 uppercase tracking-wider">Participated</p>
                 {isLoadingStats ? (
                   <Skeleton className="h-8 w-16" />
                 ) : (
-                  <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.participated ?? 0}</h3>
+                  <h3 className="text-4xl font-black tracking-tighter text-foreground">{stats?.participated ?? 0}</h3>
                 )}
               </div>
-              <FileText size={20} className="text-muted-foreground" />
+              <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-600 dark:text-indigo-500">
+                <FileText size={24} />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Assessments entered</p>
+            <p className="text-xs font-medium text-muted-foreground">Assessments entered</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -655,14 +664,14 @@ export const Challenges = () => {
               </Card>
             ) : (
               challenges.map((challenge) => (
-                <Card key={challenge.id} className="border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden">
-                  <div className={`h-1 w-full ${
-                    challenge.difficulty.toLowerCase() === 'hard' ? 'bg-rose-500/80' :
-                    challenge.difficulty.toLowerCase() === 'medium' ? 'bg-amber-500/80' :
-                    'bg-emerald-500/80'
+                <Card key={challenge.id} className="border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative overflow-hidden group">
+                  <div className={`absolute top-0 left-0 right-0 h-1 transition-all duration-500 group-hover:h-1.5 ${
+                    challenge.difficulty.toLowerCase() === 'hard' ? 'bg-gradient-to-r from-rose-500 to-rose-400' :
+                    challenge.difficulty.toLowerCase() === 'medium' ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
+                    'bg-gradient-to-r from-emerald-500 to-emerald-400'
                   }`} />
                   
-                  <CardContent className="p-5">
+                  <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row gap-5">
                       <div className="flex-1 space-y-3">
                         <div className="flex flex-wrap items-center gap-3">
@@ -795,18 +804,37 @@ export const Challenges = () => {
                       <p className="text-sm text-muted-foreground">No records yet</p>
                     </div>
                   ) : (
-                    leaderboard.map((user) => (
+                    leaderboard.map((user, index) => (
                       <div
                         key={user.rank}
-                        className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors"
+                        className={`flex items-center gap-4 px-6 py-4 transition-colors ${
+                          index === 0 ? "bg-amber-500/5 hover:bg-amber-500/10" :
+                          index === 1 ? "bg-slate-300/10 hover:bg-slate-300/20" :
+                          index === 2 ? "bg-orange-500/5 hover:bg-orange-500/10" :
+                          "hover:bg-muted/30"
+                        }`}
                       >
-                        <span className="text-sm font-semibold w-8 text-center text-muted-foreground">
-                          {user.rank}
+                        <span className={`text-sm font-bold w-8 text-center ${
+                          index === 0 ? "text-amber-500 text-lg" :
+                          index === 1 ? "text-slate-400 text-base" :
+                          index === 2 ? "text-orange-500 text-base" :
+                          "text-muted-foreground"
+                        }`}>
+                          {index === 0 ? "1" : index === 1 ? "2" : index === 2 ? "3" : user.rank}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-foreground truncate">{user.name}</p>
+                          <p className={`font-semibold text-sm truncate ${
+                            index < 3 ? "text-foreground" : "text-foreground/80"
+                          }`}>
+                            {user.name}
+                          </p>
                         </div>
-                        <span className="font-semibold text-sm text-foreground w-16 text-right">
+                        <span className={`font-bold text-sm w-16 text-right ${
+                          index === 0 ? "text-amber-500" :
+                          index === 1 ? "text-slate-500 dark:text-slate-400" :
+                          index === 2 ? "text-orange-500" :
+                          "text-primary"
+                        }`}>
                           {user.score.toLocaleString()}
                         </span>
                       </div>
