@@ -19,6 +19,7 @@ import {
   CheckCircle,
   X,
   Award,
+  FileText,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Challenge } from "@/services/api";
