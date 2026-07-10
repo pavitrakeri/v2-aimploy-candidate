@@ -146,10 +146,10 @@ export const Programs = () => {
                 <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 backdrop-blur-md px-3 py-1 text-xs font-semibold uppercase tracking-wider">
                   Aimploy Academy
                 </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-extrabold tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                <h1 className="font-display text-2xl md:text-4xl font-extrabold tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
                   Accelerate Your Career Growth
                 </h1>
-                <p className="text-muted-foreground text-sm md:text-lg max-w-xl font-medium leading-relaxed">
+                <p className="text-muted-foreground text-sm md:text-base max-w-xl font-medium leading-relaxed">
                   Unlock exclusive incubator programs, leadership residencies, and verified certifications designed to connect you with premier tech opportunities.
                 </p>
               </div>
