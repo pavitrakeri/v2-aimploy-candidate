@@ -602,7 +602,7 @@ export const Challenges = () => {
                 {isLoadingStats ? (
                   <Skeleton className="h-6 w-14 mb-1" />
                 ) : (
-                  <span className="text-2xl font-bold tracking-tight text-foreground">{stats?.total_points ?? 2450}</span>
+                  <span className="text-2xl font-bold tracking-tight text-foreground">{stats?.total_points ?? 0}</span>
                 )}
                 <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground">Arena Pts</span>
               </div>
@@ -622,7 +622,7 @@ export const Challenges = () => {
               {isLoadingStats ? (
                 <Skeleton className="h-8 w-12 mb-1" />
               ) : (
-                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 3}</h3>
+                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.challenges_won ?? 0}</h3>
               )}
               <p className="text-xs font-medium text-muted-foreground">Challenges Won</p>
             </div>
@@ -638,7 +638,7 @@ export const Challenges = () => {
               {isLoadingStats ? (
                 <Skeleton className="h-8 w-12 mb-1" />
               ) : (
-                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.participated ?? 12}</h3>
+                <h3 className="text-3xl font-bold tracking-tight text-foreground">{stats?.participated ?? 0}</h3>
               )}
               <p className="text-xs font-medium text-muted-foreground">Sprints Entered</p>
             </div>
@@ -658,7 +658,7 @@ export const Challenges = () => {
                   {isLoadingStats ? (
                     <Skeleton className="h-8 w-16" />
                   ) : (
-                    <h3 className="text-2xl font-bold tracking-tight text-foreground">{stats?.global_rank ?? "#42"}</h3>
+                    <h3 className="text-2xl font-bold tracking-tight text-foreground">{stats?.global_rank ?? "N/A"}</h3>
                   )}
                 </div>
               </div>
