@@ -260,7 +260,18 @@ export const authApi = {
     if (data.first_name) formData.append("first_name", data.first_name);
     if (data.last_name) formData.append("last_name", data.last_name);
     if (data.phone) formData.append("phone", data.phone);
-    formData.append("resume", resume);
+    
+    // Workaround for Android Cloud Storage files (Google Drive, OneDrive, etc.)
+    // We read the file into an ArrayBuffer first to force the OS to download it into memory,
+    // then pass it as a Blob. This prevents fetch() from crashing with a Network Error.
+    try {
+      const arrayBuffer = await resume.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: resume.type });
+      formData.append("resume", blob, resume.name);
+    } catch (e) {
+      console.warn("Failed to read file into memory, falling back to raw File object", e);
+      formData.append("resume", resume);
+    }
 
     return apiRequest<RegisterResponse>("/candidate/register", {
       method: "POST",

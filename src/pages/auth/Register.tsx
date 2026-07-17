@@ -121,9 +121,13 @@ export const Register = () => {
         navigate(`/login${location.search}`, { replace: true, state: location.state });
       }
     } catch (error) {
+      let errorMessage = error instanceof Error ? error.message : "Please try again";
+      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("Network Error")) {
+        errorMessage = "Network error. If you are uploading a resume from cloud storage (like Google Drive), please download it to your phone first.";
+      }
       toast({
         title: "Registration Failed",
-        description: error instanceof Error ? error.message : "Please try again",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
