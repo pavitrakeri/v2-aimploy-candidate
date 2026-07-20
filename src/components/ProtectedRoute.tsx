@@ -18,7 +18,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const searchParams = new URLSearchParams(location.search);
+    const email = searchParams.get("email");
+    const loginPath = email ? `/login?email=${encodeURIComponent(email)}` : "/login";
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
