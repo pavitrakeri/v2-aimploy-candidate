@@ -103,7 +103,10 @@ export const JobApply = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [previousCompanyWebsite, setPreviousCompanyWebsite] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [experienceMonths, setExperienceMonths] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [showInterviewInline, setShowInterviewInline] = useState(false);
 
   // Audio questions
   const [audioQuestions, setAudioQuestions] = useState<string[]>([]);
@@ -112,8 +115,7 @@ export const JobApply = () => {
   const steps = [
     { number: 1, title: "Personal Info" },
     { number: 2, title: "Resume" },
-    { number: 3, title: "Audio Interview" },
-    { number: 4, title: "Review & Submit" },
+    { number: 3, title: "Review & Submit" },
   ];
 
   useEffect(() => {
@@ -199,12 +201,10 @@ export const JobApply = () => {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
-        return fullName.trim() && email.trim() && phone.trim();
+        return fullName.trim() && email.trim() && phone.trim() && experienceYears.trim();
       case 2:
         return resumeFile !== null;
       case 3:
-        return true; // Audio is optional
-      case 4:
         return true;
       default:
         return false;
@@ -216,23 +216,14 @@ export const JobApply = () => {
 
     setIsSubmitting(true);
     try {
-      const audioFiles: Record<string, File> = {};
-      audioRecordings.forEach((recording, index) => {
-        if (recording) {
-          const file = new File([recording.blob], `audio_q${index + 1}.webm`, {
-            type: "audio/webm",
-          });
-          audioFiles[`audio_q${index + 1}`] = file;
-        }
-      });
-
       await jobsApi.applyForJob(job.id, {
         full_name: fullName,
         email,
         phone,
         resume: resumeFile,
         previous_company_website: previousCompanyWebsite,
-        ...audioFiles,
+        years_of_experience: experienceYears ? Number(experienceYears) : undefined,
+        months_of_experience: experienceMonths ? Number(experienceMonths) : undefined,
       });
 
       toast({
@@ -574,7 +565,65 @@ export const JobApply = () => {
                             </div>
                           </div>
                         )}
-                      </div>
+                    {existingApplication.status?.toLowerCase() === "shortlisted" && 
+                     (!existingApplication.audio_response || Object.keys(existingApplication.audio_response).length === 0) && (
+                       showInterviewInline ? (
+                         <div className="mt-6 p-6 bg-background rounded-2xl border border-border space-y-6">
+                           <h4 className="font-display font-bold text-lg text-primary mb-4">Audio Interview Round</h4>
+                           <AudioQuestionFlow
+                             questions={audioQuestions}
+                             onComplete={async (recordings) => {
+                               setIsSubmitting(true);
+                               try {
+                                 const audioFiles: Record<string, File> = {};
+                                 recordings.forEach((recording, index) => {
+                                   if (recording) {
+                                     const file = new File([recording.blob], `audio_q${index + 1}.webm`, {
+                                       type: "audio/webm",
+                                     });
+                                     audioFiles[`audio_q${index + 1}`] = file;
+                                   }
+                                 });
+
+                                 await applicationsApi.submitAudioForApplication(existingApplication.id, audioFiles);
+
+                                 toast({
+                                   title: "Audio interview submitted!",
+                                   description: "Your responses have been recorded and screening has started.",
+                                 });
+
+                                 navigate("/dashboard/applications");
+                               } catch (error) {
+                                 toast({
+                                   title: "Failed to submit audio responses",
+                                   description: error instanceof Error ? error.message : "Please try again",
+                                   variant: "destructive",
+                                 });
+                               } finally {
+                                 setIsSubmitting(false);
+                               }
+                             }}
+                             initialRecordings={audioRecordings}
+                           />
+                         </div>
+                       ) : (
+                         <div className="mt-6 p-6 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl space-y-4">
+                           <div>
+                             <h4 className="font-display font-bold text-lg text-primary">Next Stage: Audio Interview Required</h4>
+                             <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
+                               Great news! You have been shortlisted for this position. The next stage is an automated audio-based interview.
+                             </p>
+                           </div>
+                           <Button
+                             variant="gradient"
+                             onClick={() => setShowInterviewInline(true)}
+                             disabled={isSubmitting}
+                           >
+                             Start Audio Interview
+                             <ArrowRight size={18} className="ml-2" />
+                           </Button>
+                         </div>
+                       )
                     )}
 
                     {/* Action Buttons */}
@@ -755,6 +804,31 @@ export const JobApply = () => {
                     placeholder="Enter your phone number"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="experienceYears">Years of Experience *</Label>
+                    <Input
+                      id="experienceYears"
+                      type="number"
+                      min="0"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                      placeholder="Years"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="experienceMonths">Months</Label>
+                    <Input
+                      id="experienceMonths"
+                      type="number"
+                      min="0"
+                      max="11"
+                      value={experienceMonths}
+                      onChange={(e) => setExperienceMonths(e.target.value)}
+                      placeholder="Months"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="previousCompanyWebsite">Previous Company Website <span className="text-muted-foreground font-normal text-xs">(Optional)</span></Label>
                   <Input
@@ -812,25 +886,8 @@ export const JobApply = () => {
               </div>
             )}
 
-            {/* Step 3: Audio Interview */}
+            {/* Step 3: Review */}
             {currentStep === 3 && (
-              <div className="space-y-6">
-                {audioQuestions.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No audio questions for this position. You can proceed to the next step.
-                  </p>
-                ) : (
-                  <AudioQuestionFlow
-                    questions={audioQuestions}
-                    onComplete={handleAudioComplete}
-                    initialRecordings={audioRecordings}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Step 4: Review */}
-            {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="grid gap-4">
                   <div className="border rounded-lg p-4">
@@ -846,6 +903,9 @@ export const JobApply = () => {
                         <span className="text-muted-foreground">Phone:</span> {phone}
                       </div>
                       <div>
+                        <span className="text-muted-foreground">Experience:</span> {experienceYears} Years {experienceMonths ? `, ${experienceMonths} Months` : ""}
+                      </div>
+                      <div>
                         <span className="text-muted-foreground">Previous Company Website:</span> {previousCompanyWebsite || "Not provided"}
                       </div>
                     </div>
@@ -854,14 +914,6 @@ export const JobApply = () => {
                     <h4 className="font-medium mb-2">Resume</h4>
                     <p className="text-sm">{resumeFile?.name}</p>
                   </div>
-                  {audioQuestions.length > 0 && (
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-2">Audio Responses</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {audioRecordings.filter(Boolean).length} of {audioQuestions.length} questions answered
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -869,46 +921,43 @@ export const JobApply = () => {
         </Card>
       </motion.div>
 
-      {/* Navigation Buttons - Hidden during audio step when questions exist */}
-      {!(currentStep === 3 && audioQuestions.length > 0) && (
-        <motion.div variants={itemVariants} className="flex justify-between">
+      <motion.div variants={itemVariants} className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentStep((s) => s - 1)}
+          disabled={currentStep === 1}
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Previous
+        </Button>
+        {currentStep < 3 ? (
           <Button
-            variant="outline"
-            onClick={() => setCurrentStep((s) => s - 1)}
-            disabled={currentStep === 1}
+            onClick={() => setCurrentStep((s) => s + 1)}
+            disabled={!canProceedToNextStep()}
           >
-            <ArrowLeft size={16} className="mr-2" />
-            Previous
+            Next
+            <ArrowRight size={16} className="ml-2" />
           </Button>
-          {currentStep < 4 ? (
-            <Button
-              onClick={() => setCurrentStep((s) => s + 1)}
-              disabled={!canProceedToNextStep()}
-            >
-              Next
-              <ArrowRight size={16} className="ml-2" />
-            </Button>
-          ) : (
-            <Button
-              variant="gradient"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={16} className="mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  Submit Application
-                  <Check size={16} className="ml-2" />
-                </>
-              )}
-            </Button>
-          )}
-        </motion.div>
-      )}
+        ) : (
+          <Button
+            variant="gradient"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                Submit Application
+                <Check size={16} className="ml-2" />
+              </>
+            )}
+          </Button>
+        )}
+      </motion.div>
     </motion.div>
   );
 };

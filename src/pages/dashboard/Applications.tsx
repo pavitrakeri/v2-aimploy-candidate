@@ -412,20 +412,45 @@ export const Applications = () => {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="flex-1"
-                              onClick={() => {
-                                setSelectedProgramApp(null);
-                                setSelectedApplication(app);
-                                setIsDetailsOpen(true);
-                              }}
-                            >
-                              <ExternalLink size={14} className="mr-1" />
-                              View Details
-                            </Button>
+                          <div className="flex gap-2 flex-wrap">
+                            {app.status?.toLowerCase() === "shortlisted" && (!app.audio_response || Object.keys(app.audio_response).length === 0) ? (
+                              <>
+                                <Button 
+                                  variant="gradient" 
+                                  size="sm" 
+                                  className="flex-1 min-w-[140px]"
+                                  onClick={() => navigate(`/dashboard/jobs/${app.job_id}`)}
+                                >
+                                  Record Audio Responses
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setSelectedProgramApp(null);
+                                    setSelectedApplication(app);
+                                    setIsDetailsOpen(true);
+                                  }}
+                                >
+                                  View Details
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => {
+                                  setSelectedProgramApp(null);
+                                  setSelectedApplication(app);
+                                  setIsDetailsOpen(true);
+                                }}
+                              >
+                                <ExternalLink size={14} className="mr-1" />
+                                View Details
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm">
                               <MoreVertical size={16} />
                             </Button>

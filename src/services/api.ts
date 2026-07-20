@@ -407,6 +407,8 @@ export const jobsApi = {
       phone: string;
       resume: File;
       previous_company_website?: string;
+      years_of_experience?: number;
+      months_of_experience?: number;
       audio_q1?: File;
       audio_q2?: File;
       audio_q3?: File;
@@ -422,6 +424,12 @@ export const jobsApi = {
     formData.append("resume", data.resume);
     if (data.previous_company_website) {
       formData.append("previous_company_website", data.previous_company_website);
+    }
+    if (data.years_of_experience !== undefined) {
+      formData.append("years_of_experience", data.years_of_experience.toString());
+    }
+    if (data.months_of_experience !== undefined) {
+      formData.append("months_of_experience", data.months_of_experience.toString());
     }
     
     if (data.audio_q1) formData.append("audio_q1", data.audio_q1);
@@ -479,6 +487,21 @@ export const applicationsApi = {
 
     const query = searchParams.toString();
     return apiRequest<ApplicationsResponse>(`/candidate/applications${query ? `?${query}` : ""}`);
+  },
+
+  submitAudioForApplication: async (
+    applicationId: number,
+    audioFiles: Record<string, File>
+  ): Promise<Application> => {
+    const formData = new FormData();
+    Object.entries(audioFiles).forEach(([key, file]) => {
+      formData.append(key, file);
+    });
+
+    return apiRequest<Application>(`/candidate/applications/${applicationId}/submit-audio`, {
+      method: "POST",
+      body: formData,
+    });
   },
 };
 
