@@ -76,6 +76,14 @@ const App = () => (
                   <Route path="profile" element={<Profile />} />
                 </Route>
               <Route 
+                path="/dashboard/jobs/:jobId" 
+                element={
+                  <ProtectedRoute>
+                    <JobApply />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/dashboard/jobs/:jobId/apply" 
                 element={
                   <ProtectedRoute>
