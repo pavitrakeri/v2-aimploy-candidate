@@ -566,66 +566,89 @@ export const JobApply = () => {
                           </div>
                         )}
                       </div>
-                    )}
-                    {existingApplication.status?.toLowerCase() === "shortlisted" && 
-                     (!existingApplication.audio_response || Object.keys(existingApplication.audio_response).length === 0) && (
-                       showInterviewInline ? (
-                         <div className="mt-6 p-6 bg-background rounded-2xl border border-border space-y-6">
-                           <h4 className="font-display font-bold text-lg text-primary mb-4">Audio Interview Round</h4>
-                           <AudioQuestionFlow
-                             questions={audioQuestions}
-                             onComplete={async (recordings) => {
-                               setIsSubmitting(true);
-                               try {
-                                 const audioFiles: Record<string, File> = {};
-                                 recordings.forEach((recording, index) => {
-                                   if (recording) {
-                                     const file = new File([recording.blob], `audio_q${index + 1}.webm`, {
-                                       type: "audio/webm",
-                                     });
-                                     audioFiles[`audio_q${index + 1}`] = file;
-                                   }
-                                 });
+                                        {existingApplication.status?.toLowerCase() === "shortlisted" && (
+                      (!existingApplication.audio_response || Object.keys(existingApplication.audio_response).length === 0) ? (
+                        showInterviewInline ? (
+                          <div className="mt-6 p-6 bg-background rounded-2xl border border-border space-y-6">
+                            <h4 className="font-display font-bold text-lg text-primary mb-4">Audio Interview Round</h4>
+                            <AudioQuestionFlow
+                              questions={audioQuestions}
+                              onComplete={async (recordings) => {
+                                setIsSubmitting(true);
+                                try {
+                                  const audioFiles: Record<string, File> = {};
+                                  recordings.forEach((recording, index) => {
+                                    if (recording) {
+                                      const file = new File([recording.blob], `audio_q${index + 1}.webm`, {
+                                        type: "audio/webm",
+                                      });
+                                      audioFiles[`audio_q${index + 1}`] = file;
+                                    }
+                                  });
 
-                                 await applicationsApi.submitAudioForApplication(existingApplication.id, audioFiles);
+                                  await applicationsApi.submitAudioForApplication(existingApplication.id, audioFiles);
 
-                                 toast({
-                                   title: "Audio interview submitted!",
-                                   description: "Your responses have been recorded and screening has started.",
-                                 });
+                                  toast({
+                                    title: "Audio interview submitted!",
+                                    description: "Your responses have been recorded and screening has started.",
+                                  });
 
-                                 navigate("/dashboard/applications");
-                               } catch (error) {
-                                 toast({
-                                   title: "Failed to submit audio responses",
-                                   description: error instanceof Error ? error.message : "Please try again",
-                                   variant: "destructive",
-                                 });
-                               } finally {
-                                 setIsSubmitting(false);
-                               }
-                             }}
-                             initialRecordings={audioRecordings}
-                           />
-                         </div>
-                       ) : (
-                         <div className="mt-6 p-6 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl space-y-4">
-                           <div>
-                             <h4 className="font-display font-bold text-lg text-primary">Next Stage: Audio Interview Required</h4>
-                             <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                               Great news! You have been shortlisted for this position. The next stage is an automated audio-based interview.
-                             </p>
-                           </div>
-                           <Button
-                             variant="gradient"
-                             onClick={() => setShowInterviewInline(true)}
-                             disabled={isSubmitting}
-                           >
-                             Start Audio Interview
-                             <ArrowRight size={18} className="ml-2" />
-                           </Button>
-                         </div>
-                       )
+                                  // Fetch updated applications to refresh UI state
+                                  try {
+                                    const appData = await applicationsApi.getMyApplications({ page_size: 100 });
+                                    const matchedApp = appData.applications.find(
+                                      (app) => app.job_id === parseInt(jobId!)
+                                    );
+                                    if (matchedApp) {
+                                      setExistingApplication(matchedApp);
+                                    }
+                                  } catch (e) {
+                                    console.error("Error refreshing applications after audio submission:", e);
+                                  }
+
+                                  navigate("/dashboard/applications");
+                                } catch (error) {
+                                  toast({
+                                    title: "Failed to submit audio responses",
+                                    description: error instanceof Error ? error.message : "Please try again",
+                                    variant: "destructive",
+                                  });
+                                } finally {
+                                  setIsSubmitting(false);
+                                }
+                              }}
+                              initialRecordings={audioRecordings}
+                            />
+                          </div>
+                        ) : (
+                          <div className="mt-6 p-6 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl space-y-4">
+                            <div>
+                              <h4 className="font-display font-bold text-lg text-primary">Next Stage: Audio Interview Required</h4>
+                              <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
+                                Great news! You have been shortlisted for this position. The next stage is an automated audio-based interview.
+                              </p>
+                            </div>
+                            <Button
+                              variant="gradient"
+                              onClick={() => setShowInterviewInline(true)}
+                              disabled={isSubmitting}
+                            >
+                              Start Audio Interview
+                              <ArrowRight size={18} className="ml-2" />
+                            </Button>
+                          </div>
+                        )
+                      ) : (
+                        <div className="mt-6 p-6 bg-green-500/5 border border-green-500/20 rounded-2xl space-y-2">
+                          <h4 className="font-display font-bold text-lg text-green-700 dark:text-green-400 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                            Audio Assessment Completed
+                          </h4>
+                          <p className="text-sm text-slate-600 dark:text-slate-450 leading-relaxed">
+                            Your audio responses have been submitted successfully. The screening evaluation is in progress.
+                          </p>
+                        </div>
+                      )
                     )}
 
                     {/* Action Buttons */}
