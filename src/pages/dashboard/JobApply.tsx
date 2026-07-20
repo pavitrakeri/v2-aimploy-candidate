@@ -566,7 +566,8 @@ export const JobApply = () => {
                           </div>
                         )}
                       </div>
-                                        {existingApplication.status?.toLowerCase() === "shortlisted" && (
+                    )}
+                    {existingApplication.status?.toLowerCase() === "shortlisted" && (
                       (!existingApplication.audio_response || Object.keys(existingApplication.audio_response).length === 0) ? (
                         showInterviewInline ? (
                           <div className="mt-6 p-6 bg-background rounded-2xl border border-border space-y-6">
