@@ -422,6 +422,7 @@ export const ProgramApply = () => {
                           onChange={(e) => handleInputChange("email", e.target.value)}
                           className="pl-10 h-11 rounded-xl bg-background/50 border border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
                           maxLength={255}
+                          disabled
                         />
                       </div>
                     </div>
