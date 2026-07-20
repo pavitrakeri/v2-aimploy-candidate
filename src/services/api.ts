@@ -186,6 +186,7 @@ export interface Application {
   created_at: string;
   updated_at?: string;
   reviewed_at?: string;
+  audio_response?: any;
 }
 
 export interface ApplicationsResponse {
@@ -236,6 +237,10 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("access_token");
+      window.dispatchEvent(new Event("unauthorized"));
+    }
     const error = await response.json().catch(() => ({ detail: "An error occurred" }));
     throw new Error(error.detail || `HTTP error! status: ${response.status}`);
   }

@@ -47,6 +47,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(false);
     };
     initAuth();
+
+    const handleUnauthorized = () => {
+      logout();
+    };
+    window.addEventListener("unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("unauthorized", handleUnauthorized);
+    };
   }, [setTheme]);
 
   const handleAuthSuccess = async (response: AuthResponse) => {
