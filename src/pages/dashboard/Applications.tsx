@@ -419,7 +419,7 @@ export const Applications = () => {
                                   variant="gradient" 
                                   size="sm" 
                                   className="flex-1 min-w-[140px]"
-                                  onClick={() => navigate(`/dashboard/jobs/${app.job_id}`)}
+                                  onClick={() => navigate(`/dashboard/jobs/${app.job_id}/apply`)}
                                 >
                                   Record Audio Responses
                                 </Button>

@@ -377,7 +377,7 @@ export const Dashboard = () => {
                   <div
                     key={job.id}
                     className="p-3 sm:p-4 rounded-xl border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer"
-                    onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
+                    onClick={() => navigate(`/dashboard/jobs/${job.id}/apply`)}
                   >
                     <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
