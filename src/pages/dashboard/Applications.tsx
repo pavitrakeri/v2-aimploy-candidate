@@ -413,7 +413,12 @@ export const Applications = () => {
 
                           {/* Actions */}
                           <div className="flex gap-2 flex-wrap">
-                            {app.status?.toLowerCase() === "shortlisted" && (!app.audio_response || Object.keys(app.audio_response).length === 0) ? (
+                            {app.status?.toLowerCase() === "shortlisted" && 
+                             (!app.audio_response || 
+                              Object.keys(app.audio_response).length === 0 ||
+                              !Object.values(app.audio_response).some((item: any) => 
+                                item && (typeof item === 'string' ? item.trim().length > 0 : !!item.answer_url)
+                              )) ? (
                               <>
                                 <Button 
                                   variant="gradient" 
