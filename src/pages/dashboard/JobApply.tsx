@@ -21,10 +21,12 @@ import {
   Briefcase,
   Users,
   Calendar,
+  Star,
 } from "lucide-react";
 import { jobsApi, Job, applicationsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import AudioQuestionFlow from "@/components/audio/AudioQuestionFlow";
+import { Textarea } from "@/components/ui/textarea";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -107,6 +109,11 @@ export const JobApply = () => {
   const [experienceMonths, setExperienceMonths] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [showInterviewInline, setShowInterviewInline] = useState(false);
+
+  // Feedback states
+  const [feedbackRating, setFeedbackRating] = useState<number>(0);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   // Audio questions
   const [audioQuestions, setAudioQuestions] = useState<string[]>([]);
@@ -241,6 +248,14 @@ export const JobApply = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleFeedbackSubmit = () => {
+    toast({
+      title: "Feedback Submitted",
+      description: "Thank you for sharing your feedback with us!",
+    });
+    setFeedbackSubmitted(true);
   };
 
   if (isLoadingJob) {
@@ -644,14 +659,56 @@ export const JobApply = () => {
                           </div>
                         )
                       ) : (
-                        <div className="mt-6 p-6 bg-green-500/5 border border-green-500/20 rounded-2xl space-y-2">
-                          <h4 className="font-display font-bold text-lg text-green-700 dark:text-green-400 flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
-                            Audio Assessment Completed
-                          </h4>
-                          <p className="text-sm text-slate-600 dark:text-slate-450 leading-relaxed">
-                            Your audio responses have been submitted successfully. The screening evaluation is in progress.
-                          </p>
+                        <div className="mt-6 p-6 bg-green-500/5 border border-green-500/20 rounded-2xl space-y-4">
+                          <div className="space-y-2">
+                            <h4 className="font-display font-bold text-lg text-green-700 dark:text-green-400 flex items-center gap-2">
+                              <CheckCircle2 className="w-5 h-5 text-green-500" />
+                              Audio Assessment Completed
+                            </h4>
+                            <p className="text-sm text-slate-600 dark:text-slate-450 leading-relaxed">
+                              Your audio responses have been submitted successfully. The screening evaluation is in progress.
+                            </p>
+                          </div>
+                          
+                          {/* Interactive Feedback Form */}
+                          <div className="pt-4 border-t border-green-500/10 space-y-4">
+                            <h5 className="font-semibold text-sm text-foreground">How was your audio interview experience?</h5>
+                            <div className="flex items-center gap-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  onClick={() => !feedbackSubmitted && setFeedbackRating(star)}
+                                  className={`focus:outline-none transition-transform ${feedbackSubmitted ? "cursor-default" : "hover:scale-110 active:scale-95"}`}
+                                  disabled={feedbackSubmitted}
+                                >
+                                  <Star
+                                    className={`w-6 h-6 transition-colors ${
+                                      star <= feedbackRating
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-muted-foreground/40 hover:text-yellow-400"
+                                    }`}
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                            <Textarea
+                              placeholder="Tell us what you liked or how we can improve..."
+                              value={feedbackComment}
+                              onChange={(e) => setFeedbackComment(e.target.value)}
+                              disabled={feedbackSubmitted}
+                              className="bg-background text-sm rounded-xl border-border resize-none"
+                              rows={3}
+                            />
+                            <Button
+                              size="sm"
+                              variant={feedbackSubmitted ? "secondary" : "gradient"}
+                              onClick={handleFeedbackSubmit}
+                              disabled={feedbackSubmitted || !feedbackRating}
+                            >
+                              {feedbackSubmitted ? "Feedback Submitted! Thank you" : "Submit Feedback"}
+                            </Button>
+                          </div>
                         </div>
                       )
                     )}
