@@ -150,6 +150,11 @@ export const JobApply = () => {
         if (matchedApp) {
           setHasApplied(true);
           setExistingApplication(matchedApp);
+          if (matchedApp.candidate_feedback) {
+            setFeedbackRating(matchedApp.candidate_feedback.rating || 0);
+            setFeedbackComment(matchedApp.candidate_feedback.comment || "");
+            setFeedbackSubmitted(true);
+          }
         }
 
         if (prefillData) {
@@ -250,12 +255,25 @@ export const JobApply = () => {
     }
   };
 
-  const handleFeedbackSubmit = () => {
-    toast({
-      title: "Feedback Submitted",
-      description: "Thank you for sharing your feedback with us!",
-    });
-    setFeedbackSubmitted(true);
+  const handleFeedbackSubmit = async () => {
+    if (!existingApplication || !feedbackRating) return;
+    try {
+      await applicationsApi.submitApplicationFeedback(existingApplication.id, {
+        rating: feedbackRating,
+        comment: feedbackComment,
+      });
+      toast({
+        title: "Feedback Submitted",
+        description: "Thank you for sharing your feedback with us!",
+      });
+      setFeedbackSubmitted(true);
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to submit feedback. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoadingJob) {

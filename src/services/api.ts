@@ -508,6 +508,16 @@ export const applicationsApi = {
       body: formData,
     });
   },
+
+  submitApplicationFeedback: async (
+    applicationId: number,
+    feedback: { rating: number; comment?: string }
+  ): Promise<Application> => {
+    return apiRequest<Application>(`/candidate/applications/${applicationId}/feedback`, {
+      method: "POST",
+      body: JSON.stringify(feedback),
+    });
+  },
 };
 
 // Export token management utilities
