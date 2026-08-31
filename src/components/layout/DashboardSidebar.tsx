@@ -94,7 +94,7 @@ export const DashboardSidebar = () => {
               exit={{ opacity: 0 }}
               className="w-full flex justify-center items-center"
             >
-              <img src="/Aimploy Logo_4.png" alt="Aimploy" className="h-8 w-8 object-contain" />
+              <img src="/Aimploy Logo_4.png" alt="Aimploy" className="h-10 w-10 object-contain" />
             </motion.div>
           )}
         </AnimatePresence>
