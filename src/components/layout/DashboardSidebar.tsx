@@ -129,11 +129,11 @@ export const DashboardSidebar = () => {
                       }
                     }}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
-                      collapsed ? "w-10 h-10 justify-center p-0" : "px-3 py-2.5 rounded-lg w-full",
+                      "flex items-center gap-3 transition-all duration-200 group relative",
+                      collapsed ? "w-8 h-8 justify-center p-0 rounded-lg" : "px-3 py-2.5 rounded-lg w-full",
                       isActive
                         ? collapsed 
-                          ? "bg-[#9000FF] text-white shadow-md shadow-purple-500/25 scale-105" 
+                          ? "bg-[#9000FF] text-white shadow-sm scale-105" 
                           : "bg-sidebar-primary/10 text-sidebar-primary"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
@@ -143,13 +143,13 @@ export const DashboardSidebar = () => {
                         layoutId="activeIndicator"
                         className={cn(
                           "absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-full bg-[#9000FF]",
-                          collapsed ? "-left-1.5 h-5" : "h-6"
+                          collapsed ? "-left-1 h-4" : "h-6"
                         )}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
                     <Icon
-                      size={20}
+                      size={collapsed ? 16 : 20}
                       className={cn(
                         "shrink-0 transition-colors",
                         isActive ? (collapsed ? "text-white" : "text-sidebar-primary") : "text-sidebar-foreground group-hover:text-[#9000FF]"
