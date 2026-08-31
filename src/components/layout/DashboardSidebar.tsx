@@ -110,8 +110,8 @@ export const DashboardSidebar = () => {
       </button>
 
       {/* Navigation */}
-      <nav className={cn("flex-1 py-6 overflow-y-auto sidebar-scroll transition-all duration-300", collapsed ? "px-1.5" : "px-3")}>
-        <ul className="space-y-1.5">
+      <nav className={cn("flex-1 overflow-y-auto sidebar-scroll transition-all duration-300", collapsed ? "py-2 px-1.5" : "py-6 px-3")}>
+        <ul className={cn("space-y-1", collapsed ? "space-y-1" : "space-y-1.5")}>
           {navItems.map((item) => {
             const isActive = item.path === "/dashboard" 
               ? location.pathname === "/dashboard" 
