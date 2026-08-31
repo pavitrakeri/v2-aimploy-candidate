@@ -110,8 +110,8 @@ export const DashboardSidebar = () => {
       </button>
 
       {/* Navigation */}
-      <nav className="flex-1 py-6 px-3 overflow-y-auto sidebar-scroll">
-        <ul className="space-y-1">
+      <nav className={cn("flex-1 py-6 overflow-y-auto sidebar-scroll transition-all duration-300", collapsed ? "px-1.5" : "px-3")}>
+        <ul className="space-y-1.5">
           {navItems.map((item) => {
             const isActive = item.path === "/dashboard" 
               ? location.pathname === "/dashboard" 
@@ -119,7 +119,7 @@ export const DashboardSidebar = () => {
             const Icon = item.icon;
 
             return (
-              <li key={item.path}>
+              <li key={item.path} className="flex justify-center">
                 <SidebarTooltip label={item.label} collapsed={collapsed}>
                   <Link
                     to={item.path}
@@ -129,16 +129,22 @@ export const DashboardSidebar = () => {
                       }
                     }}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                      "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
+                      collapsed ? "w-10 h-10 justify-center p-0" : "px-3 py-2.5 rounded-lg w-full",
                       isActive
-                        ? "bg-sidebar-primary/10 text-sidebar-primary"
+                        ? collapsed 
+                          ? "bg-[#9000FF] text-white shadow-md shadow-purple-500/25 scale-105" 
+                          : "bg-sidebar-primary/10 text-sidebar-primary"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeIndicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-sidebar-primary rounded-r-full"
+                        className={cn(
+                          "absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-full bg-[#9000FF]",
+                          collapsed ? "-left-1.5 h-5" : "h-6"
+                        )}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
@@ -146,7 +152,7 @@ export const DashboardSidebar = () => {
                       size={20}
                       className={cn(
                         "shrink-0 transition-colors",
-                        isActive ? "text-sidebar-primary" : "text-sidebar-foreground"
+                        isActive ? (collapsed ? "text-white" : "text-sidebar-primary") : "text-sidebar-foreground group-hover:text-[#9000FF]"
                       )}
                     />
                     <AnimatePresence mode="wait">
