@@ -92,11 +92,9 @@ export const DashboardSidebar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full flex justify-center"
+              className="w-full flex justify-center items-center"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">A</span>
-              </div>
+              <img src="/Aimploy Logo_4.png" alt="Aimploy" className="h-8 w-8 object-contain" />
             </motion.div>
           )}
         </AnimatePresence>
