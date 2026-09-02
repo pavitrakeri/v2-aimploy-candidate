@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Briefcase, Shield, Users, Sparkles, CheckCircle, TrendingUp, Award, Globe, Zap, Star, Quote, BookOpen, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import landingHero from "@/assets/landing-hero.jpg";
 import teamPhoto from "@/assets/team-photo.jpg";
@@ -85,21 +86,21 @@ const testimonials = [
   },
 ];
 
-const howItWorks = [
+const steps = [
   {
     step: "01",
     title: "Create Your Profile",
-    description: "Sign up and build your professional profile with our AI-assisted resume builder.",
+    description: "Build a comprehensive profile highlighting your skills, experience, and career aspirations.",
   },
   {
     step: "02",
-    title: "Get Matched",
-    description: "Our AI analyzes your skills and preferences to find the perfect job matches.",
+    title: "Complete Verification",
+    description: "Get background verified to increase your credibility with prospective employers.",
   },
   {
     step: "03",
-    title: "Apply & Connect",
-    description: "Apply with one click and connect directly with hiring managers.",
+    title: "Get Matched",
+    description: "Our AI matches you with opportunities that align with your background and goals.",
   },
   {
     step: "04",
@@ -111,6 +112,8 @@ const howItWorks = [
 const companies = ["Google", "Meta", "Amazon", "Microsoft", "Apple", "Netflix", "Spotify", "Uber"];
 
 export const Landing = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -142,12 +145,23 @@ export const Landing = () => {
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button variant="gradient" asChild>
-              <Link to="/register">Get Started</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="gradient" asChild>
+                <Link to="/dashboard">
+                  Go to Dashboard
+                  <ArrowRight size={16} className="ml-1" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Login</Link>
+                </Button>
+                <Button variant="gradient" asChild>
+                  <Link to="/register">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
           {/* Mobile Hamburger menu */}
           <div className="md:hidden flex items-center">
@@ -191,16 +205,26 @@ export const Landing = () => {
                   </SheetClose>
                 </nav>
                 <div className="mt-auto flex flex-col gap-3">
-                  <SheetClose asChild>
-                    <Button variant="outline" className="w-full h-11" asChild>
-                      <Link to="/login">Login</Link>
-                    </Button>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Button variant="gradient" className="w-full h-11" asChild>
-                      <Link to="/register">Get Started</Link>
-                    </Button>
-                  </SheetClose>
+                  {isAuthenticated ? (
+                    <SheetClose asChild>
+                      <Button variant="gradient" className="w-full h-11" asChild>
+                        <Link to="/dashboard">Go to Dashboard</Link>
+                      </Button>
+                    </SheetClose>
+                  ) : (
+                    <>
+                      <SheetClose asChild>
+                        <Button variant="outline" className="w-full h-11" asChild>
+                          <Link to="/login">Login</Link>
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button variant="gradient" className="w-full h-11" asChild>
+                          <Link to="/register">Get Started</Link>
+                        </Button>
+                      </SheetClose>
+                    </>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
@@ -234,15 +258,31 @@ export const Landing = () => {
                 Connect with top companies, showcase your skills, and accelerate your career with our intelligent job matching platform.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button variant="hero" size="xl" asChild>
-                  <Link to="/register">
-                    Start Your Journey
-                    <ArrowRight size={18} />
-                  </Link>
-                </Button>
-                <Button variant="outline-gradient" size="xl" asChild className="hover:bg-transparent text-primary hover:text-primary">
-                  <Link to="/login">Browse Jobs</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Button variant="hero" size="xl" asChild>
+                      <Link to="/dashboard">
+                        Go to Dashboard
+                        <ArrowRight size={18} />
+                      </Link>
+                    </Button>
+                    <Button variant="outline-gradient" size="xl" asChild className="hover:bg-transparent text-primary hover:text-primary">
+                      <Link to="/dashboard/jobs">Browse Jobs</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="hero" size="xl" asChild>
+                      <Link to="/register">
+                        Start Your Journey
+                        <ArrowRight size={18} />
+                      </Link>
+                    </Button>
+                    <Button variant="outline-gradient" size="xl" asChild className="hover:bg-transparent text-primary hover:text-primary">
+                      <Link to="/login">Browse Jobs</Link>
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-4 mt-10">

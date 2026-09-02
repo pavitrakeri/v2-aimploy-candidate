@@ -16,7 +16,13 @@ export const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, login } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const searchParams = new URLSearchParams(location.search);
   const emailParam = searchParams.get("email");

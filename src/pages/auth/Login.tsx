@@ -15,7 +15,7 @@ import authLoginHero from "@/assets/auth-login-hero.jpg";
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithOTP, requestOTP, loginWithGoogle } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, login, loginWithOTP, requestOTP, loginWithGoogle } = useAuth();
   const { toast } = useToast();
 
   const searchParams = new URLSearchParams(location.search);
@@ -39,6 +39,12 @@ export const Login = () => {
       navigate(target, { replace: true });
     }
   };
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      performRedirect(from);
+    }
+  }, [isAuthenticated, authLoading, from]);
 
   const handleGoogleLogin = async () => {
     try {
