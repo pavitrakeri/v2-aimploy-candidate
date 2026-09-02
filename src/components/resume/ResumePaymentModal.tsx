@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -182,6 +184,8 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-2 border-purple-500/30 rounded-2xl shadow-2xl bg-card">
+        <DialogTitle className="sr-only">Unlock PDF Download Pass</DialogTitle>
+        <DialogDescription className="sr-only">Get 1-Day Pass to download up to 3 ATS-optimized resumes in high-resolution PDF format.</DialogDescription>
         {/* Modal Header Banner */}
         <div className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-950 p-6 text-white text-center relative">
           <Badge className="bg-yellow-400 text-slate-950 font-extrabold uppercase text-[10px] px-3 py-0.5 rounded-full mb-2 shadow">
