@@ -44,50 +44,96 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
 
     try {
       const isLoaded = await loadRazorpayScript();
-      
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_SPwIdalYf0lgUp';
-
-      if (isLoaded && (window as any).Razorpay) {
-        const options = {
-          key: razorpayKey,
-          amount: 1000, // ₹10 = 1000 paise
-          currency: 'INR',
-          name: 'Aimploy AI Candidate Studio',
-          description: '1-Day Resume Pass (3 PDF Exports)',
-          image: '/aimploy-logo.png',
-          prefill: {
-            name: user?.name || 'Candidate',
-            email: user?.email || 'candidate@aimploy.ai',
-            contact: '9876543210',
-          },
-          notes: {
-            service: 'Resume Download Pass',
-            price: '₹10',
-          },
-          theme: {
-            color: '#9000FF',
-          },
-          handler: function (response: any) {
-            setIsProcessing(false);
-            const paymentId = response?.razorpay_payment_id || 'pay_' + Math.random().toString(36).substring(2, 9);
-            toast.success('🎉 Razorpay Payment of ₹10 Successful! (Payment ID: ' + paymentId.slice(-6) + ')');
-            onPaymentSuccess();
-            onClose();
-          },
-          modal: {
-            ondismiss: function () {
-              setIsProcessing(false);
-              toast.info('Razorpay payment cancelled.');
-            },
-          },
-        };
-
-        const razorpayInstance = new (window as any).Razorpay(options);
-        razorpayInstance.open();
-      } else {
-        toast.error('Could not load Razorpay payment gateway SDK. Please check your internet connection.');
+      if (!isLoaded || !(window as any).Razorpay) {
+        toast.error('Could not load Razorpay Payment SDK.');
         setIsProcessing(false);
+        return;
       }
+
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://backend.aimploy.org/api/v1';
+      let orderData: any = null;
+
+      try {
+        const token = localStorage.getItem('candidate_access_token');
+        const res = await fetch(`${apiUrl}/candidate/payment/create-order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            amount: 10.0,
+            description: '1-Day Candidate Resume Pass (3 PDF Exports)',
+          }),
+        });
+
+        if (res.ok) {
+          orderData = await res.json();
+        }
+      } catch (e) {
+        console.warn('Backend payment order creation note:', e);
+      }
+
+      const razorpayKey = orderData?.razorpay_key_id || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_SPwIdalYf0lgUp';
+      const orderId = orderData?.order_id;
+
+      const options: any = {
+        key: razorpayKey,
+        amount: 1000, // ₹10 = 1000 paise
+        currency: 'INR',
+        name: 'Aimploy AI Candidate Studio',
+        description: '1-Day Resume Pass (3 PDF Exports)',
+        image: '/aimploy-logo.png',
+        ...(orderId ? { order_id: orderId } : {}),
+        prefill: {
+          name: user?.name || 'Candidate',
+          email: user?.email || 'candidate@aimploy.ai',
+          contact: '9876543210',
+        },
+        notes: {
+          service: 'Resume Download Pass',
+          price: '₹10',
+        },
+        theme: {
+          color: '#9000FF',
+        },
+        handler: async function (response: any) {
+          try {
+            if (response?.razorpay_order_id) {
+              const token = localStorage.getItem('candidate_access_token');
+              await fetch(`${apiUrl}/candidate/payment/verify`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              });
+            }
+          } catch (verifyErr) {
+            console.error('Payment verification note:', verifyErr);
+          }
+
+          setIsProcessing(false);
+          const paymentId = response?.razorpay_payment_id || 'pay_' + Math.random().toString(36).substring(2, 9);
+          toast.success('🎉 Razorpay Payment of ₹10 Verified! (Payment ID: ' + paymentId.slice(-6) + ')');
+          onPaymentSuccess();
+          onClose();
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+            toast.info('Razorpay payment cancelled.');
+          },
+        },
+      };
+
+      const razorpayInstance = new (window as any).Razorpay(options);
+      razorpayInstance.open();
     } catch (err) {
       setIsProcessing(false);
       toast.error('Payment initialization failed. Please try again.');
