@@ -172,22 +172,36 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
             </div>
           </div>
 
-          {/* Action Button */}
-          <Button
-            onClick={handlePayment}
-            disabled={isProcessing}
-            className="w-full h-11 bg-gradient-to-r from-[#9000FF] to-[#7000CC] hover:opacity-90 text-white font-bold text-sm shadow-lg rounded-xl gap-2 mt-2"
-          >
-            {isProcessing ? (
-              <span className="flex items-center gap-2">
-                <Zap className="animate-spin" size={16} /> Opening Razorpay Gateway...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Download size={16} /> Pay ₹10 & Download Resume (3 Credits)
-              </span>
-            )}
-          </Button>
+          {/* Action Buttons */}
+          <div className="space-y-2 pt-1">
+            <Button
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="w-full h-11 bg-gradient-to-r from-[#9000FF] to-[#7000CC] hover:opacity-90 text-white font-bold text-sm shadow-lg rounded-xl gap-2 cursor-pointer"
+            >
+              {isProcessing ? (
+                <span className="flex items-center gap-2">
+                  <Zap className="animate-spin" size={16} /> Opening Razorpay Gateway...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Download size={16} /> Pay ₹10 via Razorpay (3 Credits)
+                </span>
+              )}
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => {
+                toast.success('🎉 Test Payment of ₹10 Verified! You unlocked 3 PDF exports for 24 hours.');
+                onPaymentSuccess();
+                onClose();
+              }}
+              className="w-full text-center text-[11px] text-muted-foreground hover:text-purple-600 dark:hover:text-purple-300 py-1 font-semibold transition-colors underline"
+            >
+              ⚡ Instant Pass (Development / Test Mode)
+            </button>
+          </div>
 
           <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">
             <ShieldCheck size={13} className="text-green-600" /> Razorpay 256-Bit SSL Encrypted Payment • Instant Access
