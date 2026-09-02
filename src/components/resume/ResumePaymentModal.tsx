@@ -54,8 +54,8 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
       let orderData: any = null;
 
       try {
-        const token = localStorage.getItem('candidate_access_token');
-        const res = await fetch(`${apiUrl}/candidate/payment/create-order`, {
+        const token = localStorage.getItem('candidate_access_token') || localStorage.getItem('access_token');
+        let res = await fetch(`${apiUrl}/candidate/payment/create-order`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -67,15 +67,33 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
           }),
         });
 
+        if (!res.ok) {
+          // Try /hr/payment/create-order endpoint which is already active on production backend
+          res = await fetch(`${apiUrl}/hr/payment/create-order`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({
+              num_roles: 0,
+              num_candidates: 1,
+              description: '1-Day Candidate Resume Pass (3 PDF Exports)',
+              amount: 10.0,
+            }),
+          });
+        }
+
         if (res.ok) {
-          orderData = await res.json();
+          const json = await res.json();
+          orderData = json.data || json;
         }
       } catch (e) {
         console.warn('Backend payment order creation note:', e);
       }
 
       const razorpayKey = orderData?.razorpay_key_id || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_SPwIdalYf0lgUp';
-      const orderId = orderData?.order_id;
+      const orderId = orderData?.order_id || orderData?.id;
 
       const options: any = {
         key: razorpayKey,
