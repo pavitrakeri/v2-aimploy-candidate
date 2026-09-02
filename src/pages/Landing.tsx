@@ -86,7 +86,7 @@ const testimonials = [
   },
 ];
 
-const steps = [
+const howItWorks = [
   {
     step: "01",
     title: "Create Your Profile",
