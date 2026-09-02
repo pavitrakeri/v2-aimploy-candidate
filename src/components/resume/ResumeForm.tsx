@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Plus, Trash2, User, Briefcase, GraduationCap, Code2, FolderGit2, Award, Wand2, Check } from 'lucide-react';
 import { AIGeneratorModal, AIGeneratorType } from './AIGeneratorModal';
 import { AIResumeService } from '@/services/aiResumeService';
+import { toast } from 'sonner';
 
 interface ResumeFormProps {
   data: ResumeData;
@@ -159,8 +160,87 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
     });
   };
 
+  const [magicPrompt, setMagicPrompt] = useState('');
+
+  const handleMagicFillClick = () => {
+    if (!magicPrompt.trim()) {
+      toast.error('Please enter a description or prompt for AI auto-fill!');
+      return;
+    }
+    const updated = AIResumeService.parseNaturalLanguageResumePrompt(magicPrompt, data);
+    onChange(updated);
+    toast.success('AI successfully extracted & auto-filled your resume sections!');
+  };
+
+  const handleSamplePromptClick = (promptText: string) => {
+    setMagicPrompt(promptText);
+    const updated = AIResumeService.parseNaturalLanguageResumePrompt(promptText, data);
+    onChange(updated);
+    toast.success('Applied sample prompt to your resume sections!');
+  };
+
+  const totalSkillsCount = data.skills.reduce((acc, s) => acc + s.items.length, 0);
+
   return (
     <div className="space-y-4">
+      {/* AI Natural Language Quick Fill Card */}
+      <div className="bg-gradient-to-r from-purple-950/20 via-indigo-950/20 to-slate-900/20 border border-purple-500/30 p-3.5 rounded-xl shadow-sm space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Wand2 size={16} className="text-purple-500 animate-pulse" />
+            <span className="text-xs font-bold text-foreground">AI Resume Natural Language Assistant</span>
+          </div>
+          <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold border border-purple-500/20">
+            Smart Auto-Parser
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={magicPrompt}
+            onChange={(e) => {
+              setMagicPrompt(e.target.value);
+              if (e.target.value.trim().length > 8) {
+                const parsed = AIResumeService.parseNaturalLanguageResumePrompt(e.target.value, data);
+                onChange(parsed);
+              }
+            }}
+            placeholder="e.g. Senior Frontend Dev with 4 yrs experience, skilled in React, TypeScript, Node.js. Studied at VTU..."
+            className="text-xs h-9 bg-background/90 border-purple-500/20"
+          />
+          <Button
+            size="sm"
+            onClick={handleMagicFillClick}
+            className="bg-[#9000FF] hover:bg-[#7b00da] text-white text-xs gap-1.5 shrink-0 h-9 font-semibold shadow-md"
+          >
+            <Sparkles size={14} /> Magic Fill
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          <span className="text-[10px] text-muted-foreground font-medium">Quick Prompts:</span>
+          <button
+            type="button"
+            onClick={() => handleSamplePromptClick('Senior Full Stack Engineer at TechCorp for 3 yrs, skilled in React, TypeScript, Node.js, and AWS')}
+            className="text-[10px] bg-muted/80 hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-300 px-2 py-0.5 rounded border border-border transition-colors"
+          >
+            💻 Full Stack Dev
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSamplePromptClick('Lead Product Manager with 5 yrs driving product strategy, agile, UX research, and growth metrics')}
+            className="text-[10px] bg-muted/80 hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-300 px-2 py-0.5 rounded border border-border transition-colors"
+          >
+            📈 Product Manager
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSamplePromptClick('Data Scientist experienced in Python, TensorFlow, SQL, ML models, and predictive analytics')}
+            className="text-[10px] bg-muted/80 hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-300 px-2 py-0.5 rounded border border-border transition-colors"
+          >
+            🤖 Data Scientist
+          </button>
+        </div>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="overflow-x-auto pb-1 no-scrollbar">
           <TabsList className="flex w-full bg-muted/80 p-1.5 rounded-xl gap-1 min-w-max">
@@ -171,19 +251,19 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
               <Sparkles size={13} className="text-yellow-500" /> Summary
             </TabsTrigger>
             <TabsTrigger value="experience" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Briefcase size={13} className="text-blue-500" /> Experience
+              <Briefcase size={13} className="text-blue-500" /> Work ({data.workExperiences.length})
             </TabsTrigger>
             <TabsTrigger value="education" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <GraduationCap size={13} className="text-emerald-500" /> Education
+              <GraduationCap size={13} className="text-emerald-500" /> Edu ({data.educations.length})
             </TabsTrigger>
             <TabsTrigger value="skills" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Code2 size={13} className="text-purple-500" /> Skills
+              <Code2 size={13} className="text-purple-500" /> Skills ({totalSkillsCount})
             </TabsTrigger>
             <TabsTrigger value="projects" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <FolderGit2 size={13} className="text-orange-500" /> Projects
+              <FolderGit2 size={13} className="text-orange-500" /> Projects ({(data.projects || []).length})
             </TabsTrigger>
             <TabsTrigger value="certs" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Award size={13} className="text-indigo-500" /> Certs
+              <Award size={13} className="text-indigo-500" /> Certs ({(data.certifications || []).length})
             </TabsTrigger>
           </TabsList>
         </div>
