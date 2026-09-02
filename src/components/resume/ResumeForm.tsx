@@ -280,7 +280,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   setAiModalType('personal');
                   setAiModalOpen(true);
                 }}
-                className="text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-semibold"
+                className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
               >
                 <Sparkles size={14} /> AI Personal Section Input
               </Button>
@@ -358,7 +358,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   setAiModalType('summary');
                   setAiModalOpen(true);
                 }}
-                className="text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-semibold"
+                className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
               >
                 <Sparkles size={14} /> AI Summary Section Input
               </Button>
@@ -387,15 +387,15 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => {
                         setActiveExpId(exp.id);
                         setAiModalType('experience');
                         setAiModalOpen(true);
                       }}
-                      className="text-[11px] text-primary hover:bg-primary/10 h-7 px-2 gap-1 font-semibold"
+                      className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
                     >
-                      <Sparkles size={12} /> AI Experience Section Input
+                      <Sparkles size={14} /> AI Experience Section Input
                     </Button>
                     <Button
                       size="sm"
@@ -484,7 +484,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   setAiModalType('education');
                   setAiModalOpen(true);
                 }}
-                className="text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-semibold"
+                className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
               >
                 <Sparkles size={14} /> AI Education Section Input
               </Button>
@@ -568,7 +568,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   setAiModalType('skills');
                   setAiModalOpen(true);
                 }}
-                className="text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-semibold"
+                className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
               >
                 <Sparkles size={14} /> AI Skills Section Input
               </Button>
@@ -640,7 +640,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   setAiModalType('projects');
                   setAiModalOpen(true);
                 }}
-                className="text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-semibold"
+                className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
               >
                 <Sparkles size={14} /> AI Projects Section Input
               </Button>
@@ -727,7 +727,7 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                   setAiModalType('certifications');
                   setAiModalOpen(true);
                 }}
-                className="text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-semibold"
+                className="text-xs font-semibold bg-[#9000FF]/10 text-[#9000FF] dark:text-purple-300 hover:bg-[#9000FF] hover:text-white dark:hover:bg-[#9000FF] dark:hover:text-white border border-[#9000FF]/30 transition-all duration-150 gap-1.5 h-8 px-3 rounded-lg shadow-sm cursor-pointer"
               >
                 <Sparkles size={14} /> AI Certifications Section Input
               </Button>
