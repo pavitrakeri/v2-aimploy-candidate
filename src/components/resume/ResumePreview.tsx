@@ -139,6 +139,568 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({ data, scale = 1 })
       );
     }
 
+    if (templateId === 'corporate') {
+      return (
+        <div className="w-full bg-white text-slate-900 font-sans p-0 shadow-lg min-h-[1050px] print:shadow-none select-text border border-slate-200">
+          {/* Corporate Deep Navy Banner Header */}
+          <div className="bg-[#0A192F] text-white p-7 text-center">
+            <h1 className="text-3xl font-bold tracking-wide uppercase text-white">
+              {personalInfo.fullName || 'Your Name'}
+            </h1>
+            <p className="text-sm font-semibold text-cyan-300 tracking-widest uppercase mt-1">
+              {personalInfo.jobTitle || 'Professional Title'}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-4 text-xs text-slate-300 border-t border-slate-700/60 pt-3">
+              {personalInfo.email && <span className="flex items-center gap-1"><Mail size={12} className="text-cyan-400" /> {personalInfo.email}</span>}
+              {personalInfo.phone && <span className="flex items-center gap-1"><Phone size={12} className="text-cyan-400" /> {personalInfo.phone}</span>}
+              {personalInfo.location && <span className="flex items-center gap-1"><MapPin size={12} className="text-cyan-400" /> {personalInfo.location}</span>}
+              {personalInfo.linkedin && <span className="flex items-center gap-1"><Linkedin size={12} className="text-cyan-400" /> {personalInfo.linkedin}</span>}
+              {personalInfo.portfolio && <span className="flex items-center gap-1"><Globe size={12} className="text-cyan-400" /> {personalInfo.portfolio}</span>}
+            </div>
+          </div>
+
+          <div className="p-7 space-y-6">
+            {/* Summary */}
+            {summary && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-l-4 border-[#0A192F] pl-3 py-0.5 mb-2 bg-slate-50">
+                  Executive Summary
+                </h2>
+                <p className="text-xs leading-relaxed text-slate-800">{summary}</p>
+              </div>
+            )}
+
+            {/* Experience */}
+            {workExperiences.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-l-4 border-[#0A192F] pl-3 py-0.5 mb-3 bg-slate-50">
+                  Professional Experience
+                </h2>
+                <div className="space-y-4">
+                  {workExperiences.map((exp) => (
+                    <div key={exp.id}>
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="text-xs font-bold text-slate-900">{exp.position}</h3>
+                        <span className="text-[11px] font-semibold text-slate-600">
+                          {exp.startDate} – {exp.current ? 'Present' : exp.endDate}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-slate-700 font-medium mb-1">
+                        <span>{exp.company}</span>
+                        <span>{exp.location}</span>
+                      </div>
+                      {exp.highlights.length > 0 && (
+                        <ul className="list-disc list-outside ml-4 text-xs space-y-1 text-slate-800">
+                          {exp.highlights.map((h, idx) => (
+                            <li key={idx} className="leading-snug">{h}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Projects */}
+            {projects && projects.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-l-4 border-[#0A192F] pl-3 py-0.5 mb-3 bg-slate-50">
+                  Key Projects
+                </h2>
+                <div className="space-y-3 text-xs">
+                  {projects.map((proj) => (
+                    <div key={proj.id}>
+                      <div className="flex justify-between items-baseline font-bold text-slate-900">
+                        <span>{proj.title} {proj.role ? `• ${proj.role}` : ''}</span>
+                        {proj.link && <span className="text-[10px] text-blue-800 font-mono">{proj.link}</span>}
+                      </div>
+                      {proj.techStack && proj.techStack.length > 0 && (
+                        <div className="text-[11px] text-slate-600 mb-0.5">Tech: {proj.techStack.join(', ')}</div>
+                      )}
+                      <p className="text-slate-800 leading-snug">{proj.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Education & Certifications */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {educations.length > 0 && (
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-l-4 border-[#0A192F] pl-3 py-0.5 mb-2 bg-slate-50">
+                    Education
+                  </h2>
+                  <div className="space-y-2 text-xs">
+                    {educations.map((edu) => (
+                      <div key={edu.id}>
+                        <div className="font-bold text-slate-900">{edu.degree}</div>
+                        <div className="text-slate-700">{edu.institution}</div>
+                        <div className="text-[10px] text-slate-500">{edu.startDate} – {edu.endDate} {edu.gpa ? `| GPA: ${edu.gpa}` : ''}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {certifications.length > 0 && (
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-l-4 border-[#0A192F] pl-3 py-0.5 mb-2 bg-slate-50">
+                    Certifications
+                  </h2>
+                  <div className="space-y-2 text-xs">
+                    {certifications.map((cert) => (
+                      <div key={cert.id}>
+                        <div className="font-bold text-slate-900">{cert.name}</div>
+                        <div className="text-slate-700">{cert.issuer} ({cert.issueDate})</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Skills */}
+            {skills.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] border-l-4 border-[#0A192F] pl-3 py-0.5 mb-2 bg-slate-50">
+                  Skills & Expertise
+                </h2>
+                <div className="space-y-1.5 text-xs">
+                  {skills.map((group, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <span className="font-bold text-slate-900 min-w-[120px]">{group.category}:</span>
+                      <span className="text-slate-800">{group.items.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (templateId === 'compact') {
+      return (
+        <div className="w-full bg-white text-slate-900 font-sans shadow-lg min-h-[1050px] print:shadow-none select-text flex flex-col md:flex-row">
+          {/* Left Sidebar */}
+          <div className="w-full md:w-1/3 bg-slate-100 p-6 border-r border-slate-200 text-slate-800 space-y-6">
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">
+                {personalInfo.fullName || 'Your Name'}
+              </h1>
+              <p className="text-xs font-semibold text-emerald-700 mt-1">
+                {personalInfo.jobTitle || 'Job Title'}
+              </p>
+            </div>
+
+            {/* Contact */}
+            <div className="space-y-1.5 text-[11px]">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-300 pb-1 mb-2">
+                Contact
+              </h3>
+              {personalInfo.email && <div className="break-all flex items-center gap-1.5"><Mail size={12} className="text-emerald-700 shrink-0" /> {personalInfo.email}</div>}
+              {personalInfo.phone && <div className="flex items-center gap-1.5"><Phone size={12} className="text-emerald-700 shrink-0" /> {personalInfo.phone}</div>}
+              {personalInfo.location && <div className="flex items-center gap-1.5"><MapPin size={12} className="text-emerald-700 shrink-0" /> {personalInfo.location}</div>}
+              {personalInfo.linkedin && <div className="break-all flex items-center gap-1.5"><Linkedin size={12} className="text-emerald-700 shrink-0" /> {personalInfo.linkedin}</div>}
+              {personalInfo.github && <div className="break-all flex items-center gap-1.5"><Github size={12} className="text-emerald-700 shrink-0" /> {personalInfo.github}</div>}
+              {personalInfo.portfolio && <div className="break-all flex items-center gap-1.5"><Globe size={12} className="text-emerald-700 shrink-0" /> {personalInfo.portfolio}</div>}
+            </div>
+
+            {/* Skills */}
+            {skills.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-300 pb-1 mb-2">
+                  Skills
+                </h3>
+                <div className="space-y-3 text-[11px]">
+                  {skills.map((group, idx) => (
+                    <div key={idx}>
+                      <div className="font-bold text-slate-900 text-[10px] uppercase mb-1">{group.category}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {group.items.map((item, i) => (
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-emerald-100/80 text-emerald-900 text-[10px] font-medium border border-emerald-200">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Education */}
+            {educations.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-300 pb-1 mb-2">
+                  Education
+                </h3>
+                <div className="space-y-2 text-[11px]">
+                  {educations.map((edu) => (
+                    <div key={edu.id}>
+                      <div className="font-bold text-slate-900">{edu.degree}</div>
+                      <div className="text-slate-600">{edu.institution}</div>
+                      <div className="text-[10px] text-emerald-800">{edu.startDate} – {edu.endDate}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {certifications.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-300 pb-1 mb-2">
+                  Certifications
+                </h3>
+                <div className="space-y-2 text-[11px]">
+                  {certifications.map((cert) => (
+                    <div key={cert.id}>
+                      <div className="font-bold text-slate-900">{cert.name}</div>
+                      <div className="text-slate-600">{cert.issuer} ({cert.issueDate})</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Content */}
+          <div className="w-full md:w-2/3 p-6 space-y-5">
+            {summary && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-600 pb-1 mb-2">
+                  Profile Summary
+                </h2>
+                <p className="text-xs text-slate-800 leading-snug">{summary}</p>
+              </div>
+            )}
+
+            {workExperiences.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-600 pb-1 mb-3">
+                  Experience
+                </h2>
+                <div className="space-y-3.5">
+                  {workExperiences.map((exp) => (
+                    <div key={exp.id}>
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="text-xs font-bold text-slate-900">{exp.position}</h3>
+                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded">
+                          {exp.startDate} – {exp.current ? 'Present' : exp.endDate}
+                        </span>
+                      </div>
+                      <div className="text-[11px] font-medium text-slate-600 mb-1">{exp.company} • {exp.location}</div>
+                      {exp.highlights.length > 0 && (
+                        <ul className="list-disc list-outside ml-4 text-xs space-y-0.5 text-slate-800">
+                          {exp.highlights.map((h, idx) => (
+                            <li key={idx} className="leading-tight">{h}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {projects && projects.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-600 pb-1 mb-3">
+                  Projects
+                </h2>
+                <div className="space-y-3 text-xs">
+                  {projects.map((proj) => (
+                    <div key={proj.id}>
+                      <div className="flex justify-between items-baseline font-bold text-slate-900">
+                        <span>{proj.title} {proj.role ? `(${proj.role})` : ''}</span>
+                        {proj.link && <span className="text-[10px] text-emerald-700 font-mono">{proj.link}</span>}
+                      </div>
+                      {proj.techStack && proj.techStack.length > 0 && (
+                        <div className="text-[10px] text-slate-500 mb-0.5">Tech: {proj.techStack.join(', ')}</div>
+                      )}
+                      <p className="text-slate-800 leading-tight">{proj.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (templateId === 'minimal') {
+      return (
+        <div className="w-full bg-white text-zinc-900 font-sans p-8 shadow-lg min-h-[1050px] print:shadow-none select-text border border-zinc-200 space-y-6">
+          {/* Swiss Minimalist Header */}
+          <div>
+            <h1 className="text-3xl font-light text-zinc-900 tracking-tight">
+              {personalInfo.fullName || 'Your Name'}
+            </h1>
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mt-1">
+              {personalInfo.jobTitle || 'Professional Title'}
+            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 mt-3 pt-3 border-t border-zinc-200">
+              {personalInfo.email && <span>{personalInfo.email}</span>}
+              {personalInfo.phone && <span>| {personalInfo.phone}</span>}
+              {personalInfo.location && <span>| {personalInfo.location}</span>}
+              {personalInfo.linkedin && <span>| {personalInfo.linkedin}</span>}
+              {personalInfo.portfolio && <span>| {personalInfo.portfolio}</span>}
+            </div>
+          </div>
+
+          {/* Summary */}
+          {summary && (
+            <div className="pt-2 border-t border-zinc-200">
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+                Summary
+              </h2>
+              <p className="text-xs text-zinc-800 leading-relaxed">{summary}</p>
+            </div>
+          )}
+
+          {/* Experience */}
+          {workExperiences.length > 0 && (
+            <div className="pt-2 border-t border-zinc-200">
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">
+                Experience
+              </h2>
+              <div className="space-y-4">
+                {workExperiences.map((exp) => (
+                  <div key={exp.id} className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <div className="text-[11px] font-mono text-zinc-500 md:col-span-1">
+                      {exp.startDate} — {exp.current ? 'Present' : exp.endDate}
+                    </div>
+                    <div className="md:col-span-3 space-y-1">
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="text-xs font-bold text-zinc-900">{exp.position}</h3>
+                        <span className="text-[11px] text-zinc-500">{exp.location}</span>
+                      </div>
+                      <div className="text-[11px] text-zinc-700 font-medium">{exp.company}</div>
+                      {exp.highlights.length > 0 && (
+                        <ul className="list-disc list-outside ml-4 text-xs space-y-1 text-zinc-800 pt-1">
+                          {exp.highlights.map((h, idx) => (
+                            <li key={idx} className="leading-snug">{h}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Projects */}
+          {projects && projects.length > 0 && (
+            <div className="pt-2 border-t border-zinc-200">
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">
+                Projects
+              </h2>
+              <div className="space-y-3 text-xs">
+                {projects.map((proj) => (
+                  <div key={proj.id}>
+                    <div className="flex justify-between items-baseline font-bold text-zinc-900">
+                      <span>{proj.title} {proj.role ? `(${proj.role})` : ''}</span>
+                      {proj.link && <span className="text-[10px] font-mono text-zinc-500">{proj.link}</span>}
+                    </div>
+                    {proj.techStack && proj.techStack.length > 0 && (
+                      <div className="text-[10px] text-zinc-500 mb-0.5">Stack: {proj.techStack.join(', ')}</div>
+                    )}
+                    <p className="text-zinc-700 leading-snug">{proj.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills & Education */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-zinc-200">
+            {skills.length > 0 && (
+              <div>
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+                  Skills
+                </h2>
+                <div className="space-y-1 text-xs">
+                  {skills.map((group, idx) => (
+                    <div key={idx}>
+                      <span className="font-bold text-zinc-800">{group.category}: </span>
+                      <span className="text-zinc-700">{group.items.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {educations.length > 0 && (
+              <div>
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+                  Education & Certifications
+                </h2>
+                <div className="space-y-2 text-xs">
+                  {educations.map((edu) => (
+                    <div key={edu.id}>
+                      <div className="font-bold text-zinc-900">{edu.degree}</div>
+                      <div className="text-zinc-600">{edu.institution} ({edu.startDate} – {edu.endDate})</div>
+                    </div>
+                  ))}
+                  {certifications.map((cert) => (
+                    <div key={cert.id}>
+                      <div className="font-bold text-zinc-900">{cert.name}</div>
+                      <div className="text-zinc-600">{cert.issuer} ({cert.issueDate})</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (templateId === 'startup') {
+      return (
+        <div className="w-full bg-white text-slate-900 font-sans p-7 shadow-lg min-h-[1050px] print:shadow-none select-text space-y-6">
+          {/* Startup Gradient Banner Header */}
+          <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 text-white p-6 rounded-2xl shadow-md">
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              {personalInfo.fullName || 'Your Name'}
+            </h1>
+            <div className="inline-block bg-white/20 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full mt-2">
+              {personalInfo.jobTitle || 'Growth & Tech Professional'}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-teal-50 mt-4 pt-3 border-t border-white/20">
+              {personalInfo.email && <span className="flex items-center gap-1"><Mail size={12} /> {personalInfo.email}</span>}
+              {personalInfo.phone && <span className="flex items-center gap-1"><Phone size={12} /> {personalInfo.phone}</span>}
+              {personalInfo.location && <span className="flex items-center gap-1"><MapPin size={12} /> {personalInfo.location}</span>}
+              {personalInfo.linkedin && <span className="flex items-center gap-1"><Linkedin size={12} /> {personalInfo.linkedin}</span>}
+              {personalInfo.github && <span className="flex items-center gap-1"><Github size={12} /> {personalInfo.github}</span>}
+            </div>
+          </div>
+
+          {/* Summary */}
+          {summary && (
+            <div>
+              <span className="bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-teal-200 inline-block mb-2">
+                About & Summary
+              </span>
+              <p className="text-xs text-slate-800 leading-relaxed bg-slate-50/80 p-3 rounded-lg border border-slate-200">{summary}</p>
+            </div>
+          )}
+
+          {/* Experience */}
+          {workExperiences.length > 0 && (
+            <div>
+              <span className="bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-teal-200 inline-block mb-3">
+                Experience & Impact
+              </span>
+              <div className="space-y-3">
+                {workExperiences.map((exp) => (
+                  <div key={exp.id} className="p-4 rounded-xl border border-slate-200 bg-white hover:border-teal-300 transition-colors">
+                    <div className="flex justify-between items-baseline">
+                      <h3 className="text-xs font-bold text-slate-900">{exp.position}</h3>
+                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        {exp.startDate} – {exp.current ? 'Present' : exp.endDate}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-semibold text-teal-700 mb-2">{exp.company} • {exp.location}</div>
+                    {exp.highlights.length > 0 && (
+                      <ul className="list-disc list-outside ml-4 text-xs space-y-1 text-slate-800">
+                        {exp.highlights.map((h, idx) => (
+                          <li key={idx} className="leading-snug">{h}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Projects */}
+          {projects && projects.length > 0 && (
+            <div>
+              <span className="bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-teal-200 inline-block mb-3">
+                Featured Projects
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {projects.map((proj) => (
+                  <div key={proj.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50/50">
+                    <div className="flex justify-between items-baseline font-bold text-slate-900 mb-1">
+                      <span>{proj.title}</span>
+                      {proj.link && <span className="text-[10px] text-teal-700 font-mono">{proj.link}</span>}
+                    </div>
+                    {proj.techStack && proj.techStack.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {proj.techStack.map((tech, i) => (
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-teal-100 text-teal-900 text-[10px] font-semibold">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-slate-700 leading-snug">{proj.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills & Education */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {skills.length > 0 && (
+              <div>
+                <span className="bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-teal-200 inline-block mb-3">
+                  Skills & Tools
+                </span>
+                <div className="space-y-2 text-xs">
+                  {skills.map((group, idx) => (
+                    <div key={idx}>
+                      <div className="font-bold text-slate-800 text-[11px] mb-1">{group.category}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {group.items.map((item, i) => (
+                          <span key={i} className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 text-[11px] font-medium">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {educations.length > 0 && (
+              <div>
+                <span className="bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-teal-200 inline-block mb-3">
+                  Education & Certs
+                </span>
+                <div className="space-y-2 text-xs">
+                  {educations.map((edu) => (
+                    <div key={edu.id} className="p-2.5 rounded-lg border border-slate-200">
+                      <div className="font-bold text-slate-900">{edu.degree}</div>
+                      <div className="text-slate-600">{edu.institution}</div>
+                      <div className="text-[10px] text-teal-700 font-semibold">{edu.startDate} – {edu.endDate}</div>
+                    </div>
+                  ))}
+                  {certifications.map((cert) => (
+                    <div key={cert.id} className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <div className="font-bold text-slate-900">{cert.name}</div>
+                      <div className="text-slate-600">{cert.issuer} ({cert.issueDate})</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (templateId === 'tech') {
       return (
         <div className="w-full bg-slate-950 text-slate-100 font-mono p-8 shadow-lg min-h-[1050px] print:shadow-none print:p-0 select-text">

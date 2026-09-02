@@ -1,7 +1,7 @@
 import React from 'react';
 import { ResumeTemplateId } from '@/types/resume';
 import { cn } from '@/lib/utils';
-import { Sparkles, Check, Layout, Shield, Code, Palette } from 'lucide-react';
+import { Sparkles, Check, Layout, Shield, Code, Palette, Briefcase, Columns, Feather, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface TemplateOption {
@@ -43,6 +43,37 @@ const templates: TemplateOption[] = [
     tagline: 'Vibrant side panel accent, tag badges, and visual section dividers',
     icon: Palette,
     accentColor: 'from-violet-600 to-pink-600',
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate Classic',
+    tagline: 'Deep navy header banner, structured borders, and formal ATS typography',
+    icon: Briefcase,
+    accentColor: 'from-blue-900 to-slate-800',
+    badge: 'Corporate',
+  },
+  {
+    id: 'compact',
+    name: 'Compact 1-Page',
+    tagline: 'Dense 2-column sidebar layout fitting maximum experience in 1 page',
+    icon: Columns,
+    accentColor: 'from-emerald-700 to-teal-800',
+    badge: '1-Page Fit',
+  },
+  {
+    id: 'minimal',
+    name: 'Swiss Minimalist',
+    tagline: 'Monochromatic ultra-clean grid layout with refined spacing & borders',
+    icon: Feather,
+    accentColor: 'from-zinc-700 to-zinc-900',
+  },
+  {
+    id: 'startup',
+    name: 'Startup & Growth',
+    tagline: 'Teal gradient header with card highlights, badge tags & modern flair',
+    icon: Rocket,
+    accentColor: 'from-teal-500 to-emerald-600',
+    badge: 'Trending',
   },
 ];
 
