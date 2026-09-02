@@ -162,29 +162,31 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-7 w-full bg-muted/60 p-1">
-          <TabsTrigger value="personal" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <User size={12} /> Personal
-          </TabsTrigger>
-          <TabsTrigger value="summary" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <Sparkles size={12} /> Summary
-          </TabsTrigger>
-          <TabsTrigger value="experience" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <Briefcase size={12} /> Work
-          </TabsTrigger>
-          <TabsTrigger value="education" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <GraduationCap size={12} /> Edu
-          </TabsTrigger>
-          <TabsTrigger value="skills" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <Code2 size={12} /> Skills
-          </TabsTrigger>
-          <TabsTrigger value="projects" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <FolderGit2 size={12} /> Projects
-          </TabsTrigger>
-          <TabsTrigger value="certs" className="text-[11px] px-1 flex items-center justify-center gap-1">
-            <Award size={12} /> Certs
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-1 no-scrollbar">
+          <TabsList className="flex w-full bg-muted/80 p-1.5 rounded-xl gap-1 min-w-max">
+            <TabsTrigger value="personal" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <User size={13} className="text-primary" /> Personal
+            </TabsTrigger>
+            <TabsTrigger value="summary" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <Sparkles size={13} className="text-yellow-500" /> Summary
+            </TabsTrigger>
+            <TabsTrigger value="experience" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <Briefcase size={13} className="text-blue-500" /> Experience
+            </TabsTrigger>
+            <TabsTrigger value="education" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <GraduationCap size={13} className="text-emerald-500" /> Education
+            </TabsTrigger>
+            <TabsTrigger value="skills" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <Code2 size={13} className="text-purple-500" /> Skills
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <FolderGit2 size={13} className="text-orange-500" /> Projects
+            </TabsTrigger>
+            <TabsTrigger value="certs" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
+              <Award size={13} className="text-indigo-500" /> Certs
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* 1. Personal Information */}
         <TabsContent value="personal" className="pt-3">

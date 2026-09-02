@@ -132,43 +132,43 @@ export const ResumeBuilder: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto">
+    <div className="space-y-6 pb-12 max-w-[1440px] mx-auto px-2 sm:px-4">
       {/* Header Banner */}
-      <div className="no-print bg-gradient-to-r from-[#9000FF] via-[#7000CC] to-[#500099] p-6 rounded-2xl text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="no-print bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/20 p-6 rounded-2xl text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles size={22} className="text-yellow-300 animate-pulse" />
-            <span className="text-xs font-semibold uppercase tracking-wider bg-white/20 text-white px-2.5 py-0.5 rounded-full">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Sparkles size={20} className="text-yellow-300 animate-pulse" />
+            <span className="text-xs font-semibold uppercase tracking-wider bg-white/10 text-indigo-200 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
               AI Resume Studio
             </span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Create & Customize Your Resume</h1>
-          <p className="text-sm text-purple-200/90 mt-1 max-w-xl">
-            Type your info in natural language or use section prompts to auto-generate a professional resume.
+          <h1 className="text-2xl font-bold tracking-tight text-white">Create & Customize Your Resume</h1>
+          <p className="text-sm text-slate-300 mt-1 max-w-xl">
+            Auto-generate, edit, and fine-tune your resume with AI assistance. Select from 8 ATS-optimized templates.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Button
             onClick={handleReset}
             variant="outline"
             size="sm"
-            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs gap-1.5"
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs gap-1.5 h-9 px-3"
           >
-            <RefreshCw size={14} /> Reset
+            <RefreshCw size={14} /> Reset Defaults
           </Button>
           <Button
             onClick={handlePrint}
             variant="outline"
             size="sm"
-            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs gap-1.5"
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs gap-1.5 h-9 px-3"
           >
             <Printer size={14} /> Print
           </Button>
           <Button
             onClick={handleDownloadPDF}
             size="sm"
-            className="bg-[#9000FF] hover:bg-[#7b00da] text-white text-xs gap-1.5 font-semibold shadow-md"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 font-semibold h-9 px-4 shadow-md"
           >
             <Download size={14} /> Download PDF
           </Button>
@@ -176,13 +176,13 @@ export const ResumeBuilder: React.FC = () => {
       </div>
 
       {/* Template Selector Section */}
-      <Card className="no-print">
-        <CardHeader className="pb-3">
+      <Card className="no-print border-border/60 shadow-sm">
+        <CardHeader className="pb-3 border-b border-border/40">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Layout size={16} className="text-primary" /> Choose Resume Template Format
+            <Layout size={16} className="text-primary" /> Choose Resume Template Format (8 Options)
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <TemplateSelector
             selectedTemplateId={resumeData.templateId}
             onSelectTemplate={handleTemplateChange}
@@ -194,16 +194,16 @@ export const ResumeBuilder: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Form Controls */}
         <div className="no-print lg:col-span-6 space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-3 border-b border-border/40">
               <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Resume Data & AI Editor</span>
-                <span className="text-xs font-normal text-muted-foreground flex items-center gap-1">
-                  <CheckCircle2 size={13} className="text-green-500" /> Auto-Saving
+                <span className="text-xs font-normal text-muted-foreground flex items-center gap-1.5 bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full border border-green-500/20">
+                  <CheckCircle2 size={12} className="text-green-500" /> Saved
                 </span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <ResumeForm data={resumeData} onChange={setResumeData} />
             </CardContent>
           </Card>
@@ -211,24 +211,25 @@ export const ResumeBuilder: React.FC = () => {
 
         {/* Right Column: Live Document Preview */}
         <div className="lg:col-span-6 sticky top-20">
-          <Card className="overflow-hidden border-2 border-primary/20 shadow-xl bg-muted/30">
-            <CardHeader className="pb-2 bg-card border-b flex flex-row items-center justify-between no-print">
+          <Card className="overflow-hidden border-2 border-primary/20 shadow-xl bg-card">
+            <CardHeader className="pb-2.5 pt-3 bg-muted/40 border-b flex flex-row items-center justify-between no-print px-4">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <span>Live Preview</span>
-                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-mono">
+                <span className="text-[10px] bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-mono border border-primary/20">
                   {resumeData.templateId.toUpperCase()}
                 </span>
               </CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-background border rounded-lg p-0.5 shadow-sm">
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setScale((s) => Math.max(0.8, s - 0.1))}
+                  onClick={() => setScale((s) => Math.max(0.7, s - 0.1))}
                   className="h-7 w-7 p-0 text-xs font-mono"
+                  title="Zoom Out"
                 >
                   -
                 </Button>
-                <span className="text-xs font-mono text-muted-foreground">
+                <span className="text-xs font-mono px-1.5 text-muted-foreground font-medium">
                   {Math.round(scale * 100)}%
                 </span>
                 <Button
@@ -236,18 +237,29 @@ export const ResumeBuilder: React.FC = () => {
                   variant="ghost"
                   onClick={() => setScale((s) => Math.min(1.4, s + 0.1))}
                   className="h-7 w-7 p-0 text-xs font-mono"
+                  title="Zoom In"
                 >
                   +
                 </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setScale(1)}
+                  className="h-7 px-2 text-[10px] font-mono border-l rounded-none text-muted-foreground hover:text-foreground"
+                  title="Reset Zoom"
+                >
+                  Reset
+                </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-4 flex justify-center bg-[#525659]/10 overflow-auto max-h-[82vh]">
+            <CardContent className="p-4 sm:p-6 flex justify-center bg-slate-900/5 dark:bg-slate-950/40 overflow-auto max-h-[calc(100vh-200px)] min-h-[600px]">
               <div
                 style={{
                   transform: `scale(${scale})`,
                   transformOrigin: 'top center',
                   transition: 'transform 0.15s ease-out',
                 }}
+                className="w-full flex justify-center"
               >
                 <ResumePreview data={resumeData} />
               </div>

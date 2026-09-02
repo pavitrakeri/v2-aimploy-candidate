@@ -87,7 +87,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onSelectTemplate,
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
       {templates.map((tpl) => {
         const isSelected = selectedTemplateId === tpl.id;
         const Icon = tpl.icon;
@@ -97,36 +97,40 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             key={tpl.id}
             onClick={() => onSelectTemplate(tpl.id)}
             className={cn(
-              'relative group cursor-pointer p-4 rounded-xl border transition-all duration-200 bg-card hover:shadow-md',
+              'relative group cursor-pointer p-4 rounded-xl border transition-all duration-200 bg-card hover:shadow-md flex flex-col justify-between h-full min-h-[108px]',
               isSelected
-                ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
-                : 'border-border hover:border-primary/50'
+                ? 'border-primary ring-2 ring-primary/30 bg-primary/5 shadow-sm'
+                : 'border-border hover:border-primary/50 hover:bg-muted/30'
             )}
           >
-            {tpl.badge && (
-              <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                {tpl.badge}
-              </span>
-            )}
-            <div className="flex items-center gap-3 mb-2">
-              <div
-                className={cn(
-                  'w-9 h-9 rounded-lg flex items-center justify-center text-white bg-gradient-to-br shadow-sm',
-                  tpl.accentColor
+            <div>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={cn(
+                      'w-9 h-9 rounded-lg flex items-center justify-center text-white bg-gradient-to-br shadow-sm shrink-0',
+                      tpl.accentColor
+                    )}
+                  >
+                    <Icon size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-foreground flex items-center gap-1.5 leading-tight">
+                      {tpl.name}
+                      {isSelected && <Check size={14} className="text-primary shrink-0" />}
+                    </h4>
+                  </div>
+                </div>
+                {tpl.badge && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
+                    {tpl.badge}
+                  </span>
                 )}
-              >
-                <Icon size={18} />
               </div>
-              <div>
-                <h4 className="font-semibold text-sm text-foreground flex items-center gap-1.5">
-                  {tpl.name}
-                  {isSelected && <Check size={14} className="text-primary" />}
-                </h4>
-              </div>
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-1">
+                {tpl.tagline}
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-              {tpl.tagline}
-            </p>
           </div>
         );
       })}
