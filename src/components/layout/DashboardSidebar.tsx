@@ -125,7 +125,7 @@ export const DashboardSidebar = () => {
                   <Link
                     to={item.path}
                     onClick={() => {
-                      if (item.path === "/dashboard/bgv-verification") {
+                      if (item.path === "/dashboard/bgv-verification" || item.path === "/dashboard/resume-builder") {
                         setCollapsed(true);
                       }
                     }}

@@ -8,18 +8,25 @@ import { ResumePreview } from '@/components/resume/ResumePreview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Sparkles, Download, Printer, Layout, RefreshCw, CheckCircle2, Wand2 } from 'lucide-react';
+import { Sparkles, Download, Printer, Layout, RefreshCw, CheckCircle2, Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 export const ResumeBuilder: React.FC = () => {
   const { user } = useAuth();
+  const { collapsed, setCollapsed, toggleCollapsed } = useSidebar();
   const userId = user?.id ? String(user.id) : (user?.email ? user.email.toLowerCase() : 'guest');
   const userStorageKey = `aimploy_resume_data_${userId}`;
 
   const [resumeData, setResumeDataState] = useState<ResumeData>(() => getInitialResumeForUser(user));
   const [scale, setScale] = useState<number>(1);
   const [magicPrompt, setMagicPrompt] = useState<string>('');
+
+  // Auto collapse sidebar for maximum canvas space in Resume Builder
+  useEffect(() => {
+    setCollapsed(true);
+  }, []);
 
   // Sync state when user context finishes loading or changes
   useEffect(() => {
@@ -149,6 +156,16 @@ export const ResumeBuilder: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            onClick={toggleCollapsed}
+            variant="outline"
+            size="sm"
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs gap-1.5 h-9 px-3"
+            title={collapsed ? "Expand Sidebar Navigation" : "Collapse Sidebar Navigation"}
+          >
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {collapsed ? "Expand Nav" : "Collapse Nav"}
+          </Button>
           <Button
             onClick={handleReset}
             variant="outline"
