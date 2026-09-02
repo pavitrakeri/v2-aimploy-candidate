@@ -46,8 +46,19 @@ export const GoogleCallback = () => {
 
       try {
         await handleGoogleCallback(code, state || undefined);
-        toast({ title: "Success", description: "Successfully signed in with Google!" });
-        navigate("/dashboard", { replace: true });
+        const token = localStorage.getItem("access_token");
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobileDevice && token) {
+          window.location.href = `aimploy://login?token=${token}`;
+          setTimeout(() => {
+            toast({ title: "Success", description: "Successfully signed in with Google!" });
+            navigate("/dashboard", { replace: true });
+          }, 1500);
+        } else {
+          toast({ title: "Success", description: "Successfully signed in with Google!" });
+          navigate("/dashboard", { replace: true });
+        }
       } catch (error) {
         setError(error instanceof Error ? error.message : "Failed to complete authentication");
         toast({

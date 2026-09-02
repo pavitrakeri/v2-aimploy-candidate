@@ -239,10 +239,13 @@ async function apiRequest<T>(
   if (!response.ok) {
     if (response.status === 401) {
       localStorage.removeItem("access_token");
+      localStorage.removeItem("candidate_user");
       window.dispatchEvent(new Event("unauthorized"));
     }
     const error = await response.json().catch(() => ({ detail: "An error occurred" }));
-    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+    const errObj = new Error(error.detail || `HTTP error! status: ${response.status}`);
+    (errObj as any).status = response.status;
+    throw errObj;
   }
 
   return response.json();
@@ -265,18 +268,7 @@ export const authApi = {
     if (data.first_name) formData.append("first_name", data.first_name);
     if (data.last_name) formData.append("last_name", data.last_name);
     if (data.phone) formData.append("phone", data.phone);
-    
-    // Workaround for Android Cloud Storage files (Google Drive, OneDrive, etc.)
-    // We read the file into an ArrayBuffer first to force the OS to download it into memory,
-    // then pass it as a Blob. This prevents fetch() from crashing with a Network Error.
-    try {
-      const arrayBuffer = await resume.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: resume.type });
-      formData.append("resume", blob, resume.name);
-    } catch (e) {
-      console.warn("Failed to read file into memory, falling back to raw File object", e);
-      formData.append("resume", resume);
-    }
+    formData.append("resume", resume);
 
     return apiRequest<RegisterResponse>("/candidate/register", {
       method: "POST",
@@ -292,26 +284,24 @@ export const authApi = {
   },
 
   requestOTP: async (data: OTPRequest): Promise<{ message: string; expires_in: number }> => {
-    return apiRequest("/candidate/login/request-otp", {
+    return apiRequest<{ message: string; expires_in: number }>("/candidate/request-otp", {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   verifyOTP: async (data: OTPVerifyRequest): Promise<AuthResponse> => {
-    return apiRequest<AuthResponse>("/candidate/login/verify-otp", {
+    return apiRequest<AuthResponse>("/candidate/verify-otp", {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   getGoogleAuthUrl: async (): Promise<{ auth_url: string }> => {
-    return apiRequest("/candidate/login/google/url");
+    return apiRequest<{ auth_url: string }>("/candidate/login/google");
   },
 
-  googleCallback: async (code: string, state?: string): Promise<AuthResponse> => {
-    // For Google OAuth callback, we need to handle this differently
-    // The callback will be handled by the GoogleCallback component directly
+  handleGoogleCallback: async (_code: string): Promise<AuthResponse> => {
     // This method is kept for compatibility but won't be used
     throw new Error("Google callback should be handled by redirect, not API call");
   },
@@ -338,6 +328,53 @@ export const profileApi = {
       method: "PATCH",
       body: formData,
     });
+  },
+};
+
+// Export token management utilities
+export const tokenUtils = {
+  setToken: (token: string) => {
+    localStorage.setItem("access_token", token);
+  },
+  
+  getToken: () => {
+    return localStorage.getItem("access_token");
+  },
+  
+  removeToken: () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("candidate_user");
+  },
+  
+  isTokenExpired: (token?: string | null): boolean => {
+    const t = token || localStorage.getItem("access_token");
+    if (!t) return true;
+    try {
+      const payloadBase64 = t.split('.')[1];
+      if (!payloadBase64) return true;
+      const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(jsonPayload);
+      if (!payload.exp) return false;
+      return Date.now() >= payload.exp * 1000 - 10000;
+    } catch {
+      return false;
+    }
+  },
+
+  isAuthenticated: () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return false;
+    if (tokenUtils.isTokenExpired(token)) {
+      tokenUtils.removeToken();
+      return false;
+    }
+    return true;
   },
 };
 

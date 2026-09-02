@@ -167,3 +167,52 @@ html {
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--sidebar-primary));
 }
+
+/* Print stylesheet for PDF generation - Hide UI, print ONLY the resume document */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide every element on the page */
+  body * {
+    visibility: hidden !important;
+  }
+
+  aside,
+  nav,
+  button,
+  header,
+  footer,
+  .no-print,
+  .lg\:col-span-6:first-child,
+  [role="tablist"] {
+    display: none !important;
+  }
+
+  /* Reveal ONLY the resume preview document */
+  #resume-preview-document,
+  #resume-preview-document * {
+    visibility: visible !important;
+  }
+
+  #resume-preview-document {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    z-index: 999999 !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0mm;
+  }
+}

@@ -188,7 +188,7 @@ export const Login = () => {
           >
             <div className="flex justify-center mb-6">
               <Link to="/" className="inline-block">
-                <img src={aimployLogo} alt="Aimploy" className="h-10" />
+                <img src="/aimploy-logo.png" alt="Aimploy" className="h-10 object-contain" />
               </Link>
             </div>
 

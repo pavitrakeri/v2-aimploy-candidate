@@ -27,6 +27,7 @@ import Verification from "./pages/dashboard/Verification";
 import VerificationManagement from "./pages/dashboard/VerificationManagement";
 import BGVVerificationWrapper from "./pages/dashboard/BGVVerificationWrapper";
 import ValidationDemo from '@/components/verification/ValidationDemo';
+import ResumeBuilder from "./pages/dashboard/ResumeBuilder";
 import Profile from "./pages/dashboard/Profile";
 import NotFound from "./pages/NotFound";
 import UserGuidance from "./pages/UserGuidance";
@@ -65,6 +66,7 @@ const App = () => (
                   <Route index element={<Dashboard />} />
                   <Route path="jobs" element={<BrowseJobs />} />
                   <Route path="applications" element={<Applications />} />
+                  <Route path="resume-builder" element={<ResumeBuilder />} />
                   <Route path="programs" element={<Programs />} />
                   <Route path="programs/:programId" element={<ProgramDetails />} />
                   <Route path="programs/apply/:programId" element={<ProgramApply />} />

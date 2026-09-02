@@ -20,19 +20,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { setTheme } = useTheme();
-  const [user, setUser] = useState<CandidateProfile | null>(null);
+  const [user, setUser] = useState<CandidateProfile | null>(() => {
+    if (tokenUtils.isAuthenticated()) {
+      const cached = localStorage.getItem("candidate_user");
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async () => {
     try {
       const profile = await profileApi.getProfile();
       setUser(profile);
-    } catch (error) {
+      localStorage.setItem("candidate_user", JSON.stringify(profile));
+    } catch (error: any) {
       console.error("Failed to fetch profile:", error);
-      tokenUtils.removeToken();
-      localStorage.removeItem("aimploy-theme");
-      setTheme("light");
-      setUser(null);
+      const is401 = error?.status === 401 ||
+        (error instanceof Error && (
+          error.message.includes("401") ||
+          error.message.includes("unauthorized") ||
+          error.message.includes("Invalid authentication credentials")
+        ));
+
+      if (is401 || tokenUtils.isTokenExpired()) {
+        tokenUtils.removeToken();
+        localStorage.removeItem("candidate_user");
+        localStorage.removeItem("aimploy-theme");
+        setTheme("light");
+        setUser(null);
+      }
     }
   };
 
@@ -41,8 +64,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (tokenUtils.isAuthenticated()) {
         await fetchProfile();
       } else {
+        localStorage.removeItem("candidate_user");
         localStorage.removeItem("aimploy-theme");
         setTheme("light");
+        setUser(null);
       }
       setIsLoading(false);
     };
@@ -91,7 +116,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const handleGoogleCallback = async (code: string, state?: string) => {
     // Make direct API call to GET callback endpoint
-    const token = localStorage.getItem("access_token");
     const params = new URLSearchParams({ code });
     if (state) params.append('state', state);
     
@@ -113,6 +137,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     tokenUtils.removeToken();
+    localStorage.removeItem("candidate_user");
     localStorage.removeItem("aimploy-theme");
     setTheme("light");
     setUser(null);

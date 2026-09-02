@@ -162,7 +162,7 @@ export const Register = () => {
               transition={{ duration: 0.6 }}
             >
               <Link to="/" className="inline-block mb-8">
-                <img src={aimployLogo} alt="Aimploy" className="h-10" />
+                <img src="/aimploy-logo.png" alt="Aimploy" className="h-10 object-contain" />
               </Link>
               
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-6">
