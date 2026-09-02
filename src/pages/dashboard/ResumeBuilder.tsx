@@ -211,16 +211,28 @@ export const ResumeBuilder: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Form Controls */}
         <div className="no-print lg:col-span-6 space-y-4">
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader className="pb-3 border-b border-border/40">
-              <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                <span>Resume Data & AI Editor</span>
-                <span className="text-xs font-normal text-muted-foreground flex items-center gap-1.5 bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full border border-green-500/20">
-                  <CheckCircle2 size={12} className="text-green-500" /> Saved
-                </span>
-              </CardTitle>
+          <Card className="border-2 border-purple-500/30 dark:border-purple-500/20 shadow-xl bg-card rounded-2xl overflow-hidden">
+            <CardHeader className="pb-3.5 pt-4 bg-gradient-to-r from-purple-950/20 via-indigo-950/20 to-slate-900/20 border-b border-purple-500/20 flex flex-row items-center justify-between px-5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#9000FF] text-white flex items-center justify-center shadow-md shrink-0">
+                  <Wand2 size={16} />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <span>Resume Data & AI Editor</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/20">
+                      AI Powered 2.0
+                    </span>
+                  </CardTitle>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Real-time auto-saving resume section editor</p>
+                </div>
+              </div>
+
+              <span className="text-xs font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20 shrink-0">
+                <CheckCircle2 size={13} className="text-green-500" /> Auto-Saved
+              </span>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="p-4 sm:p-5">
               <ResumeForm data={resumeData} onChange={setResumeData} />
             </CardContent>
           </Card>

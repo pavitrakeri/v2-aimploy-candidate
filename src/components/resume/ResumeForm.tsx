@@ -243,27 +243,27 @@ export const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="overflow-x-auto pb-1 no-scrollbar">
-          <TabsList className="flex w-full bg-muted/80 p-1.5 rounded-xl gap-1 min-w-max">
-            <TabsTrigger value="personal" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <User size={13} className="text-primary" /> Personal
+          <TabsList className="flex w-full bg-muted/60 p-1.5 rounded-2xl gap-1.5 min-w-max border border-border/40">
+            <TabsTrigger value="personal" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <User size={14} className="shrink-0" /> Personal
             </TabsTrigger>
-            <TabsTrigger value="summary" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Sparkles size={13} className="text-yellow-500" /> Summary
+            <TabsTrigger value="summary" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <Sparkles size={14} className="shrink-0" /> Summary
             </TabsTrigger>
-            <TabsTrigger value="experience" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Briefcase size={13} className="text-blue-500" /> Work ({data.workExperiences.length})
+            <TabsTrigger value="experience" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <Briefcase size={14} className="shrink-0" /> Work ({data.workExperiences.length})
             </TabsTrigger>
-            <TabsTrigger value="education" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <GraduationCap size={13} className="text-emerald-500" /> Edu ({data.educations.length})
+            <TabsTrigger value="education" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <GraduationCap size={14} className="shrink-0" /> Edu ({data.educations.length})
             </TabsTrigger>
-            <TabsTrigger value="skills" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Code2 size={13} className="text-purple-500" /> Skills ({totalSkillsCount})
+            <TabsTrigger value="skills" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <Code2 size={14} className="shrink-0" /> Skills ({totalSkillsCount})
             </TabsTrigger>
-            <TabsTrigger value="projects" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <FolderGit2 size={13} className="text-orange-500" /> Projects ({(data.projects || []).length})
+            <TabsTrigger value="projects" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <FolderGit2 size={14} className="shrink-0" /> Projects ({(data.projects || []).length})
             </TabsTrigger>
-            <TabsTrigger value="certs" className="text-xs px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium">
-              <Award size={13} className="text-indigo-500" /> Certs ({(data.certifications || []).length})
+            <TabsTrigger value="certs" className="text-xs px-3 py-2 flex items-center gap-1.5 rounded-xl data-[state=active]:bg-[#9000FF] data-[state=active]:text-white data-[state=active]:shadow-md font-semibold transition-all">
+              <Award size={14} className="shrink-0" /> Certs ({(data.certifications || []).length})
             </TabsTrigger>
           </TabsList>
         </div>
