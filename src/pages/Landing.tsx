@@ -125,7 +125,7 @@ export const Landing = () => {
       >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={aimployLogo} alt="Aimploy" className="h-8" />
+            <img src="/aimploy-logo.png" alt="Aimploy" className="h-8 object-contain" />
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -174,7 +174,7 @@ export const Landing = () => {
               <SheetContent side="right" className="w-[280px] p-6 flex flex-col gap-6 bg-background">
                 <SheetHeader className="text-left pb-2 border-b">
                   <SheetTitle className="font-display text-xl font-bold flex items-center">
-                    <img src={aimployLogo} alt="Aimploy" className="h-7" />
+                    <img src="/aimploy-logo.png" alt="Aimploy" className="h-7 object-contain" />
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4 text-left">
@@ -726,7 +726,7 @@ export const Landing = () => {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
-              <img src={aimployLogo} alt="Aimploy" className="h-8 mb-4" />
+              <img src="/aimploy-logo.png" alt="Aimploy" className="h-8 mb-4 object-contain" />
               <p className="text-sm text-muted-foreground mb-4">
                 The smartest way to find your dream job with AI-powered matching.
               </p>
