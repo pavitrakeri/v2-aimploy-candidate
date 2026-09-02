@@ -45,9 +45,9 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
     try {
       const isLoaded = await loadRazorpayScript();
       
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_aimploy_candidate';
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag';
 
-      if (isLoaded && (window as any).Razorpay && razorpayKey !== 'rzp_test_aimploy_candidate') {
+      if (isLoaded && (window as any).Razorpay) {
         const options = {
           key: razorpayKey,
           amount: 1000, // ₹10 = 1000 paise
@@ -56,23 +56,28 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
           description: '1-Day Resume Pass (3 PDF Exports)',
           image: '/aimploy-logo.png',
           prefill: {
-            name: user?.name || '',
-            email: user?.email || '',
-            contact: '',
+            name: user?.name || 'Candidate',
+            email: user?.email || 'candidate@aimploy.ai',
+            contact: '9876543210',
+          },
+          notes: {
+            service: 'Resume Download Pass',
+            price: '₹10',
           },
           theme: {
             color: '#9000FF',
           },
           handler: function (response: any) {
             setIsProcessing(false);
-            toast.success('🎉 Razorpay Payment of ₹10 Successful! (Payment ID: ' + response.razorpay_payment_id.slice(-6) + ')');
+            const paymentId = response?.razorpay_payment_id || 'pay_' + Math.random().toString(36).substring(2, 9);
+            toast.success('🎉 Razorpay Payment of ₹10 Successful! (Payment ID: ' + paymentId.slice(-6) + ')');
             onPaymentSuccess();
             onClose();
           },
           modal: {
             ondismiss: function () {
               setIsProcessing(false);
-              toast.info('Payment cancelled.');
+              toast.info('Razorpay payment cancelled.');
             },
           },
         };
@@ -80,13 +85,8 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
         const razorpayInstance = new (window as any).Razorpay(options);
         razorpayInstance.open();
       } else {
-        // Fallback simulation for dev/test mode when live Razorpay key is not configured in env
-        setTimeout(() => {
-          setIsProcessing(false);
-          toast.success('🎉 Payment of ₹10 Successful! You unlocked 3 PDF exports for 24 hours.');
-          onPaymentSuccess();
-          onClose();
-        }, 1200);
+        toast.error('Could not load Razorpay payment gateway SDK. Please check your internet connection.');
+        setIsProcessing(false);
       }
     } catch (err) {
       setIsProcessing(false);
