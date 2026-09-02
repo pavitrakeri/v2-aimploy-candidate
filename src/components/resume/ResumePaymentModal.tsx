@@ -45,7 +45,7 @@ export const ResumePaymentModal: React.FC<ResumePaymentModalProps> = ({
     try {
       const isLoaded = await loadRazorpayScript();
       
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag';
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_SPwIdalYf0lgUp';
 
       if (isLoaded && (window as any).Razorpay) {
         const options = {
