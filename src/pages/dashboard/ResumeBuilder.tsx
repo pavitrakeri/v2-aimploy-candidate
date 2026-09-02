@@ -5,6 +5,7 @@ import { getInitialResumeForUser, AIResumeService } from '@/services/aiResumeSer
 import { TemplateSelector } from '@/components/resume/TemplateSelector';
 import { ResumeForm } from '@/components/resume/ResumeForm';
 import { ResumePreview } from '@/components/resume/ResumePreview';
+import { ResumePaymentModal } from '@/components/resume/ResumePaymentModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -125,8 +126,38 @@ export const ResumeBuilder: React.FC = () => {
     }, 400);
   };
 
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [downloadCredits, setDownloadCredits] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aimploy_resume_download_credits');
+      return saved ? parseInt(saved, 10) : 0;
+    }
+    return 0;
+  });
+
   const handleDownloadPDF = () => {
-    handlePrint();
+    if (downloadCredits > 0) {
+      const nextCredits = downloadCredits - 1;
+      setDownloadCredits(nextCredits);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aimploy_resume_download_credits', nextCredits.toString());
+      }
+      toast.success(`Exporting PDF! (${nextCredits} download credit${nextCredits === 1 ? '' : 's'} remaining)`);
+      handlePrint();
+    } else {
+      setPaymentModalOpen(true);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    const credits = 3;
+    setDownloadCredits(credits);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('aimploy_resume_download_credits', credits.toString());
+    }
+    setTimeout(() => {
+      handlePrint();
+    }, 400);
   };
 
   const handleReset = () => {
@@ -185,9 +216,14 @@ export const ResumeBuilder: React.FC = () => {
           <Button
             onClick={handleDownloadPDF}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 font-semibold h-9 px-4 shadow-md"
+            className="bg-[#9000FF] hover:bg-[#7b00da] text-white text-xs gap-1.5 font-bold h-9 px-4 shadow-lg cursor-pointer transition-all"
           >
-            <Download size={14} /> Download PDF
+            <Download size={14} />
+            {downloadCredits > 0 ? (
+              <span>Download PDF ({downloadCredits} Left)</span>
+            ) : (
+              <span>Download PDF (₹10 / 1-Day Pass)</span>
+            )}
           </Button>
         </div>
       </div>
@@ -258,13 +294,13 @@ export const ResumeBuilder: React.FC = () => {
                 >
                   -
                 </Button>
-                <span className="text-xs font-mono px-1.5 text-muted-foreground font-medium">
+                <span className="text-[11px] font-mono font-bold w-12 text-center text-muted-foreground">
                   {Math.round(scale * 100)}%
                 </span>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setScale((s) => Math.min(1.4, s + 0.1))}
+                  onClick={() => setScale((s) => Math.min(1.3, s + 0.1))}
                   className="h-7 w-7 p-0 text-xs font-mono"
                   title="Zoom In"
                 >
@@ -296,9 +332,16 @@ export const ResumeBuilder: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* ₹10 1-Day Pass (3 Downloads) Payment Modal */}
+      <ResumePaymentModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        downloadsRemaining={downloadCredits}
+      />
     </div>
   );
 };
 
 export default ResumeBuilder;
-
