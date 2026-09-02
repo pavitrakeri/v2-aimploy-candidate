@@ -1,4 +1,4 @@
-export type ResumeTemplateId = 'modern' | 'executive' | 'tech' | 'creative' | 'corporate' | 'compact' | 'minimal' | 'startup';
+export type ResumeTemplateId = 'modern' | 'executive' | 'tech' | 'creative' | 'corporate' | 'compact' | 'minimal' | 'startup' | 'timeline' | 'academic';
 
 export interface PersonalInfo {
   fullName: string;

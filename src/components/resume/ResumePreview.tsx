@@ -139,6 +139,274 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({ data, scale = 1 })
       );
     }
 
+    if (templateId === 'timeline') {
+      return (
+        <div className="w-full bg-white text-slate-900 font-sans p-7 shadow-lg min-h-[1050px] print:shadow-none select-text space-y-6">
+          {/* Timeline Header */}
+          <div className="border-b-2 border-indigo-600 pb-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  {personalInfo.fullName || 'Your Name'}
+                </h1>
+                <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mt-0.5">
+                  {personalInfo.jobTitle || 'Career Professional'}
+                </p>
+              </div>
+              <div className="text-xs text-slate-600 space-y-1 md:text-right">
+                {personalInfo.email && <div className="flex md:justify-end items-center gap-1.5"><Mail size={12} className="text-indigo-600" /> {personalInfo.email}</div>}
+                {personalInfo.phone && <div className="flex md:justify-end items-center gap-1.5"><Phone size={12} className="text-indigo-600" /> {personalInfo.phone}</div>}
+                {personalInfo.location && <div className="flex md:justify-end items-center gap-1.5"><MapPin size={12} className="text-indigo-600" /> {personalInfo.location}</div>}
+                {personalInfo.linkedin && <div className="flex md:justify-end items-center gap-1.5"><Linkedin size={12} className="text-indigo-600" /> {personalInfo.linkedin}</div>}
+              </div>
+            </div>
+          </div>
+
+          {/* Summary */}
+          {summary && (
+            <div>
+              <h2 className="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-1 mb-2">
+                Executive Summary
+              </h2>
+              <p className="text-xs text-slate-800 leading-relaxed bg-indigo-50/40 p-3 rounded-lg border border-indigo-100">{summary}</p>
+            </div>
+          )}
+
+          {/* Work Experience Timeline */}
+          {workExperiences.length > 0 && (
+            <div>
+              <h2 className="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-1 mb-4">
+                Career History & Milestones
+              </h2>
+              <div className="relative border-l-2 border-indigo-200 ml-3 pl-5 space-y-5">
+                {workExperiences.map((exp) => (
+                  <div key={exp.id} className="relative">
+                    {/* Milestone Marker Dot */}
+                    <div className="absolute -left-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-200" />
+                    <div className="flex justify-between items-baseline">
+                      <h3 className="text-xs font-bold text-slate-900">{exp.position}</h3>
+                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                        {exp.startDate} – {exp.current ? 'Present' : exp.endDate}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-semibold text-slate-600 mb-1.5">{exp.company} • {exp.location}</div>
+                    {exp.highlights.length > 0 && (
+                      <ul className="list-disc list-outside ml-4 text-xs space-y-1 text-slate-800">
+                        {exp.highlights.map((h, idx) => (
+                          <li key={idx} className="leading-snug">{h}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Key Projects */}
+          {projects && projects.length > 0 && (
+            <div>
+              <h2 className="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-1 mb-3">
+                Key Projects
+              </h2>
+              <div className="space-y-3 text-xs">
+                {projects.map((proj) => (
+                  <div key={proj.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50/40">
+                    <div className="flex justify-between items-baseline font-bold text-slate-900 mb-1">
+                      <span>{proj.title} {proj.role ? `(${proj.role})` : ''}</span>
+                      {proj.link && <span className="text-[10px] text-indigo-700 font-mono">{proj.link}</span>}
+                    </div>
+                    {proj.techStack && proj.techStack.length > 0 && (
+                      <div className="text-[10px] text-indigo-800 font-medium mb-1">Tech: {proj.techStack.join(', ')}</div>
+                    )}
+                    <p className="text-slate-700 leading-snug">{proj.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education & Skills Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {skills.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-1 mb-2">
+                  Skills & Tools
+                </h2>
+                <div className="space-y-1.5 text-xs">
+                  {skills.map((group, idx) => (
+                    <div key={idx}>
+                      <span className="font-bold text-slate-900">{group.category}: </span>
+                      <span className="text-slate-700">{group.items.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {educations.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-1 mb-2">
+                  Education & Certs
+                </h2>
+                <div className="space-y-2 text-xs">
+                  {educations.map((edu) => (
+                    <div key={edu.id}>
+                      <div className="font-bold text-slate-900">{edu.degree}</div>
+                      <div className="text-slate-600">{edu.institution} ({edu.startDate} – {edu.endDate})</div>
+                    </div>
+                  ))}
+                  {certifications.map((cert) => (
+                    <div key={cert.id}>
+                      <div className="font-bold text-slate-900">{cert.name}</div>
+                      <div className="text-slate-600">{cert.issuer} ({cert.issueDate})</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (templateId === 'academic') {
+      return (
+        <div className="w-full bg-white text-slate-900 font-serif p-8 shadow-lg min-h-[1050px] print:shadow-none select-text space-y-5">
+          {/* Academic Header */}
+          <div className="text-center border-b-4 border-double border-slate-800 pb-4">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 uppercase">
+              {personalInfo.fullName || 'Your Name'}
+            </h1>
+            <p className="text-sm font-sans font-semibold text-slate-600 tracking-widest uppercase mt-1">
+              {personalInfo.jobTitle || 'Academic Curriculum Vitae'}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-3 text-xs font-sans text-slate-700 border-t border-slate-300 pt-2">
+              {personalInfo.email && <span>{personalInfo.email}</span>}
+              {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+              {personalInfo.location && <span>• {personalInfo.location}</span>}
+              {personalInfo.linkedin && <span>• {personalInfo.linkedin}</span>}
+              {personalInfo.portfolio && <span>• {personalInfo.portfolio}</span>}
+            </div>
+          </div>
+
+          {/* Summary */}
+          {summary && (
+            <div>
+              <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-800 border-b border-slate-400 pb-1 mb-2">
+                Research & Professional Profile
+              </h2>
+              <p className="text-xs leading-relaxed text-slate-800">{summary}</p>
+            </div>
+          )}
+
+          {/* Education */}
+          {educations.length > 0 && (
+            <div>
+              <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-800 border-b border-slate-400 pb-1 mb-3">
+                Education & Qualifications
+              </h2>
+              <div className="space-y-3 font-sans text-xs">
+                {educations.map((edu) => (
+                  <div key={edu.id}>
+                    <div className="flex justify-between items-baseline font-bold text-slate-900">
+                      <span>{edu.degree} — {edu.institution}</span>
+                      <span className="text-[11px] font-normal italic text-slate-600">{edu.startDate} – {edu.endDate}</span>
+                    </div>
+                    <div className="text-[11px] text-slate-700 italic">{edu.location} {edu.gpa ? `• GPA: ${edu.gpa}` : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Experience */}
+          {workExperiences.length > 0 && (
+            <div>
+              <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-800 border-b border-slate-400 pb-1 mb-3">
+                Professional & Academic Experience
+              </h2>
+              <div className="space-y-4 font-sans text-xs">
+                {workExperiences.map((exp) => (
+                  <div key={exp.id}>
+                    <div className="flex justify-between items-baseline font-bold text-slate-900">
+                      <span>{exp.position}, {exp.company}</span>
+                      <span className="text-[11px] font-normal italic text-slate-600">
+                        {exp.startDate} – {exp.current ? 'Present' : exp.endDate}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 italic mb-1">{exp.location}</div>
+                    {exp.highlights.length > 0 && (
+                      <ul className="list-disc list-outside ml-4 text-xs space-y-1 text-slate-800">
+                        {exp.highlights.map((h, idx) => (
+                          <li key={idx} className="leading-snug">{h}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Publications / Projects */}
+          {projects && projects.length > 0 && (
+            <div>
+              <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-800 border-b border-slate-400 pb-1 mb-2">
+                Publications & Key Projects
+              </h2>
+              <div className="space-y-2.5 font-sans text-xs">
+                {projects.map((proj) => (
+                  <div key={proj.id}>
+                    <div className="flex justify-between items-baseline font-bold text-slate-900">
+                      <span>{proj.title} {proj.role ? `(${proj.role})` : ''}</span>
+                      {proj.link && <span className="text-[10px] font-normal text-slate-600 italic">{proj.link}</span>}
+                    </div>
+                    <p className="text-slate-800 leading-snug">{proj.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills & Certifications */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans text-xs">
+            {skills.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-400 pb-1 mb-2">
+                  Technical Skills & Competencies
+                </h2>
+                <div className="space-y-1">
+                  {skills.map((group, idx) => (
+                    <div key={idx}>
+                      <span className="font-bold text-slate-900">{group.category}: </span>
+                      <span className="text-slate-800">{group.items.join(', ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {certifications.length > 0 && (
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-400 pb-1 mb-2">
+                  Honors, Awards & Certifications
+                </h2>
+                <div className="space-y-1.5">
+                  {certifications.map((cert) => (
+                    <div key={cert.id}>
+                      <div className="font-bold text-slate-900">{cert.name}</div>
+                      <div className="text-slate-600 text-[11px] italic">{cert.issuer} ({cert.issueDate})</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (templateId === 'corporate') {
       return (
         <div className="w-full bg-white text-slate-900 font-sans p-0 shadow-lg min-h-[1050px] print:shadow-none select-text border border-slate-200">

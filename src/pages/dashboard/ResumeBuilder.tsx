@@ -196,7 +196,7 @@ export const ResumeBuilder: React.FC = () => {
       <Card className="no-print border-border/60 shadow-sm">
         <CardHeader className="pb-3 border-b border-border/40">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Layout size={16} className="text-primary" /> Choose Resume Template Format (8 Options)
+            <Layout size={16} className="text-primary" /> Choose Resume Template Format (10 Options)
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">

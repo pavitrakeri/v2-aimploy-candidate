@@ -1,7 +1,7 @@
 import React from 'react';
 import { ResumeTemplateId } from '@/types/resume';
 import { cn } from '@/lib/utils';
-import { Check, Layout, Shield, Code, Palette, Briefcase, Columns, Feather, Rocket } from 'lucide-react';
+import { Check, Layout, Shield, Code, Palette, Briefcase, Columns, Feather, Rocket, GitCommit, BookOpen } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -81,6 +81,22 @@ export const templates: TemplateOption[] = [
     accentColor: 'from-teal-500 to-emerald-600',
     badge: 'Trending',
   },
+  {
+    id: 'timeline',
+    name: 'Career Timeline',
+    tagline: 'Visual career milestone axis with indigo markers showing job progression',
+    icon: GitCommit,
+    accentColor: 'from-indigo-600 to-purple-700',
+    badge: 'Timeline',
+  },
+  {
+    id: 'academic',
+    name: 'Academic CV',
+    tagline: 'Formal serif layout with double rule accents for research, data & medical CVs',
+    icon: BookOpen,
+    accentColor: 'from-amber-700 to-stone-800',
+    badge: 'Academic',
+  },
 ];
 
 interface TemplateSelectorProps {
@@ -97,7 +113,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* 8 Compact Pill Badges Selector */}
+      {/* 10 Compact Pill Badges Selector */}
       <div className="flex flex-wrap items-center gap-2">
         {templates.map((tpl) => {
           const isSelected = selectedTemplateId === tpl.id;
@@ -153,7 +169,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           </div>
         </div>
         <span className="text-[10px] text-muted-foreground font-mono bg-background px-2.5 py-1 rounded-md border border-border shrink-0">
-          Format #{templates.findIndex((t) => t.id === selectedTemplateId) + 1} of 8
+          Format #{templates.findIndex((t) => t.id === selectedTemplateId) + 1} of 10
         </span>
       </div>
     </div>
