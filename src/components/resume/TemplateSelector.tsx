@@ -96,61 +96,65 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const CurrentIcon = currentTemplate.icon;
 
   return (
-    <div>
-      {/* Dropdown Selector Header Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 bg-muted/40 rounded-xl border border-border/60">
-        <div className="flex items-center gap-3">
-          <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-white bg-gradient-to-br shadow-sm shrink-0", currentTemplate.accentColor)}>
-            <CurrentIcon size={18} />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-foreground flex items-center gap-2">
-              <span>Active Format: <strong className="text-primary font-bold">{currentTemplate.name}</strong></span>
-              {currentTemplate.badge && (
-                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase border border-primary/20">
-                  {currentTemplate.badge}
+    <div className="space-y-3">
+      {/* 8 Compact Pill Badges Selector */}
+      <div className="flex flex-wrap items-center gap-2">
+        {templates.map((tpl) => {
+          const isSelected = selectedTemplateId === tpl.id;
+          const Icon = tpl.icon;
+
+          return (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => onSelectTemplate(tpl.id)}
+              className={cn(
+                'flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none',
+                isSelected
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-foreground hover:bg-muted/40'
+              )}
+            >
+              <div
+                className={cn(
+                  'w-5 h-5 rounded-md flex items-center justify-center text-white bg-gradient-to-br shrink-0 text-[10px]',
+                  tpl.accentColor
+                )}
+              >
+                <Icon size={12} />
+              </div>
+              <span>{tpl.name}</span>
+              {tpl.badge && (
+                <span
+                  className={cn(
+                    'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-full border',
+                    isSelected
+                      ? 'bg-white/20 text-white border-white/30'
+                      : 'bg-primary/10 text-primary border-primary/20'
+                  )}
+                >
+                  {tpl.badge}
                 </span>
               )}
-            </div>
-            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">{currentTemplate.tagline}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Selected Template Info Strip */}
+      <div className="flex items-center justify-between gap-3 p-3 bg-muted/30 rounded-xl border border-border/50 text-xs">
+        <div className="flex items-center gap-2.5">
+          <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-white bg-gradient-to-br shadow-sm shrink-0", currentTemplate.accentColor)}>
+            <CurrentIcon size={15} />
+          </div>
+          <div>
+            <span className="font-bold text-foreground">{currentTemplate.name}</span>
+            <span className="text-muted-foreground ml-2 text-[11px]">— {currentTemplate.tagline}</span>
           </div>
         </div>
-
-        <div className="w-full sm:w-80 shrink-0">
-          <Select
-            value={selectedTemplateId}
-            onValueChange={(val) => onSelectTemplate(val as ResumeTemplateId)}
-          >
-            <SelectTrigger className="h-10 text-xs font-semibold bg-background border-border/80 shadow-sm hover:border-primary/50 transition-colors">
-              <SelectValue placeholder="Choose Template Format..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-[320px] z-[100]">
-              {templates.map((tpl) => {
-                const Icon = tpl.icon;
-                return (
-                  <SelectItem key={tpl.id} value={tpl.id} className="text-xs py-2.5 cursor-pointer">
-                    <div className="flex items-center justify-between w-full gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className={cn("w-6 h-6 rounded flex items-center justify-center text-white bg-gradient-to-br shrink-0 text-xs", tpl.accentColor)}>
-                          <Icon size={13} />
-                        </div>
-                        <div>
-                          <span className="font-semibold text-foreground block">{tpl.name}</span>
-                          <span className="text-[10px] text-muted-foreground line-clamp-1 font-normal">{tpl.tagline}</span>
-                        </div>
-                      </div>
-                      {tpl.badge && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-primary/10 text-primary rounded border border-primary/20 ml-2 shrink-0">
-                          {tpl.badge}
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+        <span className="text-[10px] text-muted-foreground font-mono bg-background px-2.5 py-1 rounded-md border border-border shrink-0">
+          Format #{templates.findIndex((t) => t.id === selectedTemplateId) + 1} of 8
+        </span>
       </div>
     </div>
   );
