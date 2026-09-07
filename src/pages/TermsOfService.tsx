@@ -234,7 +234,7 @@ export default function TermsOfService() {
                 <div className="p-3.5 rounded-lg border bg-card">
                   <h4 className="font-semibold text-foreground text-sm mb-1">A. Transparent Pricing</h4>
                   <p className="text-muted-foreground text-xs">
-                    All applicable fees (e.g. ₹10 for the verification pass or as clearly displayed on the checkout screen) are inclusive of applicable taxes. Pricing is displayed prior to payment confirmation.
+                    All applicable fees (e.g. for optional verification or as clearly displayed on the checkout screen) are inclusive of applicable taxes. Pricing is displayed prior to payment confirmation.
                   </p>
                 </div>
 

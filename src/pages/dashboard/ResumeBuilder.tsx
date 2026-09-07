@@ -5,7 +5,6 @@ import { getInitialResumeForUser, AIResumeService } from '@/services/aiResumeSer
 import { TemplateSelector } from '@/components/resume/TemplateSelector';
 import { ResumeForm } from '@/components/resume/ResumeForm';
 import { ResumePreview } from '@/components/resume/ResumePreview';
-import { ResumePaymentModal } from '@/components/resume/ResumePaymentModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -126,38 +125,9 @@ export const ResumeBuilder: React.FC = () => {
     }, 400);
   };
 
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [downloadCredits, setDownloadCredits] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('aimploy_resume_download_credits');
-      return saved ? parseInt(saved, 10) : 0;
-    }
-    return 0;
-  });
-
   const handleDownloadPDF = () => {
-    if (downloadCredits > 0) {
-      const nextCredits = downloadCredits - 1;
-      setDownloadCredits(nextCredits);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('aimploy_resume_download_credits', nextCredits.toString());
-      }
-      toast.success(`Exporting PDF! (${nextCredits} download credit${nextCredits === 1 ? '' : 's'} remaining)`);
-      handlePrint();
-    } else {
-      setPaymentModalOpen(true);
-    }
-  };
-
-  const handlePaymentSuccess = () => {
-    const credits = 3;
-    setDownloadCredits(credits);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('aimploy_resume_download_credits', credits.toString());
-    }
-    setTimeout(() => {
-      handlePrint();
-    }, 400);
+    toast.success('Generating and downloading your resume PDF...');
+    handlePrint();
   };
 
   const handleReset = () => {
@@ -182,7 +152,7 @@ export const ResumeBuilder: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Create & Customize Your Resume</h1>
           <p className="text-sm text-slate-300 mt-1 max-w-xl">
-            Auto-generate, edit, and fine-tune your resume with AI assistance. Select from 8 ATS-optimized templates.
+            Auto-generate, edit, and fine-tune your resume with AI assistance. Select from 10 ATS-optimized templates.
           </p>
         </div>
 
@@ -219,11 +189,7 @@ export const ResumeBuilder: React.FC = () => {
             className="bg-[#9000FF] hover:bg-[#7b00da] text-white text-xs gap-1.5 font-bold h-9 px-4 shadow-lg cursor-pointer transition-all"
           >
             <Download size={14} />
-            {downloadCredits > 0 ? (
-              <span>Download PDF ({downloadCredits} Left)</span>
-            ) : (
-              <span>Download PDF (₹10 / 1-Day Pass)</span>
-            )}
+            <span>Download PDF</span>
           </Button>
         </div>
       </div>
@@ -332,14 +298,6 @@ export const ResumeBuilder: React.FC = () => {
           </Card>
         </div>
       </div>
-
-      {/* ₹10 1-Day Pass (3 Downloads) Payment Modal */}
-      <ResumePaymentModal
-        isOpen={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-        downloadsRemaining={downloadCredits}
-      />
     </div>
   );
 };
