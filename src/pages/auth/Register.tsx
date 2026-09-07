@@ -350,11 +350,11 @@ export const Register = () => {
                 />
                 <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
                   I agree to the{" "}
-                  <Link to="/terms" className="text-primary hover:underline">
+                  <Link to="/terms?from=/register" state={{ from: "/register" }} className="text-primary hover:underline">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link to="/privacy" className="text-primary hover:underline">
+                  <Link to="/privacy?from=/register" state={{ from: "/register" }} className="text-primary hover:underline">
                     Privacy Policy
                   </Link>
                 </Label>

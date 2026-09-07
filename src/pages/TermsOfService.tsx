@@ -1,19 +1,44 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { ArrowLeft, FileText, Scale, CreditCard, ShieldAlert, CheckCircle2, Mail, Ban, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function TermsOfService() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const lastUpdated = "September 1, 2026";
 
   const handleBack = () => {
+    // 1. Explicit 'from' query parameter or route state
+    const explicitFrom = searchParams.get("from") || (location.state as any)?.from;
+    if (explicitFrom) {
+      navigate(explicitFrom);
+      return;
+    }
+
+    // 2. Document referrer check (if opened from registration / login)
+    if (document.referrer) {
+      try {
+        const referrerUrl = new URL(document.referrer);
+        if (referrerUrl.origin === window.location.origin) {
+          window.location.href = document.referrer;
+          return;
+        }
+      } catch (e) {
+        // ignore url parse error
+      }
+    }
+
+    // 3. Normal history back if available
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
-    } else {
-      navigate("/login");
+      return;
     }
+
+    // 4. Default fallback
+    navigate("/login");
   };
 
   const sections = [
