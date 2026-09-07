@@ -282,7 +282,7 @@ export default function TermsOfService() {
                 11. Governing Law & Jurisdiction
               </h2>
               <p>
-                These Terms shall be governed by and construed in accordance with the laws of India. Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the competent courts in <strong>Bengaluru, Karnataka, India</strong>.
+                These Terms shall be governed by and construed in accordance with the laws of India. Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the competent courts of law in India.
               </p>
             </section>
 
@@ -299,7 +299,6 @@ export default function TermsOfService() {
                 <p className="font-semibold text-foreground">Aimploy Support & Legal</p>
                 <p className="text-muted-foreground text-xs">Email: <a href="mailto:support@aimploy.org" className="text-primary hover:underline">support@aimploy.org</a></p>
                 <p className="text-muted-foreground text-xs">Grievances: <a href="mailto:grievance@aimploy.org" className="text-primary hover:underline">grievance@aimploy.org</a></p>
-                <p className="text-muted-foreground text-xs">Location: Bengaluru, Karnataka, India</p>
               </div>
             </section>
           </div>
