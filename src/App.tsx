@@ -31,6 +31,8 @@ import ResumeBuilder from "./pages/dashboard/ResumeBuilder";
 import Profile from "./pages/dashboard/Profile";
 import NotFound from "./pages/NotFound";
 import UserGuidance from "./pages/UserGuidance";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => (
               <ScrollToTop />
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/user-guidance" element={<UserGuidance />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

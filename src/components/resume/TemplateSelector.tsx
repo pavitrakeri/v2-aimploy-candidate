@@ -97,6 +97,14 @@ export const templates: TemplateOption[] = [
     accentColor: 'from-amber-700 to-stone-800',
     badge: 'Academic',
   },
+  {
+    id: 'flowcv',
+    name: 'FlowCV ATS Pro',
+    tagline: 'FlowCV-inspired clean single-column format with full-width section rules',
+    icon: Layout,
+    accentColor: 'from-pink-600 to-slate-900',
+    badge: 'FlowCV Style',
+  },
 ];
 
 interface TemplateSelectorProps {

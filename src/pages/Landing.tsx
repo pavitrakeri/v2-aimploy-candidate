@@ -750,9 +750,9 @@ export const Landing = () => {
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <div className="space-y-2">
-                <Link to="/" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
-                <Link to="/" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
-                <Link to="/" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">Security</Link>
+                <Link to="/privacy" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
+                <Link to="/terms" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
+                <Link to="/privacy#security" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">Security</Link>
               </div>
             </div>
           </div>
@@ -761,15 +761,15 @@ export const Landing = () => {
               © 2026 Aimploy. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Privacy
               </Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Terms
               </Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a href="mailto:support@aimploy.org" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Contact
-              </Link>
+              </a>
             </div>
           </div>
         </div>
