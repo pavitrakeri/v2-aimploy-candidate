@@ -1,11 +1,20 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, Scale, CreditCard, ShieldAlert, CheckCircle2, Mail, Ban, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function TermsOfService() {
+  const navigate = useNavigate();
   const lastUpdated = "September 1, 2026";
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/login");
+    }
+  };
 
   const sections = [
     { id: "acceptance", title: "1. Acceptance of Terms" },
@@ -28,11 +37,9 @@ export default function TermsOfService() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild className="gap-2">
-              <Link to="/">
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back to Home</span>
-              </Link>
+            <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
             </Button>
             <Link to="/" className="flex items-center">
               <img src="/aimploy-logo.png" alt="Aimploy" className="h-7 object-contain" />
