@@ -284,21 +284,21 @@ export const authApi = {
   },
 
   requestOTP: async (data: OTPRequest): Promise<{ message: string; expires_in: number }> => {
-    return apiRequest<{ message: string; expires_in: number }>("/candidate/request-otp", {
+    return apiRequest<{ message: string; expires_in: number }>("/candidate/login/request-otp", {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   verifyOTP: async (data: OTPVerifyRequest): Promise<AuthResponse> => {
-    return apiRequest<AuthResponse>("/candidate/verify-otp", {
+    return apiRequest<AuthResponse>("/candidate/login/verify-otp", {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   getGoogleAuthUrl: async (): Promise<{ auth_url: string }> => {
-    return apiRequest<{ auth_url: string }>("/candidate/login/google");
+    return apiRequest<{ auth_url: string }>("/candidate/login/google/url");
   },
 
   handleGoogleCallback: async (_code: string): Promise<AuthResponse> => {
