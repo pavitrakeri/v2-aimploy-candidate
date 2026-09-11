@@ -51,8 +51,8 @@ export const Login = () => {
       await loginWithGoogle();
     } catch (error) {
       toast({
-        title: "Google Login Failed",
-        description: error instanceof Error ? error.message : "Unable to connect with Google",
+        title: "Google Sign-In Notice",
+        description: "Google Sign-In is currently undergoing maintenance. Please sign in with your email and password.",
         variant: "destructive",
       });
     }
@@ -61,7 +61,7 @@ export const Login = () => {
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
+      toast({ title: "Error", description: "Please enter both email and password", variant: "destructive" });
       return;
     }
 
@@ -71,9 +71,12 @@ export const Login = () => {
       toast({ title: "Success", description: "Welcome back!" });
       performRedirect(from);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : "Invalid credentials";
       toast({
         title: "Login Failed",
-        description: error instanceof Error ? error.message : "Invalid credentials",
+        description: msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("incorrect")
+          ? "Incorrect email or password. Please try again."
+          : msg,
         variant: "destructive",
       });
     } finally {
@@ -83,7 +86,7 @@ export const Login = () => {
 
   const handleRequestOTP = async () => {
     if (!email) {
-      toast({ title: "Error", description: "Please enter your email", variant: "destructive" });
+      toast({ title: "Email Required", description: "Please enter your email address to receive an OTP", variant: "destructive" });
       return;
     }
 
@@ -92,11 +95,19 @@ export const Login = () => {
       const response = await requestOTP(email);
       setShowOTPInput(true);
       setOtpExpiry(response.expires_in);
-      toast({ title: "OTP Sent", description: "Check your email for the verification code" });
+      toast({ 
+        title: "OTP Requested", 
+        description: response.message || "Please check your email for the 6-digit verification code." 
+      });
     } catch (error) {
+      const msg = error instanceof Error ? error.message : "";
+      let userMsg = "Unable to process OTP request right now. Please log in using your password or register.";
+      if (msg && !msg.toLowerCase().includes("not found") && !msg.includes("404") && !msg.includes("500") && !msg.includes("http")) {
+        userMsg = msg;
+      }
       toast({
-        title: "Failed to send OTP",
-        description: error instanceof Error ? error.message : "Please try again",
+        title: "Unable to Send OTP",
+        description: userMsg,
         variant: "destructive",
       });
     } finally {

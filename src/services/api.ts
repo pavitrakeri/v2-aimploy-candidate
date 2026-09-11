@@ -242,9 +242,24 @@ async function apiRequest<T>(
       localStorage.removeItem("candidate_user");
       window.dispatchEvent(new Event("unauthorized"));
     }
-    const error = await response.json().catch(() => ({ detail: "An error occurred" }));
-    const errObj = new Error(error.detail || `HTTP error! status: ${response.status}`);
+    const errorData = await response.json().catch(() => null);
+    
+    let message = "";
+    if (errorData && typeof errorData.detail === "string" && errorData.detail !== "Not Found") {
+      message = errorData.detail;
+    } else if (errorData && typeof errorData.message === "string") {
+      message = errorData.message;
+    } else if (response.status === 404) {
+      message = "Service is currently updating. Please try logging in with password or try again shortly.";
+    } else if (response.status === 500) {
+      message = "Service is temporarily experiencing issues. Please try logging in with password or try again.";
+    } else {
+      message = "Unable to complete request. Please try again.";
+    }
+
+    const errObj = new Error(message);
     (errObj as any).status = response.status;
+    (errObj as any).data = errorData;
     throw errObj;
   }
 
