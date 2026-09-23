@@ -240,7 +240,7 @@ export const JobApply = () => {
 
       toast({
         title: "Application submitted!",
-        description: "Your application has been submitted successfully.",
+        description: "Your application has been submitted successfully. Please check your email within a few minutes for the audio assessment link.",
       });
 
       navigate("/dashboard/applications");
@@ -524,7 +524,7 @@ export const JobApply = () => {
 
                         {/* Timeline Steps */}
                         {[
-                          { step: 1, label: "Applied", desc: "Form submitted successfully" },
+                          { step: 1, label: "Applied", desc: "Check email for next round" },
                           { step: 2, label: "Screening", desc: "Resume & audio scoring" },
                           { step: 3, label: "Interview", desc: "Shortlist decision" },
                           { 
