@@ -28,6 +28,7 @@ import {
   GraduationCap,
   SlidersHorizontal,
   MapPin,
+  Mic,
 } from "lucide-react";
 import {
   Select,
@@ -672,17 +673,31 @@ export const BrowseJobs = () => {
                         </Button>
                       </div>
                     ) : (
-                      <Button 
-                        variant="gradient" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/dashboard/jobs/${job.id}/apply`);
-                        }}
-                      >
-                        Apply Now
-                      </Button>
+                      <div className="flex flex-col gap-1.5">
+                        <Button 
+                          variant="gradient" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/dashboard/jobs/${job.id}/apply-v2`);
+                          }}
+                        >
+                          <Mic size={14} className="mr-1.5" />
+                          Apply with v2 Audio
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full text-xs text-muted-foreground hover:text-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/dashboard/jobs/${job.id}/apply`);
+                          }}
+                        >
+                          Standard Application
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>

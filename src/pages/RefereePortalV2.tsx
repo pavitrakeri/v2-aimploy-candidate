@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, CheckCircle2, UserCheck, ArrowRight, MessageSquare } from "lucide-react";
+import { ShieldCheck, CheckCircle2, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiV2, RefereePortalData } from "@/services/apiV2";
 
-const REFEREE_QUESTIONS = [
+const DEFAULT_REFEREE_QUESTIONS = [
   { id: "4.1", text: "How do you know the candidate, and for how long?", hint: "Validates tenure and relationship context against their CV." },
   { id: "4.2", text: "Describe something they did that made a real difference.", hint: "Provides independent corroboration for their past work achievements." },
   { id: "4.3", text: "What would you ask them to do more of?", hint: "Highlights their highest-impact strengths." },
@@ -22,6 +23,7 @@ export const RefereePortalV2 = () => {
   const [candidateName, setCandidateName] = useState("Alex Morgan");
   const [jobTitle, setJobTitle] = useState("Operations Coordinator");
   const [companyName, setCompanyName] = useState("Aimploy Partner");
+  const [questions, setQuestions] = useState(DEFAULT_REFEREE_QUESTIONS);
   const [answers, setAnswers] = useState<Record<string, string>>({
     "4.1": "",
     "4.2": "",
@@ -29,9 +31,46 @@ export const RefereePortalV2 = () => {
     "4.4": "",
     "4.5": "",
   });
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    const fetchPortalData = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const data: RefereePortalData = await apiV2.getRefereePortal(token);
+        if (data) {
+          if (data.candidate_name) setCandidateName(data.candidate_name);
+          if (data.job_title) setJobTitle(data.job_title);
+          if (data.company_name) setCompanyName(data.company_name);
+          if (data.questions && data.questions.length > 0) {
+            setQuestions(
+              data.questions.map((q) => ({
+                id: q.id,
+                text: q.question,
+                hint: q.captures || "Provides independent corroboration for their application.",
+              }))
+            );
+          }
+        }
+      } catch (err: any) {
+        console.warn("Could not load referee details from backend, falling back to defaults:", err);
+        setFetchError(err.message || "Failed to load referee invitation details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPortalData();
+  }, [token]);
+
+  const handleSubmit = async () => {
     if (!answers["4.1"] || !answers["4.2"] || !answers["4.5"]) {
       toast({
         title: "Required Fields Missing",
@@ -40,12 +79,41 @@ export const RefereePortalV2 = () => {
       });
       return;
     }
-    setSubmitted(true);
-    toast({
-      title: "Endorsement Recorded",
-      description: "Thank you for verifying and supporting the candidate's career journey.",
-    });
+
+    try {
+      setSubmitting(true);
+      if (token) {
+        await apiV2.submitRefereeResponse(token, {
+          answers,
+          client_device_fingerprint: navigator.userAgent,
+        });
+      }
+      setSubmitted(true);
+      toast({
+        title: "Endorsement Recorded",
+        description: "Thank you for verifying and supporting the candidate's career journey.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Submission Failed",
+        description: err.message || "Could not record endorsement. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-muted/20">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading verification portal...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -75,6 +143,11 @@ export const RefereePortalV2 = () => {
           <p className="text-sm text-muted-foreground">
             Role: <strong>{jobTitle}</strong> at <strong>{companyName}</strong>
           </p>
+          {fetchError && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" /> Note: Running in offline/preview mode.
+            </p>
+          )}
         </div>
 
         <Card className="shadow-lg border-primary/20">
@@ -85,7 +158,7 @@ export const RefereePortalV2 = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {REFEREE_QUESTIONS.map((q) => (
+            {questions.map((q) => (
               <div key={q.id} className="space-y-2">
                 <Label className="text-sm font-semibold flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">{q.id}</Badge>
@@ -93,7 +166,7 @@ export const RefereePortalV2 = () => {
                 </Label>
                 <p className="text-xs text-muted-foreground">{q.hint}</p>
                 <Textarea
-                  value={answers[q.id]}
+                  value={answers[q.id] || ""}
                   onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
                   placeholder="Share a concise, concrete example..."
                   className="text-sm min-h-[90px]"
@@ -102,8 +175,16 @@ export const RefereePortalV2 = () => {
             ))}
           </CardContent>
           <CardFooter>
-            <Button onClick={handleSubmit} className="w-full bg-primary hover:bg-primary/90">
-              Submit Endorsement <ArrowRight className="w-4 h-4 ml-2" />
+            <Button onClick={handleSubmit} disabled={submitting} className="w-full bg-primary hover:bg-primary/90">
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Endorsement <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
             </Button>
           </CardFooter>
         </Card>

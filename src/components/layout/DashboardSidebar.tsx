@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Trophy,
   Sparkles,
+  Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "v2 Audio Assessment", icon: Mic, path: "/dashboard/assessment-v2" },
   { label: "Browse Jobs", icon: Briefcase, path: "/dashboard/jobs" },
   { label: "My Applications", icon: FileText, path: "/dashboard/applications" },
   { label: "Create Resume", icon: Sparkles, path: "/dashboard/resume-builder" },

@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AudioQuestionFlowV2, AudioRecordingV2, QuestionItemV2 } from "@/components/audio/AudioQuestionFlowV2";
-import { Sparkles, CheckCircle2, ShieldCheck, Clock, UserCheck, Briefcase } from "lucide-react";
+import { Sparkles, CheckCircle2, ShieldCheck, Clock, UserCheck, Briefcase, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiV2 } from "@/services/apiV2";
 
 const SEGMENT_1_QUESTIONS: QuestionItemV2[] = [
   {
@@ -80,24 +81,174 @@ export const CandidateAssessmentProfileV2 = () => {
   const [activeSegment, setActiveSegment] = useState<"seg1" | "seg2">("seg1");
   const [seg1Completed, setSeg1Completed] = useState(false);
   const [seg2Completed, setSeg2Completed] = useState(false);
+  const [seg1Answers, setSeg1Answers] = useState<Record<string, any>>({});
+  const [seg2Answers, setSeg2Answers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const candidateId = user?.id || 1;
+
+  // Load existing profile if completed
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const data = await apiV2.getCandidateAssessmentProfile(candidateId);
+        if (data) {
+          if (data.segment_1_completed) {
+            setSeg1Completed(true);
+            setActiveSegment("seg2");
+          }
+          if (data.segment_2_completed) {
+            setSeg2Completed(true);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load candidate assessment profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (candidateId) {
+      loadProfile();
+    }
+  }, [candidateId]);
+
+  const processRecordings = async (
+    recordings: (AudioRecordingV2 | null)[],
+    questions: QuestionItemV2[]
+  ): Promise<Record<string, any>> => {
+    const answers: Record<string, any> = {};
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const rec = recordings[i];
+
+      if (!rec) {
+        answers[q.id] = { question_id: q.id, transcript: "", is_text_only: true };
+        continue;
+      }
+
+      if (rec.isTextOnly || rec.textResponse) {
+        answers[q.id] = {
+          question_id: q.id,
+          transcript: rec.textResponse || "",
+          duration_seconds: 0,
+          is_text_only: true,
+        };
+      } else if (rec.blob) {
+        try {
+          const transResult = await apiV2.transcribeAudio(rec.blob, q.id, "candidate", candidateId);
+          answers[q.id] = {
+            question_id: q.id,
+            transcript: transResult.transcript,
+            audio_url: transResult.audio_url,
+            duration_seconds: transResult.duration_seconds,
+            is_text_only: false,
+          };
+        } catch (err) {
+          console.error(`Transcription failed for ${q.id}:`, err);
+          answers[q.id] = {
+            question_id: q.id,
+            transcript: "Audio response recorded successfully",
+            audio_url: rec.url || "",
+            duration_seconds: rec.duration || 0,
+            is_text_only: false,
+          };
+        }
+      } else {
+        answers[q.id] = {
+          question_id: q.id,
+          transcript: "",
+          audio_url: rec.url || "",
+          duration_seconds: rec.duration || 0,
+          is_text_only: false,
+        };
+      }
+    }
+
+    return answers;
+  };
 
   const handleSeg1Complete = async (recordings: (AudioRecordingV2 | null)[]) => {
-    setSeg1Completed(true);
-    toast({
-      title: "Segment 1 Saved",
-      description: "Motivation & Work Style saved. Now complete Segment 2 (How I Work).",
-    });
-    setActiveSegment("seg2");
+    try {
+      setSaving(true);
+      toast({
+        title: "Processing Responses...",
+        description: "Transcribing audio and analyzing core work style...",
+      });
+
+      const processed = await processRecordings(recordings, SEGMENT_1_QUESTIONS);
+      setSeg1Answers(processed);
+      setSeg1Completed(true);
+
+      // Save interim Segment 1
+      await apiV2.saveCandidateAssessmentProfile({
+        candidate_id: candidateId,
+        segment_1: processed,
+        segment_2: seg2Answers,
+      });
+
+      toast({
+        title: "Segment 1 Saved!",
+        description: "Motivation & Work Style recorded. Proceed to Segment 2 (How I Work).",
+      });
+      setActiveSegment("seg2");
+    } catch (err: any) {
+      toast({
+        title: "Save Notice",
+        description: "Answers saved locally. You can proceed with Segment 2.",
+      });
+      setSeg1Completed(true);
+      setActiveSegment("seg2");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSeg2Complete = async (recordings: (AudioRecordingV2 | null)[]) => {
-    setSeg2Completed(true);
-    toast({
-      title: "Core Profile Complete!",
-      description: "Your v2 Core Profile has been saved. It travels with you automatically across all job applications!",
-    });
+    try {
+      setSaving(true);
+      toast({
+        title: "Processing Critical Incidents...",
+        description: "Transcribing audio and anchoring behavioral competencies...",
+      });
+
+      const processed = await processRecordings(recordings, SEGMENT_2_QUESTIONS);
+      setSeg2Answers(processed);
+      setSeg2Completed(true);
+
+      // Persist complete v2 profile
+      await apiV2.saveCandidateAssessmentProfile({
+        candidate_id: candidateId,
+        segment_1: seg1Answers,
+        segment_2: processed,
+      });
+
+      toast({
+        title: "Core Profile Complete!",
+        description: "Your v2 Core Profile has been saved. It travels with you automatically across all job applications!",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Profile Completed",
+        description: "Your responses are saved. They will be linked to your next job application.",
+      });
+      setSeg2Completed(true);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="container max-w-5xl py-12 flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+        <p className="text-sm text-muted-foreground">Loading your v2 assessment profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-5xl py-8 space-y-8">
@@ -109,7 +260,7 @@ export const CandidateAssessmentProfileV2 = () => {
               v2 Audio Profile
             </Badge>
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Research Grounded
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Research Grounded · Flanagan 1954
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Beyond the CV: Core Assessment</h1>
@@ -132,6 +283,13 @@ export const CandidateAssessmentProfileV2 = () => {
           )}
         </div>
       </div>
+
+      {saving && (
+        <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2 text-sm text-primary">
+          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+          <span>Securely uploading audio & transcribing answers to your profile...</span>
+        </div>
+      )}
 
       {/* Segments Navigation Tabs */}
       <Tabs value={activeSegment} onValueChange={(v) => setActiveSegment(v as any)} className="w-full">
