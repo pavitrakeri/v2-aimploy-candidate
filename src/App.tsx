@@ -33,6 +33,9 @@ import NotFound from "./pages/NotFound";
 import UserGuidance from "./pages/UserGuidance";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import CandidateAssessmentProfileV2 from "./pages/dashboard/CandidateAssessmentProfileV2";
+import JobApplyV2 from "./pages/dashboard/JobApplyV2";
+import RefereePortalV2 from "./pages/RefereePortalV2";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +83,7 @@ const App = () => (
                   <Route path="bgv-verification" element={<BGVVerificationWrapper />} />
                   <Route path="validation-demo" element={<ValidationDemo />} />
                   <Route path="profile" element={<Profile />} />
+                  <Route path="assessment-v2" element={<CandidateAssessmentProfileV2 />} />
                 </Route>
               <Route 
                 path="/dashboard/jobs/:jobId" 
@@ -97,6 +101,15 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/dashboard/jobs/:jobId/apply-v2" 
+                element={
+                  <ProtectedRoute>
+                    <JobApplyV2 />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/references-v2/:token" element={<RefereePortalV2 />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
