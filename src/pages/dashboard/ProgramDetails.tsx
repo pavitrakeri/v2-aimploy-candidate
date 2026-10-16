@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { programsApi } from "@/services/api";
+import { programsApi, tokenUtils } from "@/services/api";
 import * as Icons from "lucide-react";
 import {
   Clock,
@@ -19,6 +19,7 @@ import {
   FileText,
   MessageSquare,
   CheckCircle,
+  CheckCircle2,
   HelpCircle,
   Plus,
   Minus,
@@ -109,12 +110,28 @@ export const ProgramDetails = () => {
   const isDashboard = location.pathname.startsWith("/dashboard");
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const isAuthenticated = tokenUtils.isAuthenticated();
 
   const { data: program, isLoading, error } = useQuery({
     queryKey: ["program", programId],
     queryFn: () => programsApi.getProgramById(programId || ""),
     enabled: !!programId,
   });
+
+  const { data: myApplications } = useQuery({
+    queryKey: ["my-program-applications"],
+    queryFn: () => programsApi.getMyProgramApplications(),
+    enabled: isAuthenticated,
+  });
+
+  const isApplied = Boolean(
+    myApplications?.some(
+      (app: any) =>
+        app.program_slug === program?.slug ||
+        app.program_id === program?.id ||
+        (programId && app.program_slug === programId)
+    )
+  );
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -224,15 +241,38 @@ export const ProgramDetails = () => {
             </p>
             
             <div className="pt-2">
-              <Button
-                variant="hero"
-                size="xl"
-                className="shadow-purple-lg hover:shadow-purple transition-all duration-300 font-bold px-8 rounded-xl h-14"
-                onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
-              >
-                Apply Now
-                <ArrowRight size={18} className="ml-2" />
-              </Button>
+              {isApplied ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    size="xl"
+                    disabled
+                    className="bg-emerald-600 text-white font-bold px-8 rounded-xl h-14 cursor-default shadow-lg opacity-100 flex items-center gap-2 border border-emerald-500/40"
+                  >
+                    <CheckCircle2 size={20} className="text-white" />
+                    Applied
+                  </Button>
+                  {isDashboard && (
+                    <Button
+                      variant="outline"
+                      size="xl"
+                      className="border-white/30 text-white hover:bg-white/10 font-bold px-6 rounded-xl h-14 bg-white/5 backdrop-blur-sm"
+                      onClick={() => navigate("/dashboard/applications")}
+                    >
+                      View in Applications
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  variant="hero"
+                  size="xl"
+                  className="shadow-purple-lg hover:shadow-purple transition-all duration-300 font-bold px-8 rounded-xl h-14"
+                  onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
+                >
+                  Apply Now
+                  <ArrowRight size={18} className="ml-2" />
+                </Button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -477,14 +517,25 @@ export const ProgramDetails = () => {
                 Take the first step towards becoming a technology leader with our intensive residency program. Cohort seats are limited.
               </p>
               <div className="flex flex-wrap justify-center gap-3 pt-2">
-                <Button
-                  size="xl"
-                  className="bg-card text-foreground hover:bg-card/90 font-bold px-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                  onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
-                >
-                  Apply Now
-                  <ArrowRight size={18} className="ml-2" />
-                </Button>
+                {isApplied ? (
+                  <Button
+                    size="xl"
+                    disabled
+                    className="bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 font-bold px-6 rounded-xl shadow-lg opacity-100 flex items-center gap-2 cursor-default border border-emerald-200 dark:border-emerald-800"
+                  >
+                    <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+                    Already Applied
+                  </Button>
+                ) : (
+                  <Button
+                    size="xl"
+                    className="bg-card text-foreground hover:bg-card/90 font-bold px-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    onClick={() => navigate(isDashboard ? `/dashboard/programs/apply/${program.slug}` : `/programs/apply/${program.slug}`)}
+                  >
+                    Apply Now
+                    <ArrowRight size={18} className="ml-2" />
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="xl"

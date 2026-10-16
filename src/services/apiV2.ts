@@ -220,4 +220,19 @@ export const apiV2 = {
 
     return await res.json();
   },
+
+  /**
+   * Fetch plain-language candidate strengths summary (Slide 17 footnote)
+   */
+  async getCandidateStrengths(applicationId: number) {
+    const baseUrl = getApiV2BaseUrl();
+    const res = await fetch(`${baseUrl}/evaluation/candidate-strengths/${applicationId}`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  },
 };
+

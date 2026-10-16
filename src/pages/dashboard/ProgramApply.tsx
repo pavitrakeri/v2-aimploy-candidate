@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { programsApi, jobsApi } from "@/services/api";
+import { programsApi, jobsApi, tokenUtils } from "@/services/api";
 import {
   Select,
   SelectContent,
@@ -75,11 +74,29 @@ export const ProgramApply = () => {
     agreePayment: false,
   });
 
+  const queryClient = useQueryClient();
+  const isAuthenticated = tokenUtils.isAuthenticated();
+
   const { data: program, isLoading, error } = useQuery({
     queryKey: ["program", programId],
     queryFn: () => programsApi.getProgramById(programId || ""),
     enabled: !!programId,
   });
+
+  const { data: myApplications } = useQuery({
+    queryKey: ["my-program-applications"],
+    queryFn: () => programsApi.getMyProgramApplications(),
+    enabled: isAuthenticated,
+  });
+
+  const isAlreadyApplied = Boolean(
+    myApplications?.some(
+      (app: any) =>
+        app.program_slug === program?.slug ||
+        app.program_id === program?.id ||
+        (programId && app.program_slug === programId)
+    )
+  );
 
   const { data: prefillData } = useQuery({
     queryKey: ["application-prefill"],
@@ -123,6 +140,38 @@ export const ProgramApply = () => {
     );
   }
 
+  if (isAlreadyApplied) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="p-8 text-center max-w-md border-emerald-500/30 shadow-xl bg-card">
+          <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4 text-emerald-600">
+            <CheckCircle className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Application Already Submitted</h2>
+          <p className="text-muted-foreground text-sm mb-6">
+            You have already applied for <span className="font-semibold text-foreground">{program?.title || "this program"}</span>.
+            You can review the status in your applications dashboard.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => navigate(isDashboard ? "/dashboard/applications" : "/login")}
+              className="w-full font-bold"
+            >
+              View My Applications
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(isDashboard ? "/dashboard/programs" : "/programs")}
+              className="w-full font-bold"
+            >
+              Back to Programs
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -149,6 +198,7 @@ export const ProgramApply = () => {
         current_company: formData.currentCompany,
         motivation: formData.motivation
       });
+      queryClient.invalidateQueries({ queryKey: ["my-program-applications"] });
       setIsSubmitted(true);
     } catch (err: any) {
       toast({

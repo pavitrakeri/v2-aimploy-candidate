@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Menu, LogOut } from "lucide-react";
-import aimployLogo from "@/assets/aimploy-logo.png";
 import { cn } from "@/lib/utils";
 
 const DashboardContent = () => {
@@ -37,7 +36,7 @@ const DashboardContent = () => {
               {/* Logo section */}
               <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border shrink-0">
                 <div className="flex items-center gap-3">
-                  <img src={aimployLogo} alt="Aimploy" className="h-8" />
+                  <img src="/aimploy-logo.png" alt="Aimploy" className="h-8 object-contain" />
                 </div>
               </div>
               
@@ -97,7 +96,7 @@ const DashboardContent = () => {
             </SheetContent>
           </Sheet>
           <Link to="/dashboard" className="flex items-center">
-            <img src={aimployLogo} alt="Aimploy" className="h-7" />
+            <img src="/aimploy-logo.png" alt="Aimploy" className="h-7 object-contain" />
           </Link>
         </div>
 

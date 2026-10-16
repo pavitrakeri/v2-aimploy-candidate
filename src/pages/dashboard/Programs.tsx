@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { programsApi } from "@/services/api";
+import { programsApi, tokenUtils } from "@/services/api";
 import * as Icons from "lucide-react";
 import aimployLogo from "@/assets/aimploy-logo.png";
 import {
@@ -18,7 +18,8 @@ import {
   Eye,
   Search,
   X,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 
 const getIconComponent = (iconName: string) => {
@@ -43,6 +44,7 @@ export const Programs = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isDashboard = location.pathname.startsWith("/dashboard");
+  const isAuthenticated = tokenUtils.isAuthenticated();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -51,6 +53,20 @@ export const Programs = () => {
     queryKey: ["programs"],
     queryFn: () => programsApi.getPrograms(),
   });
+
+  const { data: myApplications } = useQuery({
+    queryKey: ["my-program-applications"],
+    queryFn: () => programsApi.getMyProgramApplications(),
+    enabled: isAuthenticated,
+  });
+
+  const appliedProgramMap = new Map<string | number, any>();
+  if (myApplications && Array.isArray(myApplications)) {
+    myApplications.forEach((app: any) => {
+      if (app.program_slug) appliedProgramMap.set(app.program_slug, app);
+      if (app.program_id) appliedProgramMap.set(app.program_id, app);
+    });
+  }
 
   const handleViewDetails = (slug: string) => {
     navigate(isDashboard ? `/dashboard/programs/${slug}` : `/programs/${slug}`);
@@ -205,10 +221,17 @@ export const Programs = () => {
               
               <div className="grid gap-6 md:grid-cols-2">
                 {filteredPrograms && filteredPrograms.length > 0 ? (
-                  filteredPrograms.map((program, idx) => (
-                    <Card key={program.id} className="overflow-hidden bg-card/40 backdrop-blur-md shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative group border border-border/50 flex flex-col justify-between">
+                  filteredPrograms.map((program, idx) => {
+                    const appliedApp = appliedProgramMap.get(program.slug) || appliedProgramMap.get(program.id);
+                    const isApplied = !!appliedApp;
+
+                    return (
+                    <Card key={program.id} className={`overflow-hidden bg-card/40 backdrop-blur-md shadow-sm hover:shadow-xl transition-all duration-300 relative group border flex flex-col justify-between ${
+                      isApplied ? 'border-emerald-500/40 hover:border-emerald-500/60 ring-1 ring-emerald-500/20' : 'border-border/50 hover:border-primary/30'
+                    }`}>
                       {/* Top gradient bar */}
                       <div className={`absolute top-0 left-0 right-0 h-1 transition-all duration-500 group-hover:h-1.5 ${
+                        isApplied ? 'bg-gradient-to-r from-emerald-500 to-teal-400' :
                         idx % 3 === 0 ? 'bg-gradient-to-r from-primary to-primary/60' :
                         idx % 3 === 1 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
                         'bg-gradient-to-r from-indigo-500 to-indigo-400'
@@ -220,11 +243,19 @@ export const Programs = () => {
                           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors pointer-events-none" />
                           
                           <div className="relative z-10 flex items-start justify-between">
-                            <Badge variant="outline" className={`${
-                              program.badge_color || "text-primary border-primary/20 bg-primary/5"
-                            } px-2.5 py-0.5 text-xs font-semibold`}>
-                              {program.badge || "Featured"}
-                            </Badge>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className={`${
+                                program.badge_color || "text-primary border-primary/20 bg-primary/5"
+                              } px-2.5 py-0.5 text-xs font-semibold`}>
+                                {program.badge || "Featured"}
+                              </Badge>
+                              {isApplied && (
+                                <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold px-2.5 py-0.5 text-xs flex items-center gap-1 shadow-sm">
+                                  <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
+                                  Applied
+                                </Badge>
+                              )}
+                            </div>
                             <span className="text-4xl filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300 opacity-80 group-hover:opacity-100">
                               {program.image || "🎓"}
                             </span>
@@ -314,18 +345,30 @@ export const Programs = () => {
                             <Eye size={16} className="mr-2" />
                             Details
                           </Button>
-                          <Button
-                            variant="default"
-                            className="flex-1 rounded-xl h-11 font-bold text-sm tracking-wide shadow-sm hover:shadow-md transition-all"
-                            onClick={() => handleApply(program.slug)}
-                          >
-                            Apply Now
-                            <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                          </Button>
+                          {isApplied ? (
+                            <Button
+                              variant="secondary"
+                              className="flex-1 rounded-xl h-11 font-bold text-sm tracking-wide bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 transition-all flex items-center justify-center gap-2 shadow-sm"
+                              onClick={() => handleViewDetails(program.slug)}
+                            >
+                              <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
+                              Applied
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="default"
+                              className="flex-1 rounded-xl h-11 font-bold text-sm tracking-wide shadow-sm hover:shadow-md transition-all"
+                              onClick={() => handleApply(program.slug)}
+                            >
+                              Apply Now
+                              <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="col-span-2 py-16 text-center space-y-4 glass rounded-3xl border-2 border-dashed border-muted-foreground/20">
                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">

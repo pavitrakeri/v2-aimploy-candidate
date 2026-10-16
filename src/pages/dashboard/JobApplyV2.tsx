@@ -236,6 +236,14 @@ export const JobApplyV2 = () => {
                 </p>
               </div>
             </div>
+
+            <div className="p-3.5 bg-muted/40 border rounded-xl flex items-start gap-3 text-xs text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-foreground block">Fairness & Privacy Guarantee (EU AI Act & NYC Law 144 Compliant)</span>
+                <span>We evaluate <strong>what you say from text transcripts</strong> against job anchors. Emotion, vocal tone, pitch, pauses, and accents are NEVER analyzed. You can switch to typing answers at any time.</span>
+              </div>
+            </div>
           </CardContent>
           <CardFooter>
             <Button onClick={() => setStep("segment3")} className="w-full bg-primary hover:bg-primary/90">
@@ -379,22 +387,68 @@ export const JobApplyV2 = () => {
         </Card>
       )}
 
-      {/* Step 4: Submission Confirmation */}
+      {/* Step 4: Submission Confirmation & Candidate Strengths Summary */}
       {step === "submitted" && (
-        <Card className="border-emerald-500/20 bg-emerald-500/5 text-center p-8">
-          <CardContent className="space-y-4 pt-4">
-            <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto" />
-            <h2 className="text-2xl font-bold">Application Received!</h2>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Your application has been submitted. Our 3-run BARS AI scoring pipeline is evaluating your responses against role anchors.
-            </p>
-            <div className="flex justify-center gap-3 pt-4">
-              <Button onClick={() => navigate("/dashboard/applications")} variant="outline">
-                View My Applications
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card className="border-emerald-500/20 bg-emerald-500/5 text-center p-8">
+            <CardContent className="space-y-4 pt-4">
+              <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto" />
+              <h2 className="text-2xl font-bold">Application Received!</h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Your application has been submitted. Our 3-run BARS scoring pipeline is evaluating your situational responses against role anchors in &lt; 5 minutes.
+              </p>
+              <div className="flex justify-center gap-3 pt-2">
+                <Button onClick={() => navigate("/dashboard/applications")} variant="outline">
+                  View My Applications
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Qualitative Candidate Strengths Summary (Slide 17 Footnote) */}
+          <Card className="border shadow-md">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary" /> Plain-Language Strengths Overview
+                </CardTitle>
+                <Badge variant="secondary" className="text-xs">Slide 17 Candidate Feedback</Badge>
+              </div>
+              <CardDescription className="text-xs">
+                Constructive feedback grounded in Behaviorally Anchored Rating Scales (Smith &amp; Kendall 1963).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-xs">
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-1">
+                <span className="font-semibold text-primary block">Your Work Style &amp; Environment Synergy:</span>
+                <p className="text-muted-foreground leading-relaxed">
+                  Your responses demonstrate natural initiative and a preference for environments with collaborative autonomy and clear operational objectives.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="font-semibold block text-sm">Key Behavioral Themes Identified:</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+                    <span className="font-semibold text-foreground block">Proactive Ownership:</span>
+                    <p className="text-muted-foreground">Clear articulation of personal agency ("I took initiative") and anticipating risks before being asked.</p>
+                  </div>
+                  <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+                    <span className="font-semibold text-foreground block">Composure &amp; Adaptability:</span>
+                    <p className="text-muted-foreground">Focusing on root causes and restructuring tasks promptly when unexpected scope changes occur.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-300 space-y-1">
+                <span className="font-semibold block">Continued Growth Tip:</span>
+                <p className="opacity-90">
+                  In live conversations, continue highlighting quantitative business outcomes and early stakeholder alignment when solving complex challenges.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

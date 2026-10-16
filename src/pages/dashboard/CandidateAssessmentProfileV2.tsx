@@ -284,6 +284,19 @@ export const CandidateAssessmentProfileV2 = () => {
         </div>
       </div>
 
+      {/* EU AI Act & NYC Law 144 Privacy Guarantee */}
+      <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-start gap-3 text-xs text-emerald-950 dark:text-emerald-200">
+        <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <span className="font-semibold block text-sm text-emerald-900 dark:text-emerald-100">
+            Fairness & Science Guarantee (EU AI Act Art. 5(1)(f) Compliant)
+          </span>
+          <p className="leading-relaxed opacity-90">
+            We evaluate <strong>what you say from text transcripts</strong> against research-backed behavioral anchors. We <strong>NEVER</strong> analyze emotion, vocal pitch, tone, pauses, accent, or video. You can toggle text-only typing on any question.
+          </p>
+        </div>
+      </div>
+
       {saving && (
         <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2 text-sm text-primary">
           <Loader2 className="w-4 h-4 animate-spin shrink-0" />

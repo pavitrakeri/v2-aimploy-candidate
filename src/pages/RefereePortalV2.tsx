@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, CheckCircle2, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { ShieldCheck, CheckCircle2, ArrowRight, Loader2, AlertCircle, Mic, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiV2, RefereePortalData } from "@/services/apiV2";
 
@@ -24,6 +24,7 @@ export const RefereePortalV2 = () => {
   const [jobTitle, setJobTitle] = useState("Operations Coordinator");
   const [companyName, setCompanyName] = useState("Aimploy Partner");
   const [questions, setQuestions] = useState(DEFAULT_REFEREE_QUESTIONS);
+  const [recordingQId, setRecordingQId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({
     "4.1": "",
     "4.2": "",
@@ -35,6 +36,59 @@ export const RefereePortalV2 = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const toggleVoiceInput = (questionId: string) => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        title: "Speech Not Supported",
+        description: "Your browser does not support live speech recognition. You can type your response.",
+      });
+      return;
+    }
+
+    if (recordingQId === questionId) {
+      setRecordingQId(null);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      setRecordingQId(questionId);
+      toast({
+        title: "Microphone Active",
+        description: "Speak your response. We will transcribe it automatically.",
+      });
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript + " ";
+        }
+        setAnswers((prev) => ({
+          ...prev,
+          [questionId]: transcript.trim(),
+        }));
+      };
+
+      recognition.onerror = () => {
+        setRecordingQId(null);
+      };
+
+      recognition.onend = () => {
+        setRecordingQId(null);
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.warn("Speech recognition error:", e);
+      setRecordingQId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchPortalData = async () => {
@@ -159,16 +213,37 @@ export const RefereePortalV2 = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {questions.map((q) => (
-              <div key={q.id} className="space-y-2">
-                <Label className="text-sm font-semibold flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">{q.id}</Badge>
-                  {q.text}
-                </Label>
+              <div key={q.id} className="space-y-2 p-3 rounded-lg border border-border/50 bg-card/50">
+                <div className="flex items-start justify-between gap-2">
+                  <Label className="text-sm font-semibold flex items-start gap-2">
+                    <Badge variant="outline" className="text-xs mt-0.5">{q.id}</Badge>
+                    <span>{q.text}</span>
+                  </Label>
+                  <Button
+                    type="button"
+                    variant={recordingQId === q.id ? "destructive" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs flex items-center gap-1.5 shrink-0"
+                    onClick={() => toggleVoiceInput(q.id)}
+                  >
+                    {recordingQId === q.id ? (
+                      <>
+                        <MicOff className="w-3.5 h-3.5 animate-pulse" />
+                        Listening...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-3.5 h-3.5" />
+                        Voice Input
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <p className="text-xs text-muted-foreground">{q.hint}</p>
                 <Textarea
                   value={answers[q.id] || ""}
                   onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-                  placeholder="Share a concise, concrete example..."
+                  placeholder="Share a concise, concrete example (or click Voice Input to speak)..."
                   className="text-sm min-h-[90px]"
                 />
               </div>

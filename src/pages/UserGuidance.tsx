@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, LayoutDashboard, Briefcase, FileText, GraduationCap, Trophy, ShieldCheck, User } from "lucide-react";
-import aimployLogo from "@/assets/aimploy-logo.png";
 import moduleDashboard from "@/assets/module-dashboard.png";
 import moduleBrowseJobs from "@/assets/module-browse-jobs.png";
 import moduleApplications from "@/assets/module-applications.png";
@@ -123,7 +122,7 @@ export const UserGuidance = () => {
       >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={aimployLogo} alt="Aimploy" className="h-8" />
+            <img src="/aimploy-logo.png" alt="Aimploy" className="h-8 object-contain" />
           </Link>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild className="px-2.5">
@@ -253,7 +252,7 @@ export const UserGuidance = () => {
       <footer className="py-8 px-6 border-t">
         <div className="container mx-auto text-center">
           <Link to="/" className="inline-block mb-4">
-            <img src={aimployLogo} alt="Aimploy" className="h-6 mx-auto" />
+            <img src="/aimploy-logo.png" alt="Aimploy" className="h-6 mx-auto object-contain" />
           </Link>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Aimploy. All rights reserved.
