@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Mic,
+  MicOff,
   Square,
   Play,
   RotateCcw,
@@ -18,6 +19,7 @@ import {
   Volume2,
   Sparkles,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 export interface AudioRecordingV2 {
@@ -66,12 +68,70 @@ export const AudioQuestionFlowV2 = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAccessibilityMode, setIsAccessibilityMode] = useState(false);
   const [typedAnswer, setTypedAnswer] = useState("");
+  const [isDictating, setIsDictating] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const dictationRef = useRef<any>(null);
+
+  const toggleDictation = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        title: "Voice Dictation Unsupported",
+        description: "Your browser does not support live voice dictation. Please type directly.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isDictating) {
+      if (dictationRef.current) {
+        dictationRef.current.stop();
+      }
+      setIsDictating(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      dictationRef.current = recognition;
+
+      setIsDictating(true);
+      toast({
+        title: "Microphone Active",
+        description: "Speak your response. Live transcription will write into the text area.",
+      });
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript + " ";
+        }
+        setTypedAnswer(transcript.trim());
+      };
+
+      recognition.onerror = () => {
+        setIsDictating(false);
+      };
+
+      recognition.onend = () => {
+        setIsDictating(false);
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.warn("Speech recognition error:", e);
+      setIsDictating(false);
+    }
+  };
 
   const rawQuestion = questions[currentQuestionIndex];
   const questionText = typeof rawQuestion === "string" ? rawQuestion : rawQuestion.text;
@@ -288,9 +348,36 @@ export const AudioQuestionFlowV2 = ({
       {/* Main Flow: Accessibility Mode (Typed) vs Audio Recorder */}
       {isAccessibilityMode ? (
         <div className="space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Accessibility Mode: Your written response will be scored using the exact same Behaviorally Anchored Rating Scales (BARS 1–5).
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Accessibility Mode: Your response will be scored using Behaviorally Anchored Rating Scales (BARS 1–5).
+            </p>
+            <Button
+              type="button"
+              variant={isDictating ? "destructive" : "outline"}
+              size="sm"
+              onClick={toggleDictation}
+              className="gap-2 shrink-0 h-8 text-xs"
+            >
+              {isDictating ? (
+                <>
+                  <MicOff className="w-3.5 h-3.5 animate-pulse text-white" />
+                  <span>Stop Dictating</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-3.5 h-3.5 text-primary" />
+                  <span>Voice Dictation (Live STT)</span>
+                </>
+              )}
+            </Button>
+          </div>
+          {isDictating && (
+            <div className="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/20 rounded-md text-xs text-red-600 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              Microphone listening... Speak clearly and your words will appear below.
+            </div>
+          )}
           <Textarea
             value={typedAnswer}
             onChange={(e) => setTypedAnswer(e.target.value)}
