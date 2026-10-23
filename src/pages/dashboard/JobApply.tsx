@@ -27,6 +27,7 @@ import { jobsApi, Job, applicationsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import AudioQuestionFlow from "@/components/audio/AudioQuestionFlow";
 import { Textarea } from "@/components/ui/textarea";
+import { apiV2 } from "@/services/apiV2";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -130,13 +131,20 @@ export const JobApply = () => {
       if (!jobId) return;
 
       try {
-        const [jobData, prefillData, questionsData, applicationsData, eligibilityData] = await Promise.all([
+        const [jobData, prefillData, questionsData, applicationsData, eligibilityData, v2Profile] = await Promise.all([
           jobsApi.getJobById(parseInt(jobId)),
           jobsApi.getApplicationPrefill().catch(() => null),
           jobsApi.getJobAudioQuestions(parseInt(jobId)),
           applicationsApi.getMyApplications({ page_size: 100 }).catch(() => ({ applications: [] })),
           jobsApi.checkJobEligibility(parseInt(jobId)).catch(() => null),
+          apiV2.getRoleProfile(parseInt(jobId)).catch(() => null),
         ]);
+
+        // If this role was set up with an approved v2 Audio Profile, seamlessly route to v2 Structured Interview flow
+        if (v2Profile && (v2Profile.status === "approved" || v2Profile.status === "active")) {
+          navigate(`/dashboard/jobs/${jobId}/apply-v2`, { replace: true });
+          return;
+        }
 
         setJob(jobData);
         setEligibility(eligibilityData);

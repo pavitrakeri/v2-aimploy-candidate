@@ -234,5 +234,24 @@ export const apiV2 = {
     if (!res.ok) return null;
     return await res.json();
   },
+
+  /**
+   * Check if a job has an approved v2 Role Profile
+   */
+  async getRoleProfile(jobId: number) {
+    const baseUrl = getApiV2BaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/company/roles/${jobId}/profile`, {
+        headers: {
+          ...getAuthHeaders(),
+        },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.role_profile || data;
+    } catch {
+      return null;
+    }
+  },
 };
 

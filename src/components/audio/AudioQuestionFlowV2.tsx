@@ -402,6 +402,22 @@ export const AudioQuestionFlowV2 = ({
                 </Button>
                 <p className="text-sm font-medium">Click to Record (1–3 min answer)</p>
                 <p className="text-xs text-muted-foreground mt-1">Take a breath, speak naturally with specific examples.</p>
+
+                <div className="mt-4 pt-3 border-t border-border/40">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsAccessibilityMode(true);
+                      setQuestionState("idle");
+                    }}
+                    className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                  >
+                    <Keyboard className="w-3.5 h-3.5" />
+                    Prefer to type your answer instead?
+                  </Button>
+                </div>
               </motion.div>
             )}
 

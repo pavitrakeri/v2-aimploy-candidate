@@ -30,10 +30,12 @@ import {
   Briefcase,
   TrendingUp,
   AlertCircle,
-  GraduationCap
+  GraduationCap,
+  Sparkles
 } from "lucide-react";
 import { applicationsApi, programsApi, Application } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { CandidateStrengthsModal } from "@/components/CandidateStrengthsModal";
 
 const stages = ["Applied", "Screening", "Interview", "Final Round", "Decision"];
 
@@ -112,6 +114,8 @@ export const Applications = () => {
   const [activeSubTab, setActiveSubTab] = useState<'jobs' | 'programs'>('jobs');
   const [programApplications, setProgramApplications] = useState<any[]>([]);
   const [selectedProgramApp, setSelectedProgramApp] = useState<any | null>(null);
+  const [strengthsModalOpen, setStrengthsModalOpen] = useState(false);
+  const [strengthsApp, setStrengthsApp] = useState<{ id: number; title: string; company: string } | null>(null);
 
   // Stats
   const [stats, setStats] = useState({
@@ -442,19 +446,37 @@ export const Applications = () => {
                                 </Button>
                               </>
                             ) : (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="flex-1"
-                                onClick={() => {
-                                  setSelectedProgramApp(null);
-                                  setSelectedApplication(app);
-                                  setIsDetailsOpen(true);
-                                }}
-                              >
-                                <ExternalLink size={14} className="mr-1" />
-                                View Details
-                              </Button>
+                              <>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="flex-1 border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30"
+                                  onClick={() => {
+                                    setStrengthsApp({
+                                      id: app.id,
+                                      title: app.job_title || "Position",
+                                      company: app.company_name || "Company"
+                                    });
+                                    setStrengthsModalOpen(true);
+                                  }}
+                                >
+                                  <Sparkles size={14} className="mr-1 text-emerald-600" />
+                                  Strengths
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setSelectedProgramApp(null);
+                                    setSelectedApplication(app);
+                                    setIsDetailsOpen(true);
+                                  }}
+                                >
+                                  <ExternalLink size={14} className="mr-1" />
+                                  View Details
+                                </Button>
+                              </>
                             )}
                             <Button variant="ghost" size="sm">
                               <MoreVertical size={16} />
@@ -714,6 +736,21 @@ export const Applications = () => {
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
+                  className="flex-1 border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                  onClick={() => {
+                    setStrengthsApp({
+                      id: selectedApplication.id,
+                      title: selectedApplication.job_title || "Position",
+                      company: selectedApplication.company_name || "Company"
+                    });
+                    setStrengthsModalOpen(true);
+                  }}
+                >
+                  <Sparkles size={14} className="mr-2 text-emerald-600" />
+                  View Strengths Feedback
+                </Button>
+                <Button 
+                  variant="outline" 
                   className="flex-1"
                   onClick={() => {
                     setIsDetailsOpen(false);
@@ -878,6 +915,15 @@ export const Applications = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Candidate Strengths Feedback Modal (v2 Plain-Language Report) */}
+      <CandidateStrengthsModal
+        isOpen={strengthsModalOpen}
+        onClose={() => setStrengthsModalOpen(false)}
+        applicationId={strengthsApp?.id || null}
+        jobTitle={strengthsApp?.title}
+        companyName={strengthsApp?.company}
+      />
     </motion.div>
   );
 };
