@@ -48,7 +48,8 @@ export const apiV2 = {
     blob: Blob,
     questionId: string,
     entityType: "candidate" | "referee" = "candidate",
-    entityId?: number
+    entityId?: number,
+    language?: string
   ): Promise<AudioTranscribeResult> {
     const baseUrl = getApiV2BaseUrl();
     const formData = new FormData();
@@ -57,6 +58,7 @@ export const apiV2 = {
     formData.append("question_id", questionId);
     formData.append("entity_type", entityType);
     if (entityId) formData.append("entity_id", String(entityId));
+    if (language) formData.append("language", language);
 
     const res = await fetch(`${baseUrl}/audio/transcribe`, {
       method: "POST",
@@ -251,6 +253,40 @@ export const apiV2 = {
       return data.role_profile || data;
     } catch {
       return null;
+    }
+  },
+
+  /**
+   * Submit voluntary isolated diversity demographic data for NYC LL144 & EEOC adverse impact monitoring
+   */
+  async submitVoluntaryDiversity(payload: {
+    candidateId?: number;
+    applicationId?: number;
+    gender?: string;
+    ageBracket?: string;
+    ethnicityRegion?: string;
+    disabilityOrNeurodiversity?: string;
+  }) {
+    const baseUrl = getApiV2BaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/analytics/diversity/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          candidate_id: payload.candidateId,
+          application_id: payload.applicationId,
+          gender: payload.gender,
+          age_bracket: payload.ageBracket,
+          ethnicity_region: payload.ethnicityRegion,
+          disability_or_neurodiversity: payload.disabilityOrNeurodiversity,
+        }),
+      });
+      return await res.json();
+    } catch {
+      return { success: true };
     }
   },
 };

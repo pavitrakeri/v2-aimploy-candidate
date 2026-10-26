@@ -139,7 +139,7 @@ export const CandidateAssessmentProfileV2 = () => {
         };
       } else if (rec.blob) {
         try {
-          const transResult = await apiV2.transcribeAudio(rec.blob, q.id, "candidate", candidateId);
+          const transResult = await apiV2.transcribeAudio(rec.blob, q.id, "candidate", candidateId, rec.language);
           answers[q.id] = {
             question_id: q.id,
             transcript: transResult.transcript,

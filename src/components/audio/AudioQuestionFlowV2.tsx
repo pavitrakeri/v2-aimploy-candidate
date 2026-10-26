@@ -17,7 +17,7 @@ import {
   Pause,
   Keyboard,
   Volume2,
-  Sparkles,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,17 @@ export interface AudioRecordingV2 {
   duration: number;
   textResponse?: string;
   isTextOnly: boolean;
+  language?: string;
 }
+
+export const SUPPORTED_INTERVIEW_LANGUAGES = [
+  { code: "en", label: "English", speechCode: "en-US" },
+  { code: "hi", label: "Hindi (हिन्दी)", speechCode: "hi-IN" },
+  { code: "ml", label: "Malayalam (മലയാളം)", speechCode: "ml-IN" },
+  { code: "ar", label: "Arabic (العربية)", speechCode: "ar-SA" },
+  { code: "es", label: "Spanish (Español)", speechCode: "es-ES" },
+  { code: "fr", label: "French (Français)", speechCode: "fr-FR" },
+];
 
 export interface QuestionItemV2 {
   id: string;
@@ -69,6 +79,7 @@ export const AudioQuestionFlowV2 = ({
   const [isAccessibilityMode, setIsAccessibilityMode] = useState(false);
   const [typedAnswer, setTypedAnswer] = useState("");
   const [isDictating, setIsDictating] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -101,12 +112,13 @@ export const AudioQuestionFlowV2 = ({
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = "en-US";
+      const langObj = SUPPORTED_INTERVIEW_LANGUAGES.find((l) => l.code === selectedLanguage);
+      recognition.lang = langObj?.speechCode || "en-US";
       dictationRef.current = recognition;
 
       setIsDictating(true);
       toast({
-        title: "Microphone Active",
+        title: `Microphone Active (${langObj?.label || "English"})`,
         description: "Speak your response. Live transcription will write into the text area.",
       });
 
@@ -199,6 +211,7 @@ export const AudioQuestionFlowV2 = ({
           url: audioUrl,
           duration: recordingTime,
           isTextOnly: false,
+          language: selectedLanguage,
         };
 
         const updated = [...recordings];
@@ -265,6 +278,7 @@ export const AudioQuestionFlowV2 = ({
       duration: 0,
       textResponse: typedAnswer,
       isTextOnly: true,
+      language: selectedLanguage,
     };
     const updated = [...recordings];
     updated[currentQuestionIndex] = newRecording;
@@ -311,25 +325,44 @@ export const AudioQuestionFlowV2 = ({
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-card border rounded-2xl shadow-xl transition-all">
       {/* Progress & Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-primary font-semibold px-3 py-1 bg-primary/10">
             {questionId} · Question {currentQuestionIndex + 1} of {questions.length}
           </Badge>
-          <span className="text-xs text-muted-foreground">v2 Structured Interview</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">v2 Structured Interview</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="acc-mode" className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer">
-            <Keyboard className="w-3.5 h-3.5" /> Text Alternative
-          </Label>
-          <Switch
-            id="acc-mode"
-            checked={isAccessibilityMode}
-            onCheckedChange={(checked) => {
-              setIsAccessibilityMode(checked);
-              setQuestionState("idle");
-            }}
-          />
+        <div className="flex items-center gap-3">
+          {/* Multilingual Selector (EU AI Act & Global Hiring) */}
+          <div className="flex items-center gap-1.5 bg-muted/60 px-2 py-1 rounded-lg border text-xs">
+            <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+            <select
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className="bg-transparent text-xs font-medium text-foreground focus:outline-none cursor-pointer"
+              title="Interview Spoken Language"
+            >
+              {SUPPORTED_INTERVIEW_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code} className="bg-popover text-foreground">
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Label htmlFor="acc-mode" className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer">
+              <Keyboard className="w-3.5 h-3.5" /> Text Alternative
+            </Label>
+            <Switch
+              id="acc-mode"
+              checked={isAccessibilityMode}
+              onCheckedChange={(checked) => {
+                setIsAccessibilityMode(checked);
+                setQuestionState("idle");
+              }}
+            />
+          </div>
         </div>
       </div>
 

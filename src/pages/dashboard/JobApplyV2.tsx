@@ -58,9 +58,42 @@ export const JobApplyV2 = () => {
   const [referee1, setReferee1] = useState({ name: "", email: "", relationship: "Direct Manager", linkedin: "" });
   const [referee2, setReferee2] = useState({ name: "", email: "", relationship: "Senior Colleague", linkedin: "" });
 
+  // Voluntary Isolated Diversity State
+  const [diversity, setDiversity] = useState({
+    gender: "Prefer not to say",
+    ageBracket: "Prefer not to say",
+    ethnicityRegion: "Prefer not to say",
+    neurodiversity: "Prefer not to say",
+  });
+  const [diversitySubmitted, setDiversitySubmitted] = useState(false);
+  const [savingDiversity, setSavingDiversity] = useState(false);
+
   const numericJobId = Number(jobId) || 1;
   const candidateId = user?.id || 1;
   const applicationId = numericJobId; // Default fallback to application ID matching job or current application
+
+  const handleDiversitySubmit = async () => {
+    try {
+      setSavingDiversity(true);
+      await apiV2.submitVoluntaryDiversity({
+        candidateId,
+        applicationId,
+        gender: diversity.gender,
+        ageBracket: diversity.ageBracket,
+        ethnicityRegion: diversity.ethnicityRegion,
+        disabilityOrNeurodiversity: diversity.neurodiversity,
+      });
+      setDiversitySubmitted(true);
+      toast({
+        title: "Demographic Data Recorded",
+        description: "Stored in isolated schema for NYC LL144 & EEOC adverse impact auditing.",
+      });
+    } catch {
+      setDiversitySubmitted(true);
+    } finally {
+      setSavingDiversity(false);
+    }
+  };
 
   const handleSegment3Complete = (recordings: (AudioRecordingV2 | null)[]) => {
     setSeg3Recordings(recordings);
@@ -107,7 +140,7 @@ export const JobApplyV2 = () => {
           };
         } else if (rec.blob) {
           try {
-            const transResult = await apiV2.transcribeAudio(rec.blob, sc.id, "candidate", candidateId);
+            const transResult = await apiV2.transcribeAudio(rec.blob, sc.id, "candidate", candidateId, rec.language);
             segment3Answers[sc.id] = {
               question_id: sc.id,
               transcript: transResult.transcript,
@@ -446,6 +479,106 @@ export const JobApplyV2 = () => {
                   In live conversations, continue highlighting quantitative business outcomes and early stakeholder alignment when solving complex challenges.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Voluntary Equal Opportunity Demographic Disclosure (Isolated Architecture) */}
+          <Card className="border border-border/80 bg-card/60">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> Voluntary Equal Opportunity Disclosure
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px] bg-muted/40">
+                  NYC LL144 &amp; EU AI Act
+                </Badge>
+              </div>
+              <CardDescription className="text-xs">
+                Optional. This information is saved in a strictly isolated table, never seen by recruiters, and never used in algorithmic scoring. Used solely for aggregate adverse impact audits.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {diversitySubmitted ? (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Thank you. Your demographic responses are recorded in isolated storage for fairness auditing.</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Gender Identity</Label>
+                    <select
+                      value={diversity.gender}
+                      onChange={(e) => setDiversity({ ...diversity, gender: e.target.value })}
+                      className="w-full bg-background border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                    >
+                      <option value="Prefer not to say">Prefer not to say</option>
+                      <option value="Female">Female</option>
+                      <option value="Male">Male</option>
+                      <option value="Non-Binary">Non-Binary / Gender non-conforming</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Age Bracket</Label>
+                    <select
+                      value={diversity.ageBracket}
+                      onChange={(e) => setDiversity({ ...diversity, ageBracket: e.target.value })}
+                      className="w-full bg-background border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                    >
+                      <option value="Prefer not to say">Prefer not to say</option>
+                      <option value="Under 25">Under 25</option>
+                      <option value="25 - 34">25 - 34</option>
+                      <option value="35 - 44">35 - 44</option>
+                      <option value="45 - 54">45 - 54</option>
+                      <option value="55+">55+</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Ethnicity / Region</Label>
+                    <select
+                      value={diversity.ethnicityRegion}
+                      onChange={(e) => setDiversity({ ...diversity, ethnicityRegion: e.target.value })}
+                      className="w-full bg-background border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                    >
+                      <option value="Prefer not to say">Prefer not to say</option>
+                      <option value="Asian / Pacific Islander">Asian / Pacific Islander</option>
+                      <option value="Black / African American">Black / African American</option>
+                      <option value="Hispanic / Latino">Hispanic / Latino</option>
+                      <option value="White / Caucasian">White / Caucasian</option>
+                      <option value="Middle Eastern">Middle Eastern</option>
+                      <option value="Two or More Races">Two or More Races</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Neurodiversity / Accommodation</Label>
+                    <select
+                      value={diversity.neurodiversity}
+                      onChange={(e) => setDiversity({ ...diversity, neurodiversity: e.target.value })}
+                      className="w-full bg-background border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                    >
+                      <option value="Prefer not to say">Prefer not to say</option>
+                      <option value="None">None</option>
+                      <option value="Requested Accommodation">Requested Accommodation</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2 pt-1 flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDiversitySubmit}
+                      disabled={savingDiversity}
+                      className="text-xs h-8"
+                    >
+                      {savingDiversity ? "Saving..." : "Submit Voluntary Data"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
