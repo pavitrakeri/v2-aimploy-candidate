@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,100 @@ export const RefereePortalV2 = () => {
   const [submitted, setSubmitted] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
+  const recognitionRef = useRef<any>(null);
+  const activeQIdRef = useRef<string | null>(null);
+  const baseTextRef = useRef<string>("");
+  const sessionFinalRef = useRef<string>("");
+  const isStoppingIntentionallyRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      isStoppingIntentionallyRef.current = true;
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+    };
+  }, []);
+
+  const startRecognitionSession = (questionId: string) => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      recognitionRef.current = recognition;
+
+      recognition.onresult = (event: any) => {
+        let currentFinal = "";
+        let currentInterim = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const chunk = event.results[i][0]?.transcript || "";
+          if (event.results[i].isFinal) {
+            currentFinal += chunk + " ";
+          } else {
+            currentInterim += chunk;
+          }
+        }
+
+        sessionFinalRef.current = currentFinal.trim();
+        const full = [
+          baseTextRef.current,
+          sessionFinalRef.current,
+          currentInterim.trim()
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        setAnswers((prev) => ({
+          ...prev,
+          [questionId]: full,
+        }));
+      };
+
+      recognition.onerror = () => {
+        if (!isStoppingIntentionallyRef.current) {
+          setRecordingQId(null);
+          activeQIdRef.current = null;
+        }
+      };
+
+      recognition.onend = () => {
+        if (sessionFinalRef.current) {
+          baseTextRef.current = [baseTextRef.current, sessionFinalRef.current]
+            .filter(Boolean)
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim();
+          sessionFinalRef.current = "";
+        }
+
+        if (!isStoppingIntentionallyRef.current && activeQIdRef.current === questionId) {
+          try {
+            recognition.start();
+          } catch (e) {
+            setRecordingQId(null);
+            activeQIdRef.current = null;
+          }
+        } else {
+          setRecordingQId(null);
+          activeQIdRef.current = null;
+        }
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.warn("Speech recognition error:", e);
+      setRecordingQId(null);
+      activeQIdRef.current = null;
+    }
+  };
+
   const toggleVoiceInput = (questionId: string) => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -47,47 +141,33 @@ export const RefereePortalV2 = () => {
       return;
     }
 
-    if (recordingQId === questionId) {
+    if (activeQIdRef.current === questionId) {
+      isStoppingIntentionallyRef.current = true;
+      activeQIdRef.current = null;
       setRecordingQId(null);
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
       return;
     }
 
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
-
-      setRecordingQId(questionId);
-      toast({
-        title: "Microphone Active",
-        description: "Speak your response. We will transcribe it automatically.",
-      });
-
-      recognition.onresult = (event: any) => {
-        let transcript = "";
-        for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript + " ";
-        }
-        setAnswers((prev) => ({
-          ...prev,
-          [questionId]: transcript.trim(),
-        }));
-      };
-
-      recognition.onerror = () => {
-        setRecordingQId(null);
-      };
-
-      recognition.onend = () => {
-        setRecordingQId(null);
-      };
-
-      recognition.start();
-    } catch (e) {
-      console.warn("Speech recognition error:", e);
-      setRecordingQId(null);
+    if (recognitionRef.current) {
+      isStoppingIntentionallyRef.current = true;
+      try { recognitionRef.current.stop(); } catch (e) {}
     }
+
+    isStoppingIntentionallyRef.current = false;
+    activeQIdRef.current = questionId;
+    setRecordingQId(questionId);
+    baseTextRef.current = (answers[questionId] || "").trim();
+    sessionFinalRef.current = "";
+
+    toast({
+      title: "Microphone Active",
+      description: "Speak your response. You can pause and resume without losing prior words.",
+    });
+
+    startRecognitionSession(questionId);
   };
 
   useEffect(() => {

@@ -87,6 +87,87 @@ export const AudioQuestionFlowV2 = ({
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const dictationRef = useRef<any>(null);
+  const baseTypedTextRef = useRef<string>("");
+  const sessionDictationFinalRef = useRef<string>("");
+  const isDictatingIntentionallyRef = useRef<boolean>(false);
+
+  const startDictationSession = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      const langObj = SUPPORTED_INTERVIEW_LANGUAGES.find((l) => l.code === selectedLanguage);
+      recognition.lang = langObj?.speechCode || "en-US";
+      dictationRef.current = recognition;
+
+      recognition.onresult = (event: any) => {
+        let sessionFinal = "";
+        let sessionInterim = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const chunk = event.results[i][0]?.transcript || "";
+          if (event.results[i].isFinal) {
+            sessionFinal += chunk + " ";
+          } else {
+            sessionInterim += chunk;
+          }
+        }
+
+        sessionDictationFinalRef.current = sessionFinal.trim();
+        const full = [
+          baseTypedTextRef.current,
+          sessionDictationFinalRef.current,
+          sessionInterim.trim(),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        setTypedAnswer(full);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn("Speech recognition error:", event?.error);
+        if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
+          isDictatingIntentionallyRef.current = false;
+          setIsDictating(false);
+        }
+      };
+
+      recognition.onend = () => {
+        if (sessionDictationFinalRef.current) {
+          baseTypedTextRef.current = [baseTypedTextRef.current, sessionDictationFinalRef.current]
+            .filter(Boolean)
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim();
+          sessionDictationFinalRef.current = "";
+        }
+
+        if (isDictatingIntentionallyRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {
+            setIsDictating(false);
+            isDictatingIntentionallyRef.current = false;
+          }
+        } else {
+          setIsDictating(false);
+        }
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.warn("Speech recognition error:", e);
+      setIsDictating(false);
+      isDictatingIntentionallyRef.current = false;
+    }
+  };
 
   const toggleDictation = () => {
     const SpeechRecognition =
@@ -101,48 +182,28 @@ export const AudioQuestionFlowV2 = ({
     }
 
     if (isDictating) {
+      isDictatingIntentionallyRef.current = false;
       if (dictationRef.current) {
-        dictationRef.current.stop();
+        try {
+          dictationRef.current.stop();
+        } catch (e) {}
       }
       setIsDictating(false);
       return;
     }
 
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      const langObj = SUPPORTED_INTERVIEW_LANGUAGES.find((l) => l.code === selectedLanguage);
-      recognition.lang = langObj?.speechCode || "en-US";
-      dictationRef.current = recognition;
+    baseTypedTextRef.current = typedAnswer.trim();
+    sessionDictationFinalRef.current = "";
+    isDictatingIntentionallyRef.current = true;
+    setIsDictating(true);
 
-      setIsDictating(true);
-      toast({
-        title: `Microphone Active (${langObj?.label || "English"})`,
-        description: "Speak your response. Live transcription will write into the text area.",
-      });
+    const langObj = SUPPORTED_INTERVIEW_LANGUAGES.find((l) => l.code === selectedLanguage);
+    toast({
+      title: `Microphone Active (${langObj?.label || "English"})`,
+      description: "Speak your response. You can pause and resume without losing prior words.",
+    });
 
-      recognition.onresult = (event: any) => {
-        let transcript = "";
-        for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript + " ";
-        }
-        setTypedAnswer(transcript.trim());
-      };
-
-      recognition.onerror = () => {
-        setIsDictating(false);
-      };
-
-      recognition.onend = () => {
-        setIsDictating(false);
-      };
-
-      recognition.start();
-    } catch (e) {
-      console.warn("Speech recognition error:", e);
-      setIsDictating(false);
-    }
+    startDictationSession();
   };
 
   const rawQuestion = questions[currentQuestionIndex];
