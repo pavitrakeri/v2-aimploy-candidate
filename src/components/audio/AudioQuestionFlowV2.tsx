@@ -18,6 +18,7 @@ import {
   Keyboard,
   Volume2,
   Globe,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
