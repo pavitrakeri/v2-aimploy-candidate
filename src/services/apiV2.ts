@@ -4,16 +4,14 @@
  */
 
 export const getApiV2BaseUrl = (): string => {
-  const envUrl = import.meta.env.VITE_API_V2_URL || import.meta.env.VITE_API_URL;
-  if (!envUrl) return "http://localhost:8000/api/v2";
-  // Replace trailing /api/v1 or /api/v1/ with /api/v2
-  if (envUrl.includes("/api/v1")) {
-    return envUrl.replace(/\/api\/v1\/?$/, "/api/v2");
-  }
-  if (!envUrl.includes("/api/v2")) {
+  const envUrl = import.meta.env.VITE_API_V2_URL;
+  if (envUrl) {
+    if (envUrl.includes("/api/v2")) {
+      return envUrl.replace(/\/+$/, "");
+    }
     return `${envUrl.replace(/\/+$/, "")}/api/v2`;
   }
-  return envUrl.replace(/\/+$/, "");
+  return "https://v2-aimploy-backend.onrender.com/api/v2";
 };
 
 const getAuthHeaders = (): Record<string, string> => {
